@@ -165,10 +165,18 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
           const staticFiles: PendingStaticFile[] = [];
           let islandMods: IslandModChunk[] = [];
           let clientEntry = "/@id/fresh:client-entry";
+          let hmrClientEntry: string | undefined;
           let buildId = "";
           const entryAssets: string[] = [];
 
           if (isDev && server !== undefined) {
+            // The client entry hosts the HMR listener. Set hmrClientEntry so
+            // the SSR runtime always emits a boot script in dev, even when
+            // a page has zero islands. Without this, edits to islands-free
+            // routes never trigger a browser reload because the
+            // `fresh:reload` WebSocket listener is never attached.
+            hmrClientEntry = clientEntry;
+
             for (const id of islands.keys()) {
               const mod = server.environments.client.moduleGraph.getModuleById(
                 id,
@@ -380,6 +388,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
             staticFiles,
             buildId,
             clientEntry,
+            hmrClientEntry,
             entryAssets,
             fsRoutesFiles: result.routes,
             islands: islandMods,

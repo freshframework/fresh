@@ -458,6 +458,7 @@ export async function generateSnapshotServer(
     outDir: string;
     buildId: string;
     clientEntry: string;
+    hmrClientEntry?: string;
     islands: IslandModChunk[];
     // deno-lint-ignore no-explicit-any
     fsRoutesFiles: FsRouteFileNoMod<any>[];
@@ -524,12 +525,17 @@ export async function generateSnapshotServer(
   const entryAssets = options.entryAssets.map((url) => JSON.stringify(url))
     .join(",\n");
 
+  const hmrClientEntryDecl = options.hmrClientEntry !== undefined
+    ? `export const hmrClientEntry = ${JSON.stringify(options.hmrClientEntry)}`
+    : "";
+
   return `${EDIT_WARNING}
 import { IslandPreparer } from "fresh/internal";
 ${islandImports}
 ${fsRouteImports}
 
 export const clientEntry = ${JSON.stringify(options.clientEntry)}
+${hmrClientEntryDecl}
 export const version = ${JSON.stringify(options.buildId)}
 
 export const islands = new Map();

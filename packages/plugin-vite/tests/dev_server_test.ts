@@ -69,6 +69,23 @@ integrationTest("vite dev - starts without islands/ dir", async () => {
   });
 });
 
+// Issue: https://github.com/denoland/fresh/issues/3806
+// Pages without islands must still load the client entry in dev so the
+// HMR `fresh:reload` listener attaches and route edits trigger a refresh.
+integrationTest(
+  "vite dev - injects client entry on islands-free pages for HMR",
+  async () => {
+    const fixture = path.join(FIXTURE_DIR, "no_islands");
+    await withDevServer(fixture, async (address) => {
+      const res = await fetch(`${address}/`);
+      const text = await res.text();
+      expect(text).toContain("ok");
+      expect(text).toContain("/@id/fresh:client-entry");
+      expect(text).toMatch(/import\s*\{\s*boot\s*\}/);
+    });
+  },
+);
+
 integrationTest("vite dev - starts without routes/ dir", async () => {
   const fixture = path.join(FIXTURE_DIR, "no_routes");
   await withDevServer(fixture, async (address) => {
