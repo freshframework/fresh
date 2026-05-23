@@ -3,7 +3,7 @@ import { IS_BROWSER } from "../shared.ts";
 let ws: WebSocket;
 let revision = 0;
 
-let reconnectTimer: number;
+let reconnectTimer: ReturnType<typeof setTimeout>;
 const backoff = [
   // Wait 100ms initially, because we could also be
   // disconnected because of a form submit.
