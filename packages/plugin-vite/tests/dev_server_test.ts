@@ -307,7 +307,7 @@ integrationTest(
 
         {
           // check _app/_layout/_error
-          await page.goto(`${address}/non_existent`, {
+          await page.goto(`${address}/boom`, {
             waitUntil: "networkidle2",
           });
 
@@ -325,6 +325,28 @@ integrationTest(
             .locator<HTMLHeadingElement>(".blue > h1")
             .evaluate((el) => window.getComputedStyle(el).color);
           expect(_error).toEqual("rgb(0, 0, 255)");
+        }
+
+        {
+          // check _app/_layout/_404
+          await page.goto(`${address}/non_existent`, {
+            waitUntil: "networkidle2",
+          });
+
+          const _app = await page
+            .locator<HTMLHeadingElement>(".green > h1")
+            .evaluate((el) => window.getComputedStyle(el).color);
+          expect(_app).toEqual("rgb(0, 128, 0)");
+
+          const _layout = await page
+            .locator<HTMLHeadingElement>(".red > h1")
+            .evaluate((el) => window.getComputedStyle(el).color);
+          expect(_layout).toEqual("rgb(255, 0, 0)");
+
+          const _404 = await page
+            .locator<HTMLHeadingElement>(".orange > h1")
+            .evaluate((el) => window.getComputedStyle(el).color);
+          expect(_404).toEqual("rgb(255, 165, 0)");
         }
       });
     });

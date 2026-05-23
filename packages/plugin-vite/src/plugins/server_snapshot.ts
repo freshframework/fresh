@@ -25,6 +25,17 @@ import * as path from "@std/path";
 import { getBuildId } from "./build_id.ts";
 
 const CSS_LANG_REG = /\.(css|less|sass|scss)(\?.*)?$/;
+export const FRESH_CSS_PLACEHOLDER = `["__FRESH_CSS_PLACEHOLDER__"]`;
+
+export function replaceFreshCssPlaceholders(
+  content: string,
+  css: string[] | undefined,
+): string {
+  return content.replaceAll(
+    FRESH_CSS_PLACEHOLDER,
+    css ? JSON.stringify(css.map((href) => `/${href}`)) : "null",
+  );
+}
 
 export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
   const modName = "fresh:server-snapshot";
@@ -530,15 +541,10 @@ export default ${JSON.stringify(route.css)}
 
             const filePath = path.join(serverOutDir, info.file);
             const content = await Deno.readTextFile(filePath);
-            if (!content.includes(`["__FRESH_CSS_PLACEHOLDER__"]`)) continue;
+            if (!content.includes(FRESH_CSS_PLACEHOLDER)) continue;
 
             // Replace all placeholders in the file with the CSS
-            const replaced = content.replaceAll(
-              `["__FRESH_CSS_PLACEHOLDER__"]`,
-              info.css
-                ? JSON.stringify(info.css.map((css) => `/${css}`))
-                : "null",
-            );
+            const replaced = replaceFreshCssPlaceholders(content, info.css);
 
             await Deno.writeTextFile(filePath, replaced);
           }
