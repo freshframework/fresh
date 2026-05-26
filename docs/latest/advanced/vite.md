@@ -150,8 +150,8 @@ Any `builder.registerIsland("jsr:@scope/pkg/Island.tsx")` calls become
 ### 3. Add a `client.ts` entry
 
 The Builder discovered CSS by scanning `static/`. Vite needs CSS to be part of
-the module graph so it can hash, bundle, and hot-reload it. Move your
-stylesheet out of `static/` and import it from a new `client.ts` file:
+the module graph so it can hash, bundle, and hot-reload it. Move your stylesheet
+out of `static/` and import it from a new `client.ts` file:
 
 ```diff Project structure
   <project root>
@@ -220,8 +220,8 @@ deno task start    # deno serve -A _fresh/server.js
 ```
 
 The output layout under `_fresh/` is the same as the Builder produced, so
-deployment configuration (Deno Deploy, Docker, `deno compile`) does not need
-to change.
+deployment configuration (Deno Deploy, Docker, `deno compile`) does not need to
+change.
 
 ### Checklist
 
@@ -234,8 +234,8 @@ to change.
 - [ ] Tailwind (if used) switched to `@tailwindcss/vite`
 
 > [info]: If you get stuck, run `deno run -Ar jsr:@fresh/init` in a scratch
-> directory and diff the generated project against yours — the generator is
-> the source of truth for a working Vite-based Fresh setup.
+> directory and diff the generated project against yours — the generator is the
+> source of truth for a working Vite-based Fresh setup.
 
 ## Debugging
 
