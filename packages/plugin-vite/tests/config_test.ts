@@ -2,7 +2,7 @@ import { expect } from "@std/expect";
 import { fresh } from "../src/mod.ts";
 import type { Plugin } from "vite";
 
-Deno.test("fresh plugin - sets server.watch.ignored patterns", async () => {
+Deno.test("fresh plugin - sets server.watch.ignored patterns", () => {
   const plugins = fresh() as Plugin[];
   const freshPlugin = plugins.find((p) => p.name === "fresh");
   expect(freshPlugin).toBeDefined();
@@ -10,7 +10,7 @@ Deno.test("fresh plugin - sets server.watch.ignored patterns", async () => {
   // Call the config hook as Vite would during dev
   // deno-lint-ignore no-explicit-any
   const configFn = freshPlugin!.config as any;
-  const result = await configFn({}, { command: "serve" });
+  const result = configFn({}, { command: "serve" });
 
   const ignored = result?.server?.watch?.ignored;
   expect(ignored).toBeDefined();

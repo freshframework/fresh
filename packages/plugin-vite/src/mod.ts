@@ -82,43 +82,15 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
   });
 
   let isDev = false;
-  let freshMode = "development";
 
   const plugins: Plugin[] = [
     {
       name: "fresh",
       sharedDuringBuild: true,
-      async config(config, env) {
+      config(config, env) {
         isDev = env.command === "serve";
-        freshMode = isDev ? "development" : "production";
-
-        // Load env files early so define entries are available
-        const root = config.root ? path.resolve(config.root) : Deno.cwd();
-        const envDir = config.envDir ? path.resolve(root, config.envDir) : root;
-        await loadEnvFile(path.join(envDir, ".env"));
-        await loadEnvFile(path.join(envDir, ".env.local"));
-        await loadEnvFile(path.join(envDir, `.env.${freshMode}`));
-        await loadEnvFile(path.join(envDir, `.env.${freshMode}.local`));
-
-        // Build define map for FRESH_PUBLIC_* env vars
-        // Replaces the Babel inlineEnvVarsPlugin with Vite's native define
-        const envDefine: Record<string, string> = {};
-        for (const [key, value] of Object.entries(Deno.env.toObject())) {
-          if (key.startsWith("FRESH_PUBLIC_")) {
-            envDefine[`process.env.${key}`] = JSON.stringify(value);
-            envDefine[`import.meta.env.${key}`] = JSON.stringify(value);
-          }
-        }
 
         return {
-          define: envDefine,
-          ssr: {
-            // Bundle all deps in SSR so that resolve.alias
-            // (react -> preact/compat) is applied consistently.
-            // CJS packages are handled by the deno plugin's load
-            // hook which wraps them in an ESM-compatible shim.
-            noExternal: true,
-          },
           server: {
             watch: {
               // Ignore temp files, editor swap files, and Vite timestamp
@@ -147,15 +119,14 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
               "react-dom": "preact/compat",
               react: "preact/compat",
             },
+            // Disallow externals, because it leads to duplicate
+            // modules with `preact` vs `npm:preact@*` in the server
+            // environment.
+            noExternal: true,
           },
-
           optimizeDeps: {
-            // Disable dep optimizer because deno.ts handles all
-            // module resolution. The optimizer causes duplicate
-            // module instances when remote (JSR) islands resolve
-            // deps to /@fs/ paths while the optimizer bundles to
-            // /.vite/deps/. CJS packages in client-side islands
-            // are handled by deno.ts's load hook.
+            // Optimize deps somehow leads to duplicate modules or them
+            // being placed in the wrong chunks...
             noDiscovery: true,
           },
 
@@ -221,6 +192,14 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                       return;
                     }
 
+                    // Ignore commonjs optional exports
+                    if (
+                      warning.code === "MISSING_EXPORT" &&
+                      warning.message.includes("__require")
+                    ) {
+                      return;
+                    }
+
                     // Ignore this warnings
                     if (warning.code === "THIS_IS_UNDEFINED") {
                       return;
@@ -242,7 +221,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
           },
         };
       },
-      configResolved(vConfig) {
+      async configResolved(vConfig) {
         // Run update check in background
         updateCheck(UPDATE_INTERVAL).catch(() => {});
 
@@ -257,45 +236,19 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
           const name = fConfig.namer.getUniqueName(specName);
           fConfig.islandSpecifiers.set(spec, name);
         });
+
+        const envDir = pathWithRoot(
+          vConfig.envDir || vConfig.root,
+          vConfig.root,
+        );
+
+        await loadEnvFile(path.join(envDir, ".env"));
+        await loadEnvFile(path.join(envDir, ".env.local"));
+        const mode = isDev ? "development" : "production";
+        await loadEnvFile(path.join(envDir, `.env.${mode}`));
+        await loadEnvFile(path.join(envDir, `.env.${mode}.local`));
       },
     },
-    // Lightweight replacement for Deno.env.get() calls with FRESH_PUBLIC_*
-    // and NODE_ENV values. Replaces the Babel inlineEnvVarsPlugin for this
-    // pattern which can't be handled by Vite's define (it's a call expression).
-    {
-      name: "fresh:deno-env",
-      sharedDuringBuild: true,
-      applyToEnvironment() {
-        return true;
-      },
-      transform: {
-        filter: {
-          id: /\.([tj]sx?|[mc]?[tj]s)(\?.*)?$/,
-        },
-        handler(code) {
-          if (!code.includes("Deno.env.get(")) return;
-
-          const allEnv = Deno.env.toObject();
-          let modified = false;
-          const result = code.replace(
-            /Deno\.env\.get\(\s*["']([^"']+)["']\s*\)/g,
-            (match: string, name: string) => {
-              if (name === "NODE_ENV") {
-                modified = true;
-                return JSON.stringify(freshMode);
-              }
-              if (name.startsWith("FRESH_PUBLIC_") && name in allEnv) {
-                modified = true;
-                return JSON.stringify(allEnv[name]);
-              }
-              return match;
-            },
-          );
-
-          if (modified) return { code: result };
-        },
-      },
-    } satisfies Plugin,
     serverEntryPlugin(fConfig),
     patches(),
     ...serverSnapshot(fConfig),
