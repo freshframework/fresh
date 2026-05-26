@@ -13,6 +13,7 @@ import {
   usingEnv,
 } from "./test_utils.ts";
 import * as path from "@std/path";
+import { walk } from "@std/fs/walk";
 
 const viteResult = await buildVite(DEMO_DIR);
 
@@ -704,6 +705,52 @@ integrationTest(
             );
           }
         }
+      },
+    );
+  },
+);
+
+// Issue: https://github.com/denoland/fresh/issues/3653
+integrationTest(
+  "vite build - CJS-only dependencies are externalized in SSR",
+  async () => {
+    const cjsFixture = path.join(FIXTURE_DIR, "cjs_dependency");
+    const result = await buildVite(cjsFixture);
+
+    // Read all server build files to verify the CJS module is externalized
+    // (appears as an external import, not inlined)
+    const serverDir = path.join(result.tmp, "_fresh", "server");
+    let allServerCode = "";
+    for await (
+      const entry of walk(serverDir, {
+        exts: [".mjs", ".js"],
+        includeFiles: true,
+        includeDirs: false,
+      })
+    ) {
+      allServerCode += await Deno.readTextFile(entry.path);
+    }
+
+    // The CJS module should be externalized — its implementation
+    // should NOT be inlined. The bundle should reference it as an
+    // external import.
+    expect(allServerCode).not.toContain("str.toUpperCase()");
+    expect(allServerCode).toContain("cjs-test-module");
+
+    // Symlink node_modules so the externalized import resolves at runtime
+    await Deno.symlink(
+      path.join(cjsFixture, "node_modules"),
+      path.join(result.tmp, "node_modules"),
+    );
+
+    // Verify the built server actually works with the externalized CJS dep
+    await launchProd(
+      { cwd: result.tmp },
+      async (address) => {
+        const res = await fetch(address);
+        const text = await res.text();
+        expect(text).toContain("HELLO, FRESH!");
+        expect(text).toContain("1.0.0");
       },
     );
   },

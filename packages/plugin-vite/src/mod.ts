@@ -26,6 +26,91 @@ import { checkImports } from "./plugins/verify_imports.ts";
 import { isBuiltin } from "node:module";
 import { load as stdLoadEnv } from "@std/dotenv";
 import path from "node:path";
+import * as fs from "node:fs";
+
+// Packages that must always be bundled in the SSR build to avoid
+// duplicate module instances (e.g. preact's component registry).
+const SSR_BUNDLE_ALLOWLIST = new Set([
+  "preact",
+  "preact/hooks",
+  "preact/compat",
+  "preact/jsx-runtime",
+  "preact/jsx-dev-runtime",
+  "preact/test-utils",
+  "preact/debug",
+  "preact/devtools",
+  "@preact/signals",
+  "@preact/signals-core",
+]);
+
+/**
+ * Scan node_modules for CJS-only packages and return their names.
+ * A package is CJS-only if it has no ESM entry point (no "type": "module",
+ * no "module" field, no "import" condition in "exports").
+ */
+function findCjsOnlyPackages(root: string): string[] {
+  const result: string[] = [];
+  const nodeModulesDir = path.join(root, "node_modules");
+
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(nodeModulesDir, { withFileTypes: true });
+  } catch {
+    return result;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory() && !entry.isSymbolicLink()) continue;
+
+    if (entry.name.startsWith("@")) {
+      // Scoped package — check subdirectories
+      const scopeDir = path.join(nodeModulesDir, entry.name);
+      let scopeEntries: fs.Dirent[];
+      try {
+        scopeEntries = fs.readdirSync(scopeDir, { withFileTypes: true });
+      } catch {
+        continue;
+      }
+      for (const scopeEntry of scopeEntries) {
+        if (!scopeEntry.isDirectory() && !scopeEntry.isSymbolicLink()) {
+          continue;
+        }
+        const packageName = `${entry.name}/${scopeEntry.name}`;
+        if (isCjsOnly(nodeModulesDir, packageName)) {
+          result.push(packageName);
+        }
+      }
+    } else if (entry.name.startsWith(".")) {
+      continue;
+    } else {
+      if (isCjsOnly(nodeModulesDir, entry.name)) {
+        result.push(entry.name);
+      }
+    }
+  }
+
+  return result;
+}
+
+function isCjsOnly(nodeModulesDir: string, packageName: string): boolean {
+  if (SSR_BUNDLE_ALLOWLIST.has(packageName)) return false;
+
+  const pkgJsonPath = path.join(nodeModulesDir, packageName, "package.json");
+  try {
+    const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf-8"));
+    if (pkg.type === "module") return false;
+    if (pkg.module) return false;
+    if (pkg.exports) {
+      const exportsStr = JSON.stringify(pkg.exports);
+      if (exportsStr.includes('"import"')) return false;
+    }
+    // Must have a main entry (otherwise it's not a real package)
+    if (!pkg.main && !pkg.exports) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export type { FreshViteConfig };
 export type {
@@ -82,6 +167,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
   });
 
   let isDev = false;
+  let resolvedRoot = process.cwd();
 
   const plugins: Plugin[] = [
     {
@@ -89,6 +175,16 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
       sharedDuringBuild: true,
       config(config, env) {
         isDev = env.command === "serve";
+        resolvedRoot = config.root ? path.resolve(config.root) : process.cwd();
+
+        // Scan node_modules for CJS-only packages to externalize
+        // in the SSR build.
+        const cjsPackages = findCjsOnlyPackages(resolvedRoot);
+        const cjsExternalList = cjsPackages.map((pkg) =>
+          new RegExp(
+            `^${pkg.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\/.*)?$`,
+          )
+        );
 
         return {
           server: {
@@ -178,6 +274,12 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
                     : null) ??
                   "_fresh/server",
                 rollupOptions: {
+                  // Externalize CJS-only npm packages so they're
+                  // loaded at runtime by Deno's Node compat layer.
+                  // This avoids the CJS-to-ESM transform that can
+                  // cause TDZ errors when Rollup reorders bundled
+                  // declarations.
+                  external: cjsExternalList,
                   onwarn(warning, handler) {
                     // Ignore "use client"; warnings
                     if (warning.code === "MODULE_LEVEL_DIRECTIVE") {
