@@ -14,6 +14,7 @@ import { fsItemsToCommands, type FsRouteFile } from "../fs_routes.ts";
 import type { Command } from "../commands.ts";
 import type { ServerIslandRegistry } from "../context.ts";
 import { contentType as getStdContentType } from "@std/media-types/content-type";
+import { globToRegExp } from "@std/path";
 
 const WINDOWS_SEPARATOR = pathWin32.SEPARATOR;
 
@@ -355,9 +356,21 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
       }
     }
 
+    const caPatterns = this.#config.contentAddressedStatic;
+    const caRegexps = caPatterns.map((p) =>
+      globToRegExp(p, { extended: true, globstar: true })
+    );
+    const isContentAddressed = (pathname: string) =>
+      caRegexps.some((re) => re.test(pathname));
+
     const staticFiles: PendingStaticFile[] = [];
     for (const [name, filePath] of this.#unprocessedFiles.entries()) {
-      staticFiles.push({ filePath, pathname: name, hash: null });
+      staticFiles.push({
+        filePath,
+        pathname: name,
+        hash: null,
+        immutable: isContentAddressed(name) || undefined,
+      });
     }
 
     for (const [name, maybeHash] of this.#processedFiles.entries()) {
@@ -367,7 +380,12 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
       }
 
       const filePath = path.join(outDir, "static", name);
-      staticFiles.push({ filePath, pathname: name, hash: maybeHash });
+      staticFiles.push({
+        filePath,
+        pathname: name,
+        hash: maybeHash,
+        immutable: isContentAddressed(name) || undefined,
+      });
     }
 
     const islandSpecifiers: string[] = [];

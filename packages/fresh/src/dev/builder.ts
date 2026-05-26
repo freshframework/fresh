@@ -96,6 +96,16 @@ export interface BuildOptions {
   ignore?: RegExp[];
 
   /**
+   * Glob patterns for static files that should use content-hash caching
+   * instead of BUILD_ID. When a file matches, `asset()` uses its content
+   * hash as the cache-bust key so the URL only changes when the file
+   * content changes — surviving deploys unchanged.
+   *
+   * @example ["**\/*.wasm", "**\/*.bin"]
+   */
+  contentAddressedStatic?: string[];
+
+  /**
    * Control if/how production source maps should be handled.
    * See https://esbuild.github.io/api/#source-maps for more information.
    */
@@ -106,13 +116,16 @@ export interface BuildOptions {
  * The final resolved Builder configuration.
  */
 export type ResolvedBuildConfig =
-  & Required<Omit<BuildOptions, "sourceMap" | "staticDir">>
+  & Required<
+    Omit<BuildOptions, "sourceMap" | "staticDir" | "contentAddressedStatic">
+  >
   & {
     /** Always normalized to an array of absolute paths. */
     staticDir: string[];
     mode: "development" | "production";
     buildId: string;
     sourceMap?: FreshBundleOptions["sourceMap"];
+    contentAddressedStatic: string[];
   };
 
 // deno-lint-ignore no-explicit-any
@@ -151,6 +164,7 @@ export class Builder<State = any> {
       mode: "production",
       buildId: BUILD_ID,
       sourceMap: options?.sourceMap,
+      contentAddressedStatic: options?.contentAddressedStatic ?? [],
     };
   }
 
@@ -376,9 +390,14 @@ export class Builder<State = any> {
       }
     }
 
+    const contentAddressedPrefix = "/_fresh/js/c/";
     for (let i = 0; i < output.files.length; i++) {
       const file = output.files[i];
-      const pathname = `${prefix}${file.path}`;
+      // Content-hashed chunks/assets are placed outside the BUILD_ID
+      // directory so their URLs survive across deploys unchanged.
+      const pathname = file.path.startsWith("../c/")
+        ? `${contentAddressedPrefix}${file.path.slice("../c/".length)}`
+        : `${prefix}${file.path}`;
       await buildCache.addProcessedFile(pathname, file.contents, file.hash);
     }
 

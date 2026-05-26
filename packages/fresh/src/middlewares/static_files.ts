@@ -63,7 +63,12 @@ export function staticFiles<T>(): Middleware<T> {
 
     try {
       const cacheKey = url.searchParams.get(ASSET_CACHE_BUST_KEY);
-      if (cacheKey !== null && BUILD_ID !== cacheKey) {
+      if (
+        cacheKey !== null && BUILD_ID !== cacheKey &&
+        // Accept the file's content hash as a valid cache key for
+        // content-addressed static files.
+        file.hash !== cacheKey
+      ) {
         url.searchParams.delete(ASSET_CACHE_BUST_KEY);
         const location = url.pathname + url.search;
         file.close();
@@ -104,6 +109,11 @@ export function staticFiles<T>(): Middleware<T> {
         (BUILD_ID === cacheKey ||
           url.pathname.startsWith(
             `${ctx.config.basePath}/_fresh/js/${BUILD_ID}/`,
+          ) ||
+          // Content-hashed chunks/assets under /_fresh/js/c/ are
+          // immutable by filename — no BUILD_ID needed.
+          url.pathname.startsWith(
+            `${ctx.config.basePath}/_fresh/js/c/`,
           ) ||
           file.immutable)
       ) {

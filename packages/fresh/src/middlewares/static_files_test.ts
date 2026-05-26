@@ -20,7 +20,12 @@ class MockBuildCache implements BuildCache {
   clientEntry = "";
   features = { errorOverlay: false };
 
-  constructor(files: Record<string, { hash: string | null; content: string }>) {
+  constructor(
+    files: Record<
+      string,
+      { hash: string | null; content: string; immutable?: boolean }
+    >,
+  ) {
     const encoder = new TextEncoder();
     for (const [pathname, info] of Object.entries(files)) {
       const text = encoder.encode(info.content);
@@ -32,6 +37,7 @@ class MockBuildCache implements BuildCache {
         readable: text,
         contentType: getContentType(normalized),
         close: () => {},
+        immutable: info.immutable,
       });
     }
   }
@@ -224,6 +230,97 @@ Deno.test("static files - enables caching in production", async () => {
   );
 
   const res = await server.get(`/foo.css?${ASSET_CACHE_BUST_KEY}=${BUILD_ID}`);
+  await res.body?.cancel();
+  expect(res.status).toEqual(200);
+  expect(res.headers.get("Cache-Control")).toEqual(
+    "public, max-age=31536000, immutable",
+  );
+});
+
+Deno.test("static files - content-addressed static file uses content hash as cache key", async () => {
+  const contentHash = "abc123contentHash";
+  const buildCache = new MockBuildCache({
+    "/large.wasm": {
+      content: "\x00asm",
+      hash: contentHash,
+      immutable: true,
+    },
+  });
+  const server = serveMiddleware(
+    staticFiles(),
+    {
+      buildCache,
+      config: {
+        root: "",
+        basePath: "",
+        mode: "production",
+        trustProxy: false,
+      },
+    },
+  );
+
+  // Content hash is accepted as a valid cache key → immutable cache
+  let res = await server.get(
+    `/large.wasm?${ASSET_CACHE_BUST_KEY}=${contentHash}`,
+  );
+  await res.body?.cancel();
+  expect(res.status).toEqual(200);
+  expect(res.headers.get("Cache-Control")).toEqual(
+    "public, max-age=31536000, immutable",
+  );
+
+  // BUILD_ID is also accepted (e.g. from client-side asset() call)
+  res = await server.get(
+    `/large.wasm?${ASSET_CACHE_BUST_KEY}=${BUILD_ID}`,
+  );
+  await res.body?.cancel();
+  expect(res.status).toEqual(200);
+  expect(res.headers.get("Cache-Control")).toEqual(
+    "public, max-age=31536000, immutable",
+  );
+
+  // Stale cache key still redirects
+  res = await server.get(
+    `/large.wasm?${ASSET_CACHE_BUST_KEY}=stale-key`,
+  );
+  await res.body?.cancel();
+  expect(res.status).toEqual(307);
+});
+
+Deno.test("static files - immutable caching for content-addressed chunks", async () => {
+  const buildCache = new MockBuildCache({
+    "/_fresh/js/c/chunk-abc123.js": {
+      content: "console.log('shared')",
+      hash: "abc123",
+    },
+    "/_fresh/js/c/module-def456.wasm": {
+      content: "\x00asm",
+      hash: "def456",
+    },
+  });
+  const server = serveMiddleware(
+    staticFiles(),
+    {
+      buildCache,
+      config: {
+        root: "",
+        basePath: "",
+        mode: "production",
+        trustProxy: false,
+      },
+    },
+  );
+
+  // Content-addressed chunks get immutable caching without __frsh_c
+  let res = await server.get("/_fresh/js/c/chunk-abc123.js");
+  await res.body?.cancel();
+  expect(res.status).toEqual(200);
+  expect(res.headers.get("Cache-Control")).toEqual(
+    "public, max-age=31536000, immutable",
+  );
+
+  // WASM assets also get immutable caching
+  res = await server.get("/_fresh/js/c/module-def456.wasm");
   await res.body?.cancel();
   expect(res.status).toEqual(200);
   expect(res.headers.get("Cache-Control")).toEqual(

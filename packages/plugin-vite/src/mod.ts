@@ -66,6 +66,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     islandSpecifiers: new Map(),
     namer: new UniqueNamer(),
     checkImports: config?.checkImports ?? [],
+    contentAddressedStatic: config?.contentAddressedStatic ?? [],
   };
 
   fConfig.checkImports.push((id, env) => {

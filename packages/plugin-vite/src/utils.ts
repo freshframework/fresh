@@ -69,14 +69,30 @@ export interface FreshViteConfig {
    * are not imported in Islands running in the browser.
    */
   checkImports?: ImportCheck[];
+  /**
+   * Glob patterns for static files that should use content-hash
+   * caching instead of build ID. Matching files get immutable cache
+   * headers and their `asset()` URLs only change when the file
+   * content changes — surviving deploys unchanged.
+   *
+   * Useful for large assets like WASM binaries, fonts, or media
+   * that rarely change between deploys.
+   *
+   * @example ["**\/*.wasm", "**\/*.bin"]
+   */
+  contentAddressedStatic?: string[];
 }
 
 export type ResolvedFreshViteConfig =
   & Required<
-    Omit<FreshViteConfig, "islandSpecifiers" | "staticDir">
+    Omit<
+      FreshViteConfig,
+      "islandSpecifiers" | "staticDir" | "contentAddressedStatic"
+    >
   >
   & {
     staticDir: string[];
     islandSpecifiers: Map<string, string>;
     namer: UniqueNamer;
+    contentAddressedStatic: string[];
   };

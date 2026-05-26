@@ -56,6 +56,8 @@ export async function bundleJs(
     bundle: true,
     splitting: true,
     treeShaking: true,
+    chunkNames: "../c/chunk-[hash]",
+    assetNames: "../c/[name]-[hash]",
     sourcemap: options.dev ? "linked" : options.sourceMap?.kind,
     sourceRoot: options.dev ? undefined : options.sourceMap?.sourceRoot,
     sourcesContent: options.dev ? undefined : options.sourceMap?.sourcesContent,

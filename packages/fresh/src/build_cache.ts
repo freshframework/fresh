@@ -5,6 +5,7 @@ import type { ServerIslandRegistry } from "./context.ts";
 import type { AnyComponent } from "preact";
 import { UniqueNamer } from "./utils.ts";
 import { setBuildId } from "@fresh/build-id";
+import { setContentHashMap } from "./runtime/shared_internal.ts";
 
 export interface FileSnapshot {
   name: string;
@@ -58,6 +59,18 @@ export class ProdBuildCache<State> implements BuildCache<State> {
     this.#snapshot = snapshot;
     this.islandRegistry = snapshot.islands;
     this.clientEntry = snapshot.clientEntry;
+
+    // Populate content hash registry so asset() uses content hashes
+    // for content-addressed files instead of BUILD_ID.
+    const hashMap = new Map<string, string>();
+    for (const [pathname, file] of snapshot.staticFiles) {
+      if (file.immutable && file.hash) {
+        hashMap.set(pathname, file.hash);
+      }
+    }
+    if (hashMap.size > 0) {
+      setContentHashMap(hashMap);
+    }
   }
 
   getEntryAssets(): string[] {

@@ -107,6 +107,17 @@ export const enum PartialMode {
   Prepend,
 }
 
+let contentHashMap: Map<string, string> | null = null;
+
+/**
+ * Register a map of pathname → content hash for content-addressed static
+ * files. When set, `assetInternal` uses the content hash instead of
+ * BUILD_ID for matching files, so their URLs survive deploys unchanged.
+ */
+export function setContentHashMap(map: Map<string, string>): void {
+  contentHashMap = map;
+}
+
 /**
  * Create a "locked" asset path. This differs from a plain path in that it is
  * specific to the current version of the application, and as such can be safely
@@ -122,7 +133,10 @@ export function assetInternal(path: string, buildId: string): string {
     ) {
       return path;
     }
-    url.searchParams.set(ASSET_CACHE_BUST_KEY, buildId);
+    // Use content hash for content-addressed files so the URL only
+    // changes when the file content changes, not on every deploy.
+    const cacheKey = contentHashMap?.get(url.pathname) ?? buildId;
+    url.searchParams.set(ASSET_CACHE_BUST_KEY, cacheKey);
     return url.pathname + url.search + url.hash;
   } catch (err) {
     // deno-lint-ignore no-console

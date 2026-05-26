@@ -122,6 +122,45 @@ export default function Gallery() {
 }
 ```
 
+## Content-addressed static files
+
+By default, `asset()` appends a cache-bust key based on the current build ID.
+This means **every deploy invalidates every cached static file**, even if the
+file content hasn't changed. For small files this is fine, but for large assets
+like WASM binaries, fonts, or media files, re-downloading unchanged files on
+every deploy is wasteful.
+
+The `contentAddressedStatic` option lets you specify glob patterns for files
+that should use their **content hash** as the cache-bust key instead of the
+build ID. The URL only changes when the file content changes — surviving deploys
+unchanged.
+
+```ts vite.config.ts
+import { defineConfig } from "vite";
+import { fresh } from "@fresh/plugin-vite";
+
+export default defineConfig({
+  plugins: [
+    fresh({
+      contentAddressedStatic: ["**/*.wasm", "**/*.bin"],
+    }),
+  ],
+});
+```
+
+> [info]: If you're using the [Builder](/docs/advanced/builder) API, the same
+> option is available on the `Builder` constructor.
+
+With this config, `asset("/module.wasm")` produces a URL like
+`/module.wasm?__frsh_c=<content-hash>` instead of
+`/module.wasm?__frsh_c=<build-id>`. The middleware serves it with a one-year
+immutable cache header. On the next deploy, if the file hasn't changed, the
+content hash (and therefore the URL) stays the same — the browser uses its
+cache.
+
+> [info]: The content hash is computed at build time from the file contents
+> using SHA-256. It's the same hash Fresh already computes for ETag headers.
+
 ## Image optimization
 
 Fresh does not include a built-in image optimization pipeline, but since Fresh 2

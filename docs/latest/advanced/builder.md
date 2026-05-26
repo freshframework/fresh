@@ -48,8 +48,12 @@ const builder = new Builder({
   islandDir?: string;
   // Path to routes directory. (Default: `<root>/routes`)
   routeDir?: string;
-  // File paths which should be ignored 
+  // File paths which should be ignored
   ignore?: RegExp[];
+  // Glob patterns for static files that should use content-hash
+  // caching instead of build-ID. Useful for large assets like WASM
+  // that rarely change between deploys.
+  contentAddressedStatic?: string[];
   // Optionally generate production source maps
   // See https://esbuild.github.io/api/#source-maps
   sourceMap?: {
