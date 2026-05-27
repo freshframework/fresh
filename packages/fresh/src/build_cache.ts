@@ -18,9 +18,9 @@ export interface BuildSnapshot<State> {
   version: string;
   clientEntry: string;
   /**
-   * Pathname for an HMR-only client entry. When defined, the SSR runtime
-   * always emits the boot script so HMR listeners attach to pages that
-   * have no islands. Undefined outside of dev.
+   * When defined, forces the boot script to be emitted in dev so HMR
+   * listeners attach even on island-free pages. The value itself is
+   * currently unused — only its presence matters. Undefined outside of dev.
    */
   hmrClientEntry?: string;
   fsRoutes: FsRouteFile<State>[];
