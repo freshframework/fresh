@@ -203,6 +203,14 @@ options[OptionsType.ATTR] = (name, value) => {
 
 const PATCHED = new WeakSet<VNode>();
 
+// Link rels whose presence is conceptually singleton: a `<Head>` override
+// should replace the existing tag regardless of its href. Other rels
+// (stylesheet, preload, alternate, ...) can legitimately appear multiple
+// times with different hrefs, so href must remain part of the cache key.
+function isSingletonLinkRel(rel: unknown): boolean {
+  return rel === "canonical" || rel === "manifest";
+}
+
 function normalizeKey(key: unknown): string {
   const value = key ?? "";
   const s = (typeof value !== "string") ? String(value) : value;
@@ -406,7 +414,10 @@ options[OptionsType.DIFF] = (vnode) => {
                   continue;
                 } else if (originalType === "meta" && key === "content") {
                   continue;
-                } else if (originalType === "link" && key === "href") {
+                } else if (
+                  originalType === "link" && key === "href" &&
+                  isSingletonLinkRel(props.rel)
+                ) {
                   continue;
                 }
 

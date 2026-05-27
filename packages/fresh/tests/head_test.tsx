@@ -156,6 +156,41 @@ Deno.test("Head - ssr - merge keyed", async () => {
   expect(last?.textContent).toEqual("ok");
 });
 
+Deno.test("Head - ssr - stylesheet links with different hrefs coexist", async () => {
+  const handler = new App()
+    .appWrapper(({ Component }) => {
+      return (
+        <html lang="en">
+          <head>
+            <meta charset="utf-8" />
+            <link rel="stylesheet" href="/entry.css" />
+          </head>
+          <body>
+            <Component />
+          </body>
+        </html>
+      );
+    })
+    .get("/", (ctx) => {
+      return ctx.render(
+        <Head>
+          <link rel="stylesheet" href="https://fonts.example.com/font.css" />
+        </Head>,
+      );
+    }).handler();
+
+  const server = new FakeServer(handler);
+  const res = await server.get("/");
+  const doc = parseHtml(await res.text());
+
+  const hrefs = Array.from(
+    doc.querySelectorAll("link[rel='stylesheet']"),
+  ).map((el) => (el as HTMLLinkElement).getAttribute("href"));
+
+  expect(hrefs).toContain("/entry.css");
+  expect(hrefs).toContain("https://fonts.example.com/font.css");
+});
+
 Deno.test("Head - ssr - updates link", async () => {
   const handler = new App()
     .appWrapper(({ Component }) => {
