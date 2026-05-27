@@ -1,5 +1,5 @@
 import type { PageProps } from "fresh";
-import { CssModulesNonIsland } from "../../../../demo/components/CssModuleNonIsland.tsx";
+import { CssModulesNonIsland } from "../components/CssModuleNonIsland.tsx";
 
 export default function App({ Component }: PageProps) {
   return (
