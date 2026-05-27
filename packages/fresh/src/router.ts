@@ -139,7 +139,11 @@ export class UrlPatternRouter<T> implements Router<T> {
     if (staticMatch !== undefined) {
       result.pattern = pathname;
 
-      let item = staticMatch.byMethod[method];
+      // `byMethod[method]` is `undefined` for non-standard HTTP verbs
+      // (e.g. PROPFIND from WebDAV scanners). Normalize to `null` so the
+      // not-allowed-method path is taken instead of returning a bogus
+      // `methodMatch: true` with `item: undefined`.
+      let item: T | null = staticMatch.byMethod[method] ?? null;
       if (method === "HEAD" && item === null) {
         item = staticMatch.byMethod.GET;
       }
@@ -159,7 +163,7 @@ export class UrlPatternRouter<T> implements Router<T> {
 
       result.pattern = route.pattern.pathname;
 
-      let item = route.byMethod[method];
+      let item: T | null = route.byMethod[method] ?? null;
       if (method === "HEAD" && item === null) {
         item = route.byMethod.GET;
       }

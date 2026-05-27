@@ -286,3 +286,36 @@ Deno.test("UrlPatternRouter - duplicate registration different methods", () => {
   const postRes = router.match("POST", new URL("/foo", "http://localhost"));
   expect(postRes.item).toBe(postHandler);
 });
+
+Deno.test("UrlPatternRouter - non-standard method on static route", () => {
+  const router = new UrlPatternRouter();
+  const A = () => {};
+  router.add("GET", "/foo", A);
+
+  // Methods outside the seven known verbs (here PROPFIND, common from
+  // WebDAV scanners) must surface as `methodMatch: false` with a `null`
+  // item rather than returning `undefined` and crashing the handler.
+  // deno-lint-ignore no-explicit-any
+  const res = router.match("PROPFIND" as any, new URL("/foo", "http://x"));
+  expect(res).toEqual({
+    params: Object.create(null),
+    item: null,
+    methodMatch: false,
+    pattern: "/foo",
+  });
+});
+
+Deno.test("UrlPatternRouter - non-standard method on dynamic route", () => {
+  const router = new UrlPatternRouter();
+  const A = () => {};
+  router.add("GET", "/books/:id", A);
+
+  // deno-lint-ignore no-explicit-any
+  const res = router.match("PROPFIND" as any, new URL("/books/1", "http://x"));
+  expect(res).toEqual({
+    params: Object.create(null),
+    item: null,
+    methodMatch: false,
+    pattern: "/books/:id",
+  });
+});

@@ -1,6 +1,6 @@
 {
   "name": "@fresh/init",
-  "version": "2.3.0",
+  "version": "2.3.3",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",

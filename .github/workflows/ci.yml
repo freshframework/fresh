@@ -78,3 +78,7 @@ jobs:
       - name: Check links
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
         run: deno task check:links
+
+      - name: Dry-run publish
+        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
+        run: deno publish --dry-run

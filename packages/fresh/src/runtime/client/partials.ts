@@ -83,7 +83,7 @@ if (!history.state) {
   history.replaceState(state, document.title);
 }
 
-function maybeUpdateHistory(nextUrl: URL) {
+function maybePushHistory(nextUrl: URL) {
   // Only add history entry when URL is new. Still apply
   // the partials because sometimes users click a link to
   // "refresh" the current page.
@@ -103,6 +103,12 @@ function maybeUpdateHistory(nextUrl: URL) {
     state.scrollX = 0;
     state.scrollY = 0;
     history.pushState(state, "", nextUrl.href);
+  }
+}
+
+function maybeReplaceHistory(nextUrl: URL) {
+  if (nextUrl.href !== globalThis.location.href) {
+    history.replaceState(history.state, "", nextUrl.href);
   }
 }
 
@@ -154,7 +160,7 @@ document.addEventListener("click", async (e) => {
 
       const nextUrl = new URL(el.href);
       try {
-        maybeUpdateHistory(nextUrl);
+        maybePushHistory(nextUrl);
 
         const partialUrl = new URL(
           partial ? partial : nextUrl.href,
@@ -361,6 +367,7 @@ async function fetchPartials(
       actualUrl = nextUrl;
     }
   }
+  actualUrl.searchParams.delete(PARTIAL_SEARCH_PARAM);
 
   try {
     await applyPartials(res);
@@ -375,7 +382,7 @@ async function fetchPartials(
   }
 
   if (shouldNavigate) {
-    maybeUpdateHistory(actualUrl);
+    maybeReplaceHistory(actualUrl);
   }
 }
 

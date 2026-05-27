@@ -3498,3 +3498,93 @@ Deno.test({
     });
   },
 });
+
+Deno.test({
+  name: "partials - redirect does not create back-button trap",
+  fn: async () => {
+    const app = testApp()
+      .get("/target", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <h1 class="done">target page</h1>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/redirect", (ctx) => ctx.redirect("/target"))
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <a href="/redirect" class="nav">go</a>
+              <Partial name="foo">
+                <h1 class="init">home</h1>
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      // Click link that redirects
+      await page.locator(".nav").click();
+      await page.locator(".done").wait();
+
+      // Should show the redirect target URL, not the intermediate
+      await page.waitForFunction(() => {
+        return window.location.pathname === "/target";
+      });
+
+      // Going back should return to home, not to /redirect
+      await page.evaluate(() => window.history.go(-1));
+      await page.locator(".init").wait();
+      await page.waitForFunction(() => {
+        return window.location.pathname === "/";
+      });
+    });
+  },
+});
+
+Deno.test({
+  name: "partials - redirect does not leak ?fresh-partial in URL",
+  fn: async () => {
+    const app = testApp()
+      .get("/target", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <Partial name="foo">
+              <h1 class="done">target page</h1>
+            </Partial>
+          </Doc>,
+        );
+      })
+      .get("/redirect", (ctx) => ctx.redirect("/target"))
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <a href="/redirect" class="nav">go</a>
+              <Partial name="foo">
+                <h1 class="init">home</h1>
+              </Partial>
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".init").wait();
+
+      await page.locator(".nav").click();
+      await page.locator(".done").wait();
+
+      const url = await page.evaluate(() => window.location.href);
+      expect(url).not.toContain("fresh-partial");
+    });
+  },
+});
