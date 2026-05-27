@@ -59,6 +59,28 @@ export interface WebSocketUpgradeOptions {
 }
 
 /**
+ * Side channel used by `@fresh/plugin-vite` (and any other adapter sitting on
+ * top of `node:http`) to hand a raw socket + buffered head to `ctx.upgrade()`.
+ * `Deno.upgradeWebSocket()` normally pulls these off the request handled by
+ * `Deno.serve`, but a request synthesized from `node:http` carries neither, so
+ * the adapter stashes them here and `ctx.upgrade()` forwards them to Deno.
+ *
+ * Stored on `globalThis` so a single WeakMap is shared even when this module
+ * is evaluated more than once (e.g. once by Deno for the Vite plugin and once
+ * by Vite's SSR runner for the user's server code).
+ */
+const UPGRADE_SOURCE_KEY: unique symbol = Symbol.for(
+  "fresh.upgradeSourceMap",
+) as typeof UPGRADE_SOURCE_KEY;
+// deno-lint-ignore no-explicit-any
+type UpgradeSource = { socket: any; head: any };
+// deno-lint-ignore no-explicit-any
+const globalAny = globalThis as any;
+export const upgradeSourceMap: WeakMap<Request, UpgradeSource> =
+  globalAny[UPGRADE_SOURCE_KEY] ??
+    (globalAny[UPGRADE_SOURCE_KEY] = new WeakMap<Request, UpgradeSource>());
+
+/**
  * Duck-type check: treats the argument as managed-mode handlers when at least
  * one of the handler keys (`open`, `message`, `close`, `error`) is a
  * function.  This works because {@link WebSocketUpgradeOptions} only has
@@ -595,7 +617,16 @@ export class Context<State> {
       throw new HttpError(400, "Expected a WebSocket upgrade request");
     }
 
-    const { socket, response } = Deno.upgradeWebSocket(this.req, options);
+    const source = upgradeSourceMap.get(this.req);
+    if (source !== undefined) upgradeSourceMap.delete(this.req);
+    const upgradeOptions = source
+      ? { ...options, socket: source.socket, head: source.head }
+      : options;
+    const { socket, response } = Deno.upgradeWebSocket(
+      this.req,
+      // deno-lint-ignore no-explicit-any
+      upgradeOptions as any,
+    );
 
     if (handlers === undefined) {
       return { socket, response };

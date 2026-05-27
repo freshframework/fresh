@@ -27,6 +27,30 @@ integrationTest("vite dev - launches", async () => {
   expect(text).toContain("it works");
 });
 
+integrationTest("vite dev - upgrades WebSocket connections", async () => {
+  const address = demoServer.address();
+  const wsUrl = address.replace(/^http/, "ws") + "/tests/ws_echo";
+
+  const ws = new WebSocket(wsUrl);
+  const reply = await new Promise<string>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error("timed out waiting for echo")),
+      5000,
+    );
+    ws.onopen = () => ws.send("hello");
+    ws.onmessage = (e) => {
+      clearTimeout(timer);
+      resolve(typeof e.data === "string" ? e.data : "");
+    };
+    ws.onerror = () => {
+      clearTimeout(timer);
+      reject(new Error("websocket errored"));
+    };
+  });
+  ws.close();
+  expect(reply).toBe("echo: hello");
+});
+
 integrationTest("vite dev - serves static files", async () => {
   const res = await fetch(`${demoServer.address()}/test_static/foo.txt`);
   const text = await res.text();

@@ -1,7 +1,7 @@
 import type { DevEnvironment, Plugin } from "vite";
 import * as path from "@std/path";
 import { contentType as getStdContentType } from "@std/media-types/content-type";
-import { ASSET_CACHE_BUST_KEY } from "fresh/internal";
+import { ASSET_CACHE_BUST_KEY, upgradeSourceMap } from "fresh/internal";
 import { createRequest, sendResponse } from "@remix-run/node-fetch-server";
 import { hashCode } from "../shared.ts";
 import type { ResolvedFreshViteConfig } from "../utils.ts";
@@ -27,6 +27,75 @@ export function devServer(freshConfig: ResolvedFreshViteConfig): Plugin[] {
         const IGNORE_URLS = new RegExp(
           `^(${base})?/(@(vite|fs|id)|\\.vite)/`,
         );
+
+        // WebSocket upgrade requests don't flow through Connect middleware —
+        // node:http dispatches them as `upgrade` events on the http.Server.
+        // Vite's own HMR server identifies its connections via the
+        // `sec-websocket-protocol` header (`vite-hmr`/`vite-ping`), so we
+        // skip those and let Vite handle them. Everything else we route into
+        // the Fresh handler with the raw socket + head stashed in
+        // `upgradeSourceMap` so `ctx.upgrade()` can finish the handshake via
+        // `Deno.upgradeWebSocket(req, { socket, head })`.
+        server.httpServer?.on("upgrade", (nodeReq, nodeSocket, head) => {
+          const protocolHeader = nodeReq.headers["sec-websocket-protocol"];
+          if (
+            typeof protocolHeader === "string" &&
+            /\b(vite-hmr|vite-ping)\b/.test(protocolHeader)
+          ) {
+            return;
+          }
+
+          (async () => {
+            try {
+              const serverCfg = server.config.server;
+              const protocol = serverCfg.https ? "https" : "http";
+              const host = nodeReq.headers.host ?? "localhost";
+              const url = new URL(
+                nodeReq.url ?? "/",
+                `${protocol}://${host}`,
+              );
+
+              const headers = new Headers();
+              for (const [key, value] of Object.entries(nodeReq.headers)) {
+                if (value === undefined || value === null) continue;
+                if (Array.isArray(value)) {
+                  for (const v of value) {
+                    if (typeof v === "string") headers.append(key, v);
+                  }
+                } else if (typeof value === "string") {
+                  headers.set(key, value);
+                }
+              }
+
+              const req = new Request(url, {
+                method: nodeReq.method ?? "GET",
+                headers,
+              });
+
+              upgradeSourceMap.set(req, { socket: nodeSocket, head });
+
+              const mod = await server.ssrLoadModule("fresh:server_entry");
+              mod.setErrorInterceptor((err: unknown) => {
+                if (err instanceof Error) server.ssrFixStacktrace(err);
+              });
+
+              await mod.default.fetch(req);
+              // If the handler called ctx.upgrade(), the 101 has already been
+              // written to nodeSocket and the WebSocket is live. If it didn't,
+              // we have no usable channel left to report an error on — close
+              // the socket so the client doesn't hang.
+              if (!nodeSocket.destroyed && upgradeSourceMap.has(req)) {
+                nodeSocket.destroy();
+              }
+              upgradeSourceMap.delete(req);
+            } catch (err) {
+              if (err instanceof Error) server.ssrFixStacktrace(err);
+              // deno-lint-ignore no-console
+              console.error("[fresh] WebSocket upgrade failed:", err);
+              if (!nodeSocket.destroyed) nodeSocket.destroy();
+            }
+          })();
+        });
 
         server.middlewares.use(async (nodeReq, nodeRes, next) => {
           const serverCfg = server.config.server;
