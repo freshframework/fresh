@@ -25,6 +25,7 @@ import { parse } from "../../jsonify/parse.ts";
 import { INTERNAL_PREFIX, PARTIAL_SEARCH_PARAM } from "../../constants.ts";
 
 export const PARTIAL_ATTR = "f-partial";
+export const PARTIAL_NO_SCROLL_ATTR = "f-dont-scroll";
 
 class NoPartialsError extends Error {}
 
@@ -170,7 +171,9 @@ document.addEventListener("click", async (e) => {
           await fetchPartials(nextUrl, partialUrl, true);
           updateLinks(nextUrl);
         });
-        scrollTo({ left: 0, top: 0, behavior: "instant" });
+        if (!el.hasAttribute(PARTIAL_NO_SCROLL_ATTR)) {
+          scrollTo({ left: 0, top: 0, behavior: "instant" });
+        }
       } finally {
         if (indicator !== undefined) {
           indicator.value = false;
