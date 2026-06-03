@@ -13,7 +13,7 @@ Fresh is organized as a monorepo with multiple packages:
 - **`packages/plugin-tailwindcss-v3/`** - Tailwind CSS v3 plugin
 - **`packages/init/`** - Project scaffolding tool
 - **`packages/update/`** - Fresh update utilities
-- **`www/`** - Documentation website (fresh.deno.dev)
+- **`www/`** - Documentation website (usefresh.dev)
 
 ## Getting Started
 

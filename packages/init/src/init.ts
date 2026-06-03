@@ -388,7 +388,7 @@ import "./assets/styles.css";`,
   await writeFile("static/logo.svg", STATIC_LOGO);
 
   try {
-    const res = await fetch("https://fresh.deno.dev/favicon.ico");
+    const res = await fetch("https://usefresh.dev/favicon.ico");
     const buf = await res.arrayBuffer();
     await writeFile("static/favicon.ico", new Uint8Array(buf));
   } catch {
@@ -652,7 +652,7 @@ import { fresh } from "@fresh/plugin-vite";\n`;
   const README_MD = `# Fresh project
 
 Your new Fresh project is ready to go. You can follow the Fresh "Getting
-Started" guide here: https://fresh.deno.dev/docs/getting-started
+Started" guide here: https://usefresh.dev/docs/getting-started
 
 ### Usage
 

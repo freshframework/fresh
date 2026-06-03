@@ -3,8 +3,8 @@ description: |
   Set the lang attribute in the <html> tag.
 ---
 
-When you initialize a project with `deno run -A -r https://fresh.deno.dev`,
-you'll end up with a `main.ts` like the following:
+When you initialize a project with `deno run -A -r https://usefresh.dev`, you'll
+end up with a `main.ts` like the following:
 
 ```ts main.ts
 /// <reference no-default-lib="true" />

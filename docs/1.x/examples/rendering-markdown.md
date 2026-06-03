@@ -11,7 +11,7 @@ possibilities:
 3. the markdown is on a file
 
 The following file uses
-[dynamic routing](https://fresh.deno.dev/docs/getting-started/dynamic-routes) to
+[dynamic routing](https://usefresh.dev/docs/getting-started/dynamic-routes) to
 handle the three cases. It's assumed this file is called `[slug].tsx`:
 
 ```ts routes/[slug].tsx

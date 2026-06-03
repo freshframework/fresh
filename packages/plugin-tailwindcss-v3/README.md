@@ -37,5 +37,4 @@ tailwind(builder, {
 });
 ```
 
-To learn more about Fresh go to
-[https://fresh.deno.dev/](https://fresh.deno.dev/).
+To learn more about Fresh go to [https://usefresh.dev/](https://usefresh.dev/).

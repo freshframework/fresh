@@ -1,6 +1,6 @@
 # Fresh vite plugin
 
-Vite plugin for [Fresh](https://fresh.deno.dev).
+Vite plugin for [Fresh](https://usefresh.dev).
 
 ## Usage
 
@@ -34,4 +34,4 @@ Vite plugin for [Fresh](https://fresh.deno.dev).
 - Build: `vite build`
 
 More information
-[on the Fresh documentation](https://fresh.deno.dev/docs/advanced/vite) .
+[on the Fresh documentation](https://usefresh.dev/docs/advanced/vite) .

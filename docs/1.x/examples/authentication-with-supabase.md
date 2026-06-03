@@ -24,7 +24,7 @@ The purpose of the example app we're building here is to showcase the basic
 building blocks of an implementation. As such, it is limited in functionality
 and purposefully leaves out things like
 [password resets](https://supabase.com/docs/guides/auth/server-side/email-based-auth-with-pkce-flow-for-ssr),
-[proper error handling](https://fresh.deno.dev/docs/1.x/concepts/error-pages) as
+[proper error handling](https://usefresh.dev/docs/1.x/concepts/error-pages) as
 well as validating input form data. You can find the
 [full code here](https://github.com/morlinbrot/supa-fresh-pkce), where the
 missing functionality is implemented.
@@ -226,7 +226,7 @@ we are writing next.
 
 We can now write a middleware that will check the auth status of any request,
 guarding any protected routes. You can read up on middlewares and where to put
-them [in the docs](https://fresh.deno.dev/docs/1.x/concepts/middleware).
+them [in the docs](https://usefresh.dev/docs/1.x/concepts/middleware).
 
 ```ts routes/_middleware.ts
 import { FreshContext } from "$fresh/server.ts";

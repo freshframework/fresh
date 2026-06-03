@@ -10,7 +10,7 @@ will scaffold out a new project with some example files to get you started.
 To create a new project, run:
 
 ```sh Terminal
-deno run -A -r https://fresh.deno.dev
+deno run -A -r https://usefresh.dev
 cd fresh-project
 deno task start
 ```

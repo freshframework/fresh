@@ -144,7 +144,7 @@ for a `route`, as opposed to something like `http://localhost:8001/favicon.ico`.
 
 ### Example
 
-Initiate a new Fresh project (`deno run -A -r https://fresh.deno.dev/`) and then
+Initiate a new Fresh project (`deno run -A -r https://usefresh.dev/`) and then
 create a `_middleware.ts` file in the `routes` folder like this:
 
 ```ts routes/_middleware.ts

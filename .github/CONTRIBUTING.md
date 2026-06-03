@@ -1,7 +1,7 @@
 # Contributing Guidelines
 
 For the full contributing guide, see the
-[Fresh documentation](https://fresh.deno.dev/docs/latest/contributing).
+[Fresh documentation](https://usefresh.dev/docs/latest/contributing).
 
 ## PR title format
 
