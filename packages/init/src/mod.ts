@@ -6,12 +6,14 @@ import { InitError } from "./init.ts";
 
 const flags = parseArgs(Deno.args, {
   boolean: ["force", "tailwind", "vscode", "docker", "help", "builder"],
+  string: ["src-dir"],
   default: {
     force: null,
     tailwind: null,
     vscode: null,
     docker: null,
     builder: null,
+    "src-dir": null,
   },
   alias: {
     help: "h",

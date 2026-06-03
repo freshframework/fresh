@@ -4,6 +4,7 @@ import {
   CONFIRM_VITE_MESSAGE,
   CONFIRM_VSCODE_MESSAGE,
   HELP_TEXT,
+  InitError,
   initProject,
 } from "./init.ts";
 import * as path from "@std/path";
@@ -192,6 +193,44 @@ Deno.test("init - create project dir", async () => {
   await expectProjectFile(root, "dev.ts");
   await expectProjectFile(root, ".gitignore");
   await expectProjectFile(root, "static/styles.css");
+});
+
+Deno.test("init - create project dir with 'src'", async () => {
+  await using tmp = await withTmpDir();
+  const dir = tmp.dir;
+  using _promptStub = stubPrompt(".");
+  using _confirmStub = stubConfirm();
+  await initProject(dir, [], { "src-dir": "" });
+
+  const src = path.join(dir, "src");
+  await expectProjectFile(dir, ".gitignore");
+  await expectProjectFile(dir, "deno.json");
+  await expectProjectFile(dir, "vite.config.ts");
+  await expectProjectFile(src, "main.ts");
+  await expectProjectFile(src, "client.ts");
+  await expectProjectFile(src, "routes/index.tsx");
+  await expectProjectFile(src, "assets/styles.css");
+  await expectProjectFile(src, "static/logo.svg");
+});
+
+Deno.test("init - create project dir with custom source dir", async () => {
+  await using tmp = await withTmpDir();
+  const dir = tmp.dir;
+  using _promptStub = stubPrompt(".");
+  using _confirmStub = stubConfirm();
+  await initProject(dir, [], { "src-dir": "packages/fresh" });
+
+  const src = path.join(dir, "packages", "fresh");
+  await expectProjectFile(dir, "deno.json");
+  await expectProjectFile(src, "main.ts");
+});
+
+Deno.test("init - fail with src dir and builder", async () => {
+  await using tmp = await withTmpDir();
+  const dir = tmp.dir;
+
+  const promise = initProject(dir, ["."], { "src-dir": "", builder: true });
+  await expect(promise).rejects.toBeInstanceOf(InitError);
 });
 
 Deno.test("init - with tailwind", async () => {

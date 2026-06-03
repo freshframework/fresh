@@ -99,6 +99,7 @@ const toc: RawTableOfContents = {
         pages: [
           ["api-routes", "API Routes", "link:latest"],
           ["daisyui", "daisyUI", "link:latest"],
+          ["use-src-dir", "Using a src folder", "link:latest"],
           ["markdown", "Rendering Markdown", "link:latest"],
           ["rendering-raw-html", "Rendering raw HTML", "link:latest"],
           [
