@@ -622,8 +622,19 @@ import { app } from "${serverEntry}";
 const root = ${rootPath};
 setBuildCache(app, new ProdBuildCache(root, snapshot), "production");
 
+// In dev, plugins may mutate app-level hooks such as the error interceptor
+// after this module loads. Keep the fetch target refreshable so the server
+// entry can pick up the latest app.handler() when that happens.
+let handler = app.handler();
+
+export function refreshHandler() {
+  handler = app.handler();
+}
+
 export default {
-  fetch: app.handler()
+  fetch(req, info) {
+    return handler(req, info);
+  }
 };
 `;
 }

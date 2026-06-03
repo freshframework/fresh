@@ -1,4 +1,4 @@
-import { createBuilder } from "vite";
+import { createBuilder, mergeConfig } from "vite";
 import * as path from "@std/path";
 import { walk } from "@std/fs/walk";
 import { integrationTest, withTmpDir } from "../../fresh/src/test_utils.ts";
@@ -135,24 +135,16 @@ export async function withDevServer(
 
 export async function buildVite(
   fixtureDir: string,
-  options?: {
-    base?: string;
-    rollupOutput?: {
-      entryFileNames?: string;
-      chunkFileNames?: string;
-      assetFileNames?: string;
-    };
-  },
+  config?: Parameters<typeof createBuilder>[0],
 ) {
   const tmp = await withTmpDir({
     dir: path.join(import.meta.dirname!, ".."),
     prefix: "tmp_vite_",
   });
 
-  const builder = await createBuilder({
+  const defaults = {
     logLevel: "error",
     root: fixtureDir,
-    base: options?.base,
     build: {
       emptyOutDir: true,
     },
@@ -160,9 +152,6 @@ export async function buildVite(
       ssr: {
         build: {
           outDir: path.join(tmp.dir, "_fresh", "server"),
-          rollupOptions: options?.rollupOutput
-            ? { output: options.rollupOutput }
-            : undefined,
         },
       },
       client: {
@@ -171,7 +160,10 @@ export async function buildVite(
         },
       },
     },
-  });
+  } satisfies Parameters<typeof createBuilder>[0];
+  const builder = await createBuilder(
+    mergeConfig(defaults, config ?? {}),
+  );
   await builder.buildApp();
 
   return {

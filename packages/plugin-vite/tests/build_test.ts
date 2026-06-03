@@ -1,3 +1,5 @@
+import { createLogger } from "vite";
+import type { BabelFileResult } from "@babel/core";
 import { expect } from "@std/expect";
 import { walk } from "@std/fs/walk";
 import {
@@ -13,6 +15,7 @@ import {
   launchProd,
   usingEnv,
 } from "./test_utils.ts";
+import { toPosix } from "fresh/internal-dev";
 import * as path from "@std/path";
 import { FRESH_CSS_PLACEHOLDER } from "../src/plugins/server_snapshot.ts";
 
@@ -592,9 +595,13 @@ integrationTest(
   "vite build - custom rollup entryFileNames in server.js",
   async () => {
     await using res = await buildVite(DEMO_DIR, {
-      rollupOutput: {
-        entryFileNames: "[hash].mjs",
-        chunkFileNames: "[hash].mjs",
+      build: {
+        rollupOptions: {
+          output: {
+            entryFileNames: "[hash].mjs",
+            chunkFileNames: "[hash].mjs",
+          },
+        },
       },
     });
 
@@ -826,5 +833,81 @@ integrationTest(
         }
       },
     );
+  },
+);
+
+integrationTest(
+  "vite build - ssr sourcemap should be generated collectly",
+  async () => {
+    await using tmp = await buildVite(DEMO_DIR, {
+      environments: {
+        ssr: {
+          build: {
+            sourcemap: true,
+          },
+        },
+      },
+    });
+
+    const serverAssetsDir = path.join(tmp.tmp, "_fresh", "server", "assets");
+    for await (
+      const entry of walk(serverAssetsDir, {
+        exts: [".mjs"],
+        includeDirs: false,
+      })
+    ) {
+      const js = await Deno.readTextFile(entry.path);
+      const match = js.match(/\/\/# sourceMappingURL=(.+)$/m);
+      const mapPath = path.join(path.dirname(entry.path), match![1]);
+      const mapText = await Deno.readTextFile(mapPath);
+      const map: NonNullable<BabelFileResult["map"]> = JSON.parse(mapText);
+
+      // check a specific sourcemap file which contains
+      // the reference of original source file
+      if (entry.name.includes("_fresh-route___tests_feed-")) {
+        expect(
+          map.sources.some((source) =>
+            toPosix(source).endsWith("demo/routes/tests/feed.tsx")
+          ),
+        ).toBe(true);
+      }
+    }
+  },
+);
+
+// rollup specific test
+// https://rollupjs.org/troubleshooting/#warning-sourcemap-is-likely-to-be-incorrect
+// this test could be broke if it will migrate to rolldown
+integrationTest(
+  "vite build - ssr sourcemap should be generated without warnings",
+  async () => {
+    const warnMsgs = new Set<string>();
+    const customLogger = createLogger("error");
+    customLogger.warn = (msg) => {
+      customLogger.hasWarned = true;
+      warnMsgs.add(msg);
+    };
+    customLogger.warnOnce = (msg) => {
+      customLogger.hasWarned = true;
+      warnMsgs.add(msg);
+    };
+
+    await using _ = await buildVite(DEMO_DIR, {
+      logLevel: "warn",
+      clearScreen: true,
+      customLogger,
+      environments: {
+        ssr: {
+          build: {
+            sourcemap: true,
+          },
+        },
+      },
+    });
+
+    const sourceMapIncorrectMsg = warnMsgs.has(
+      "[plugin deno] Sourcemap is likely to be incorrect: a plugin (deno) was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help",
+    );
+    expect(sourceMapIncorrectMsg).not.toBeTruthy();
   },
 );

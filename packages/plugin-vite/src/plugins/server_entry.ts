@@ -97,6 +97,7 @@ ${code}
 
 export function setErrorInterceptor(fn) {
   internalErrorIntercept(app, fn);
+  refreshHandler();
 }
 if (import.meta.hot) import.meta.hot.accept();`;
         }

@@ -2,6 +2,7 @@ import type { Plugin } from "vite";
 import {
   type Loader,
   MediaType,
+  type ModuleLoadResponse,
   RequestedModuleType,
   ResolutionMode,
   Workspace,
@@ -16,6 +17,8 @@ import { builtinModules } from "node:module";
 const { default: babelReact } = await import("@babel/preset-react");
 
 const BUILTINS = new Set(builtinModules);
+
+const decoder = new TextDecoder();
 
 interface DenoState {
   type: RequestedModuleType;
@@ -180,7 +183,7 @@ export function deno(): Plugin {
           return null;
         }
 
-        const code = new TextDecoder().decode(result.code);
+        const { code, map } = decodeLoadResult(result);
 
         const maybeJsx = babelTransform({
           ssr: this.environment.config.consumer === "server",
@@ -188,6 +191,7 @@ export function deno(): Plugin {
           code,
           id: specifier,
           isDev,
+          inputSourceMap: map,
         });
         if (maybeJsx !== null) {
           return maybeJsx;
@@ -195,6 +199,7 @@ export function deno(): Plugin {
 
         return {
           code,
+          map,
         };
       }
 
@@ -224,7 +229,7 @@ export function deno(): Plugin {
         return null;
       }
 
-      const code = new TextDecoder().decode(result.code);
+      const { code, map } = decodeLoadResult(result);
 
       const maybeJsx = babelTransform({
         ssr: this.environment.config.consumer === "server",
@@ -232,6 +237,7 @@ export function deno(): Plugin {
         id,
         code,
         isDev,
+        inputSourceMap: map,
       });
       if (maybeJsx) {
         return maybeJsx;
@@ -239,6 +245,7 @@ export function deno(): Plugin {
 
       return {
         code,
+        map,
       };
     },
     transform: {
@@ -279,10 +286,11 @@ export function deno(): Plugin {
           return;
         }
 
-        const code = new TextDecoder().decode(result.code);
+        const { code, map } = decodeLoadResult(result);
 
         return {
           code,
+          map,
         };
       },
     },
@@ -375,13 +383,14 @@ function babelTransform(
     code: string;
     id: string;
     isDev: boolean;
+    inputSourceMap: babel.TransformOptions["inputSourceMap"];
   },
 ) {
   if (!isJsMediaType(options.media)) {
     return null;
   }
 
-  const { ssr, code, id, isDev } = options;
+  const { ssr, code, id, isDev, inputSourceMap } = options;
 
   const presets: babel.PluginItem[] = [];
   if (
@@ -400,6 +409,7 @@ function babelTransform(
   const result = babel.transformSync(code, {
     filename: id,
     babelrc: false,
+    inputSourceMap,
     sourceMaps: "both",
     presets: presets,
     plugins: [httpAbsolute(url)],
@@ -414,4 +424,25 @@ function babelTransform(
   }
 
   return null;
+}
+
+function decodeLoadResult(
+  result: Extract<ModuleLoadResponse, { kind: "module" }>,
+): {
+  code: string;
+  map: babel.TransformOptions["inputSourceMap"];
+} {
+  const map = result.sourceMap && JSON.parse(decoder.decode(result.sourceMap));
+  // If we pass a separate sourcemap object to Vite, remove the loader's
+  // inline data URL so the module only has one sourcemap source of truth.
+  const code = !map
+    ? decoder.decode(result.code)
+    : decoder.decode(result.code).replace(
+      /\r?\n\/\/# sourceMappingURL=data:[^\r\n]+$/,
+      "",
+    );
+  return {
+    code,
+    map,
+  };
 }
