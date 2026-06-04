@@ -38,6 +38,63 @@ export const DEFAULT_CONN_INFO: any = {
   remoteAddr: { transport: "tcp", hostname: "localhost", port: 1234 },
 };
 
+const MAX_REWRITE_COUNT = 8;
+
+function normalizeRequestUrl(req: Request, trustProxy: boolean): URL {
+  const url = new URL(req.url);
+  // Prevent open redirect attacks.
+  url.pathname = url.pathname.replace(/\/+/g, "/");
+
+  // Apply X-Forwarded-* headers when behind a reverse proxy.
+  if (trustProxy) {
+    const proto = req.headers.get("x-forwarded-proto");
+    if (proto) {
+      url.protocol = proto + ":";
+    }
+    const host = req.headers.get("x-forwarded-host");
+    if (host) {
+      url.host = host;
+    }
+  }
+
+  return url;
+}
+
+function getRewriteUrl(
+  currentUrl: URL,
+  pathOrUrl: string | URL,
+  basePath: string,
+): URL {
+  // Auto-prefix basePath for absolute string paths so that apps with a
+  // basePath don't silently drop it when calling ctx.rewrite("/some/path").
+  let target: string | URL = pathOrUrl;
+  if (
+    basePath !== "" &&
+    typeof pathOrUrl === "string" &&
+    pathOrUrl.startsWith("/") &&
+    !pathOrUrl.startsWith(basePath)
+  ) {
+    target = basePath + pathOrUrl;
+  }
+
+  const rewritten = target instanceof URL
+    ? new URL(target)
+    : new URL(target, currentUrl);
+
+  if (rewritten.origin !== currentUrl.origin) {
+    throw new Error(
+      `ctx.rewrite() only supports same-origin URLs. Expected "${currentUrl.origin}", got "${rewritten.origin}"`,
+    );
+  }
+
+  // Keep existing query params unless the target explicitly sets a query.
+  if (typeof pathOrUrl === "string" && !pathOrUrl.includes("?")) {
+    rewritten.search = currentUrl.search;
+  }
+
+  return rewritten;
+}
+
 const defaultOptionsHandler = (methods: string[]): () => Promise<Response> => {
   return () =>
     Promise.resolve(
@@ -416,27 +473,15 @@ export class App<State> {
     );
 
     const trustProxy = this.config.trustProxy;
+    const basePath = this.config.basePath;
 
-    return async (
+    const dispatch = async (
       req: Request,
-      conn: Deno.ServeHandlerInfo = DEFAULT_CONN_INFO,
-    ) => {
-      const url = new URL(req.url);
-      // Prevent open redirect attacks
-      url.pathname = url.pathname.replace(/\/+/g, "/");
-
-      // Apply X-Forwarded-* headers when behind a reverse proxy
-      if (trustProxy) {
-        const proto = req.headers.get("x-forwarded-proto");
-        if (proto) {
-          url.protocol = proto + ":";
-        }
-        const host = req.headers.get("x-forwarded-host");
-        if (host) {
-          url.host = host;
-        }
-      }
-
+      conn: Deno.ServeHandlerInfo,
+      state: State,
+      rewriteCount: number,
+    ): Promise<Response> => {
+      const url = normalizeRequestUrl(req, trustProxy);
       const method = req.method.toUpperCase() as Method;
       const matched = router.match(method, url);
       let { params, pattern, item: handler, methodMatch } = matched;
@@ -473,6 +518,31 @@ export class App<State> {
         this.config,
         next,
         buildCache!,
+        state,
+        (pathOrUrl) => {
+          if (rewriteCount >= MAX_REWRITE_COUNT) {
+            throw new Error(
+              `Too many internal rewrites while handling "${req.method} ${url.pathname}"`,
+            );
+          }
+
+          if (req.bodyUsed) {
+            throw new Error(
+              "Cannot rewrite request after its body has already been consumed",
+            );
+          }
+
+          const rewrittenUrl = getRewriteUrl(url, pathOrUrl, basePath);
+          const rewrittenReq = req.body !== null
+            ? new Request(rewrittenUrl, {
+              body: req.body,
+              method: req.method,
+              headers: req.headers,
+              duplex: "half",
+            } as RequestInit)
+            : new Request(rewrittenUrl, req);
+          return dispatch(rewrittenReq, conn, state, rewriteCount + 1);
+        },
       );
 
       try {
@@ -493,6 +563,11 @@ export class App<State> {
         return await DEFAULT_ERROR_HANDLER(ctx);
       }
     };
+
+    return (
+      req: Request,
+      conn: Deno.ServeHandlerInfo = DEFAULT_CONN_INFO,
+    ) => dispatch(req, conn, {} as State, 0);
   }
 
   /**

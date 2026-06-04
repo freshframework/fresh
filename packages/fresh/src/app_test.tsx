@@ -262,6 +262,217 @@ Deno.test("App - methods with middleware", async () => {
   expect(await res.text()).toEqual("A");
 });
 
+Deno.test("App - ctx.rewrite() rematches and preserves state", async () => {
+  const LOCALES = new Set(["de", "ru"]);
+
+  const app = new App<{ locale?: string }>()
+    .use((ctx) => {
+      const [, first, ...rest] = ctx.url.pathname.split("/");
+
+      if (ctx.state.locale === undefined && LOCALES.has(first)) {
+        ctx.state.locale = first;
+      }
+
+      if (LOCALES.has(first)) {
+        const rewritten = `/${rest.join("/")}`;
+        return ctx.rewrite(rewritten);
+      }
+
+      if (ctx.state.locale === undefined) {
+        ctx.state.locale = "en";
+      }
+
+      return ctx.next();
+    })
+    .get("/hello", (ctx) => {
+      const q = ctx.url.searchParams.get("q") ?? "";
+      return new Response(
+        `${ctx.state.locale}:${ctx.route}:${ctx.url.pathname}:${q}`,
+      );
+    });
+
+  const server = new FakeServer(app.handler());
+
+  let res = await server.get("/de/hello?q=1");
+  expect(await res.text()).toEqual("de:/hello:/hello:1");
+
+  res = await server.get("/hello?q=2");
+  expect(await res.text()).toEqual("en:/hello:/hello:2");
+});
+
+Deno.test("App - ctx.rewrite() from route middleware", async () => {
+  const app = new App()
+    .get("/legacy", (ctx) => ctx.rewrite("/modern"))
+    .get("/modern", () => new Response("ok"));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/legacy");
+  expect(await res.text()).toEqual("ok");
+});
+
+Deno.test("App - ctx.rewrite() allows post-processing in middleware", async () => {
+  const app = new App()
+    .use(async (ctx) => {
+      if (ctx.url.pathname === "/legacy") {
+        const res = await ctx.rewrite("/modern");
+        res.headers.set("x-rewritten", "1");
+        return res;
+      }
+
+      return ctx.next();
+    })
+    .get("/modern", () => new Response("ok"));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/legacy");
+  expect(await res.text()).toEqual("ok");
+  expect(res.headers.get("x-rewritten")).toEqual("1");
+});
+
+Deno.test("App - ctx.rewrite() preserves method and body", async () => {
+  const app = new App()
+    .use((ctx) => {
+      if (ctx.url.pathname === "/old") {
+        return ctx.rewrite("/new");
+      }
+      return ctx.next();
+    })
+    .post("/new", async (ctx) => {
+      return new Response(`${ctx.req.method}:${await ctx.req.text()}`);
+    });
+
+  const server = new FakeServer(app.handler());
+  const res = await server.post("/old", "payload");
+  expect(await res.text()).toEqual("POST:payload");
+});
+
+Deno.test("App - ctx.rewrite() preserves query by default", async () => {
+  const app = new App()
+    .get("/from", (ctx) => ctx.rewrite("/to"))
+    .get("/to", (ctx) => new Response(ctx.url.searchParams.get("q") ?? ""));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/from?q=123");
+  expect(await res.text()).toEqual("123");
+});
+
+Deno.test(
+  "App - ctx.rewrite() query in target overrides current query",
+  async () => {
+    const app = new App()
+      .get("/from", (ctx) => ctx.rewrite("/to?q=override"))
+      .get(
+        "/to",
+        (ctx) => new Response(ctx.url.searchParams.get("q") ?? ""),
+      );
+
+    const server = new FakeServer(app.handler());
+    const res = await server.get("/from?q=123");
+    expect(await res.text()).toEqual("override");
+  },
+);
+
+Deno.test("App - ctx.rewrite() supports URL targets with basePath", async () => {
+  const app = new App({ basePath: "/base" })
+    .get("/old", (ctx) => ctx.rewrite(new URL("/base/new?q=1", ctx.url)))
+    .get(
+      "/new",
+      (ctx) =>
+        new Response(
+          `${ctx.url.pathname}:${ctx.url.searchParams.get("q") ?? ""}`,
+        ),
+    );
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/base/old");
+  expect(await res.text()).toEqual("/base/new:1");
+});
+
+Deno.test("App - ctx.rewrite() repopulates ctx.params for new route", async () => {
+  const app = new App()
+    .use((ctx) => {
+      if (ctx.url.pathname.startsWith("/u/")) {
+        return ctx.rewrite(ctx.url.pathname.replace("/u/", "/users/"));
+      }
+      return ctx.next();
+    })
+    .get("/users/:id", (ctx) => new Response(ctx.params.id));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/u/123");
+  expect(await res.text()).toEqual("123");
+});
+
+Deno.test("App - ctx.rewrite() throws on rewrite loops", async () => {
+  const app = new App()
+    .use(async (ctx) => {
+      try {
+        return await ctx.next();
+      } catch (err) {
+        return new Response(String(err), { status: 500 });
+      }
+    })
+    .use((ctx) => {
+      if (ctx.url.pathname === "/a") {
+        return ctx.rewrite("/b");
+      }
+      if (ctx.url.pathname === "/b") {
+        return ctx.rewrite("/a");
+      }
+      return ctx.next();
+    })
+    .get("/a", () => new Response("a"))
+    .get("/b", () => new Response("b"));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/a");
+
+  expect(res.status).toEqual(500);
+  expect(await res.text()).toContain("Too many internal rewrites");
+});
+
+Deno.test("App - ctx.rewrite() rejects cross-origin targets", async () => {
+  const app = new App()
+    .use(async (ctx) => {
+      try {
+        return await ctx.next();
+      } catch (err) {
+        return new Response(String(err), { status: 500 });
+      }
+    })
+    .get("/", (ctx) => ctx.rewrite("https://deno.land/"));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+
+  expect(res.status).toEqual(500);
+  expect(await res.text()).toContain("only supports same-origin URLs");
+});
+
+Deno.test("App - ctx.rewrite() rejects rewrites after body consumption", async () => {
+  const app = new App()
+    .use(async (ctx) => {
+      try {
+        return await ctx.next();
+      } catch (err) {
+        return new Response(String(err), { status: 500 });
+      }
+    })
+    .post("/", async (ctx) => {
+      await ctx.req.text();
+      return ctx.rewrite("/next");
+    })
+    .post("/next", () => new Response("ok"));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.post("/", "payload");
+
+  expect(res.status).toEqual(500);
+  expect(await res.text()).toContain(
+    "request after its body has already been consumed",
+  );
+});
+
 Deno.test("App - .mountApp() compose apps", async () => {
   const innerApp = new App<{ text: string }>()
     .use((ctx) => {
