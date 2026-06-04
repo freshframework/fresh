@@ -101,6 +101,9 @@ array. This is a top-level export, separate from `config`:
 export const css = ["./assets/dashboard.css"];
 ```
 
+See [Styling](/docs/concepts/styling) for all CSS approaches including CSS
+Modules, preprocessors, and global stylesheets.
+
 ## Route Groups
 
 When working with [layouts](/docs/advanced/layouts) or

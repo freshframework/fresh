@@ -1,4 +1,4 @@
-import * as maxmind from "../../fixtures/maxmind.cjs";
+import * as maxmind from "../../fixtures/maxmind.js";
 
 export default function Page() {
   // deno-lint-ignore no-console

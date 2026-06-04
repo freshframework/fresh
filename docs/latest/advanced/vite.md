@@ -83,7 +83,8 @@ Behind the scenes, the Fresh Vite plugin:
 During development (`deno task dev`), the Fresh Vite plugin enables HMR so that
 changes to components, islands, and CSS are reflected in the browser instantly
 without a full page reload. This is powered by Prefresh, Preact's fast refresh
-implementation.
+implementation. See [Styling](/docs/concepts/styling) for details on how CSS is
+handled.
 
 ## Migrating from the Builder to Vite
 

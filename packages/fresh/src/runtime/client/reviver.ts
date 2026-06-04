@@ -21,6 +21,7 @@ interface IslandReq {
   name: string;
   propsIdx: number;
   key: string | null;
+  clientOnly: boolean;
   start: Comment | Text;
   end: Comment | Text | null;
 }
@@ -269,11 +270,13 @@ function _walkInner(
         const name = parts[2];
         const propsIdx = parts[3];
         const key = parts[4];
+        const clientOnly = parts[5] === "c";
         const found: IslandReq = {
           kind: RootKind.Island,
           name,
           propsIdx: Number(propsIdx),
           key: key === "" ? null : key,
+          clientOnly,
           start: node as Comment,
           end: null,
         };

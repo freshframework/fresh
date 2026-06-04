@@ -308,15 +308,19 @@ options[OptionsType.DIFF] = (vnode) => {
           }
           const propsIdx = islandProps.push({ slots: [], props }) - 1;
 
-          const child = h(originalType, props);
+          const key = normalizeKey(vnode.key);
+          const markerData = island!.clientOnly
+            ? `${island!.name}:${propsIdx}:${key}:c`
+            : `${island!.name}:${propsIdx}:${key}`;
+
+          // For client-only islands, render an empty placeholder
+          // instead of executing the component on the server.
+          const child = island!.clientOnly
+            ? h("div", null)
+            : h(originalType, props);
           PATCHED.add(child);
 
-          const key = normalizeKey(vnode.key);
-          return wrapWithMarker(
-            child,
-            "island",
-            `${island!.name}:${propsIdx}:${key}`,
-          );
+          return wrapWithMarker(child, "island", markerData);
         };
       }
     } else if (typeof vnode.type === "string") {

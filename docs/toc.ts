@@ -42,6 +42,7 @@ const toc: RawTableOfContents = {
           ["context", "Context", "link:latest"],
           ["signals", "Signals", "link:latest"],
           ["layouts", "Layouts", "link:latest"],
+          ["styling", "Styling", "link:latest"],
           ["static-files", "Static files", "link:latest"],
           ["file-routing", "File routing", "link:latest"],
         ],

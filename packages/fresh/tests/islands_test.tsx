@@ -30,6 +30,7 @@ import { FakeServer } from "../src/test_utils.ts";
 import { PARTIAL_SEARCH_PARAM } from "../src/constants.ts";
 import { ComputedSignal } from "./fixtures_islands/Computed.tsx";
 import { EnvIsland } from "./fixtures_islands/EnvIsland.tsx";
+import ClientOnlyIsland from "./fixtures_islands/ClientOnlyIsland.tsx";
 
 Deno.env.set("FRESH_PUBLIC_TEST_FOO", "test-env-value");
 Deno.env.set("FRESH_PRIVATE_TEST_FOO", "i-should-not-be-visible");
@@ -844,6 +845,61 @@ Deno.test({
         e.includes("invalid HTML nesting")
       );
       expect(nestingError).toContain("BlockIsland");
+    });
+  },
+});
+
+Deno.test({
+  name: "islands - client-only island renders placeholder in SSR",
+  fn: async () => {
+    const app = testApp()
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <ClientOnlyIsland id="co" label="hello" />
+          </Doc>,
+        );
+      });
+
+    const server = new FakeServer(app.handler());
+    const res = await server.get("/");
+    const html = await res.text();
+
+    // SSR should contain a placeholder div, not the island's actual content
+    const doc = parseHtml(html);
+    expect(doc.querySelector(".client-only")).toBeNull();
+    expect(doc.querySelector(".label")).toBeNull();
+
+    // The marker comment should have the :c flag for client-only
+    expect(html).toContain("::c-->");
+  },
+});
+
+Deno.test({
+  name: "islands - client-only island renders on client",
+  fn: async () => {
+    const app = testApp()
+      .get("/", (ctx) => {
+        return ctx.render(
+          <Doc>
+            <ClientOnlyIsland id="co" label="hello" />
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator("#co.ready").wait();
+
+      const label = await page.evaluate(() => {
+        return document.querySelector("#co .label")?.textContent;
+      });
+      expect(label).toEqual("hello");
+
+      const check = await page.evaluate(() => {
+        return document.querySelector("#co .check")?.textContent;
+      });
+      expect(check).toEqual("has-document");
     });
   },
 });
