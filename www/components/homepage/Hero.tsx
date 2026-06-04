@@ -14,7 +14,7 @@ export function Hero() {
               The framework so simple, you already know it.
             </h2>
             <p class="mt-6 text-lg sm:text-xl text-gray-700 text-balance max-w-prose">
-              No config files, no build step, no node_modules. Just one file and
+              No config files, no build step. Just one file and
               you have a server with routing, JSX, and islands.
             </p>
             <div class="mt-12 flex flex-wrap justify-center items-stretch md:justify-start gap-4">

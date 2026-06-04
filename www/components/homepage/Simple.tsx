@@ -44,7 +44,7 @@ export function Simple() {
           The framework so simple, you already know it.
         </h2>
         <p class="text-xl text-balance max-w-prose mx-auto">
-          No config files, no build step, no node_modules. Just one file and you
+          No config files, no build step. Just one file and you
           have a server with routing, JSX, and islands.
         </p>
       </div>
