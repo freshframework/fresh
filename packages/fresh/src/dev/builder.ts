@@ -277,6 +277,25 @@ export class Builder<State = any> {
     await this.#build(buildCache, this.config.mode === "development");
     await buildCache.prepare();
 
+    // Prerender marked routes
+    if (
+      this.config.mode === "production" &&
+      "loadedFsRoutes" in buildCache
+    ) {
+      const { prerenderRoutes } = await import("./prerender.ts");
+      const tempApp = new App<State>().fsRoutes();
+      setBuildCache(tempApp, buildCache, "production");
+      const count = await prerenderRoutes(
+        tempApp,
+        buildCache,
+        buildCache.loadedFsRoutes,
+      );
+      if (count > 0) {
+        // deno-lint-ignore no-console
+        console.log(`Prerendered ${count} page(s)`);
+      }
+    }
+
     return (app) => {
       setBuildCache(app, buildCache, app.config.mode);
     };

@@ -43,7 +43,7 @@ export function staticFiles<T>(): Middleware<T> {
     // Fast path bail out
     const startTime = performance.now() + performance.timeOrigin;
     const file = await buildCache.readFile(pathname);
-    if (pathname === "/" || file === null) {
+    if (file === null) {
       // Optimization: Prevent long responses for favicon.ico requests
       if (pathname === "/favicon.ico") {
         return new Response(null, { status: 404 });

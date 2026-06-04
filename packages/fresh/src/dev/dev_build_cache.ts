@@ -54,6 +54,7 @@ export interface DevBuildCache<State> extends BuildCache<State> {
     pathname: string,
     content: Uint8Array,
     hash: string | null,
+    contentType?: string,
   ): Promise<void>;
   flush(): Promise<void>;
   prepare(): Promise<void>;
@@ -196,11 +197,12 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
     pathname: string,
     content: Uint8Array,
     hash: string | null,
+    contentType?: string,
   ): Promise<void> {
     this.#processedFiles.set(pathname, {
       content,
       hash,
-      contentType: getContentType(pathname),
+      contentType: contentType ?? getContentType(pathname),
     });
   }
 
@@ -224,6 +226,12 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
     );
   }
 
+  #loadedFiles: FsRouteFile<State>[] = [];
+
+  get loadedFsRoutes(): FsRouteFile<State>[] {
+    return this.#loadedFiles;
+  }
+
   async prepare(): Promise<void> {
     // Load FS routes
     const files = await Promise.all(this.#fsRoutes.files.map(async (file) => {
@@ -233,6 +241,7 @@ export class MemoryBuildCache<State> implements DevBuildCache<State> {
         mod: file.lazy ? () => import(fileUrl) : await import(fileUrl),
       };
     }));
+    this.#loadedFiles = files;
     this.#commands = fsItemsToCommands(files);
   }
 }
@@ -283,6 +292,7 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
     pathname: string,
     content: Uint8Array,
     hash: string | null,
+    _contentType?: string,
   ) {
     this.#processedFiles.set(pathname, hash);
 

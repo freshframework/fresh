@@ -74,7 +74,7 @@ export async function crawlRouteDir<State>(
       routePattern = pathToPattern(id.slice(1));
 
       const code = await fs.readTextFile(entry.path);
-      lazy = !code.includes("routeOverride");
+      lazy = !code.includes("routeOverride") && !code.includes("prerender");
 
       // TODO: We could do an AST parse here to detect the
       // kind of handler that's used to get a more accurate

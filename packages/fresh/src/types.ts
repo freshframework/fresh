@@ -36,6 +36,29 @@ export interface RouteConfig {
    * Default: `ALL`
    */
   methods?: "ALL" | Method[];
+
+  /**
+   * Prerender this route at build time. The generated HTML is served as a
+   * static file at runtime, bypassing the route handler entirely.
+   *
+   * - `true` — prerender a static route (no dynamic segments).
+   * - A function — for dynamic routes like `[slug]`, return an array of
+   *   param objects describing which paths to prerender.
+   *
+   * @example
+   * // Static route
+   * export const config: RouteConfig = { prerender: true };
+   *
+   * // Dynamic route
+   * export const config: RouteConfig = {
+   *   prerender: () => [{ slug: "about" }, { slug: "faq" }],
+   * };
+   */
+  prerender?:
+    | boolean
+    | (() =>
+      | Array<Record<string, string>>
+      | Promise<Array<Record<string, string>>>);
 }
 
 export interface LayoutConfig {
