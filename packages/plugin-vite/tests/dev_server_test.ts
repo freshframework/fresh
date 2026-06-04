@@ -1,5 +1,6 @@
 import * as path from "@std/path";
 import { expect } from "@std/expect";
+import { withTmpDir, writeFiles } from "../../fresh/src/test_utils.ts";
 import {
   waitFor,
   waitForText,
@@ -576,6 +577,91 @@ integrationTest(
     });
   },
 );
+
+// https://github.com/denoland/fresh/issues/3814
+integrationTest("vite dev - server.proxy bypasses Fresh routes", async () => {
+  const api = new URLPattern({ pathname: "/api/*" });
+  const api2 = new URLPattern({ pathname: "/api2/*" });
+  const api3 = new URLPattern({ pathname: "/api3/*" });
+  await using proxy = Deno.serve({
+    hostname: "127.0.0.1",
+    port: 0,
+  }, (req) => {
+    const url = new URL(req.url);
+    if (api.test({ pathname: url.pathname })) {
+      return new Response("api");
+    }
+    if (api2.test({ pathname: url.pathname })) {
+      return new Response("api2");
+    }
+    if (api3.test({ pathname: url.pathname })) {
+      return new Response("api3");
+    }
+    throw new Error("unreachable");
+  });
+
+  await using tmp = await withTmpDir({
+    dir: path.join(import.meta.dirname!, ".."),
+    prefix: "tmp_vite_",
+  });
+
+  await writeFiles(tmp.dir, {
+    "main.ts": `import { App } from "@fresh/core";
+export const app = new App()
+.get("/", () => new Response("ok"));
+`,
+    "vite.config.ts": `import { defineConfig } from "vite";
+import { fresh } from "@fresh/plugin-vite";
+
+export default defineConfig({
+plugins: [fresh()],
+server: {
+  proxy: {
+    "/api": Deno.env.get("FRESH_TEST_PROXY_TARGET")!,
+    "/api2": {
+      target: Deno.env.get("FRESH_TEST_PROXY_TARGET")!,
+      rewrite: (path) => path.replace(/^\\/api2\\/ping/, "/api2/pong"),
+    },
+    '^/api3/.*': {
+      target: Deno.env.get("FRESH_TEST_PROXY_TARGET")!,
+      changeOrigin: true,
+    },
+  },
+},
+});
+`,
+  });
+
+  await launchDevServer(
+    tmp.dir,
+    async (address) => {
+      {
+        const res = await fetch(`${address}/api/ping?x=1`);
+        expect(res.status).toEqual(200);
+        expect(await res.text()).toEqual("api");
+      }
+      {
+        const res = await fetch(`${address}/api2/pong?y=2`);
+        expect(res.status).toEqual(200);
+        expect(await res.text()).toEqual("api2");
+      }
+      {
+        const res = await fetch(`${address}/api3/pong?z=3`);
+        expect(res.status).toEqual(200);
+        expect(await res.text()).toEqual("api3");
+      }
+      {
+        // Ensure the bypass is selective — non-proxied routes still hit Fresh.
+        const res = await fetch(`${address}/`);
+        expect(res.status).toEqual(200);
+        expect(await res.text()).toEqual("ok");
+      }
+    },
+    {
+      FRESH_TEST_PROXY_TARGET: `http://127.0.0.1:${proxy.addr.port}`,
+    },
+  );
+});
 
 integrationTest("vite dev - source mapped stack traces", async () => {
   const res = await fetch(`${demoServer.address()}/tests/throw`);
