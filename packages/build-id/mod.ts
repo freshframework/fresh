@@ -6,7 +6,7 @@
  * // `BUILD_ID` is based on the `DENO_DEPLOYMENT_ID` environment variable.
  * ```
  *
- * @see https://fresh.deno.dev/docs/deployment/docker
+ * @see https://usefresh.dev/docs/deployment/docker
  *
  * @module
  * @private

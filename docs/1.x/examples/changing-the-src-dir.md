@@ -3,8 +3,8 @@ description: |
   Change the source directory to effectively manage your project.
 ---
 
-When you initialize a project with `deno run -A -r https://fresh.deno.dev`,
-you'll end up with a project like the following:
+When you initialize a project with `deno run -A -r https://usefresh.dev`, you'll
+end up with a project like the following:
 
 ```txt-files Project Structure
 <project root>

@@ -3,7 +3,7 @@
 This package contains examples for using Fresh with [JSR](https://jsr.io/).
 
 Learn more about the Fresh framework here:
-[https://fresh.deno.dev/](https://fresh.deno.dev/)
+[https://usefresh.dev/](https://usefresh.dev/)
 
 ## Usage: Island example
 

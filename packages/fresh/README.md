@@ -4,7 +4,7 @@ Fresh is a small, fast and extensible full stack web framework built on Web
 Standards. It’s designed for building high-quality, performant, and personalized
 web applications.
 
-[Learn more about Fresh](https://fresh.deno.dev/)
+[Learn more about Fresh](https://usefresh.dev/)
 
 ## Usage
 
@@ -28,4 +28,4 @@ app.listen();
 ```
 
 For more information on getting started with Fresh, head on over to the
-[documentation](https://fresh.deno.dev/docs/introduction).
+[documentation](https://usefresh.dev/docs/introduction).

@@ -3,7 +3,7 @@
 
 # fresh
 
-<img align="right" src="https://fresh.deno.dev/logo.svg" height="150px" alt="The Fresh logo: a sliced lemon dripping with juice">
+<img align="right" src="https://usefresh.dev/logo.svg" height="150px" alt="The Fresh logo: a sliced lemon dripping with juice">
 
 **Fresh** is a next generation web framework, built for speed, reliability, and
 simplicity.
@@ -18,8 +18,8 @@ Some stand-out features:
 
 ## 📖 Documentation
 
-The [documentation](https://fresh.deno.dev/docs/introduction) is available on
-[fresh.deno.dev](https://fresh.deno.dev/).
+The [documentation](https://usefresh.dev/docs/introduction) is available on
+[usefresh.dev](https://usefresh.dev/).
 
 ## 🚀 Getting started
 
@@ -58,7 +58,7 @@ To deploy the project to the live internet, you can use
    subdomain with no configuration necessary.
 
 For a more in-depth getting started guide, visit the
-[Getting Started](https://fresh.deno.dev/docs/getting-started) page in the Fresh
+[Getting Started](https://usefresh.dev/docs/getting-started) page in the Fresh
 docs.
 
 ## Contributing
@@ -69,9 +69,8 @@ We appreciate your help! To contribute, please read our
 ## Adding your project to the showcase
 
 If you feel that your project would be helpful to other Fresh users, please
-consider putting your project on the
-[showcase](https://fresh.deno.dev/showcase). However, websites that are just for
-promotional purposes may not be listed.
+consider putting your project on the [showcase](https://usefresh.dev/showcase).
+However, websites that are just for promotional purposes may not be listed.
 
 To take a screenshot, run the following command.
 
@@ -88,15 +87,15 @@ preferably with source code on GitHub, but not required.
 ![Made with Fresh](./www/static/fresh-badge.svg)
 
 ```md
-[![Made with Fresh](https://fresh.deno.dev/fresh-badge.svg)](https://fresh.deno.dev)
+[![Made with Fresh](https://usefresh.dev/fresh-badge.svg)](https://usefresh.dev)
 ```
 
 ```html
-<a href="https://fresh.deno.dev">
+<a href="https://usefresh.dev">
   <img
     width="197"
     height="37"
-    src="https://fresh.deno.dev/fresh-badge.svg"
+    src="https://usefresh.dev/fresh-badge.svg"
     alt="Made with Fresh"
   />
 </a>
@@ -105,15 +104,15 @@ preferably with source code on GitHub, but not required.
 ![Made with Fresh(dark)](./www/static/fresh-badge-dark.svg)
 
 ```md
-[![Made with Fresh](https://fresh.deno.dev/fresh-badge-dark.svg)](https://fresh.deno.dev)
+[![Made with Fresh](https://usefresh.dev/fresh-badge-dark.svg)](https://usefresh.dev)
 ```
 
 ```html
-<a href="https://fresh.deno.dev">
+<a href="https://usefresh.dev">
   <img
     width="197"
     height="37"
-    src="https://fresh.deno.dev/fresh-badge-dark.svg"
+    src="https://usefresh.dev/fresh-badge-dark.svg"
     alt="Made with Fresh"
   />
 </a>

@@ -71,7 +71,7 @@ jobs:
       - name: Check docs
         run: deno task check:docs
 
-      - name: Build fresh.deno.dev
+      - name: Build usefresh.dev
         if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
         run: deno task build-www
 

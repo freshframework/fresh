@@ -24,7 +24,7 @@ with workspace members in `packages/*` and `www/`.
 
 ### Other directories
 
-- **`www/`**: Documentation website (fresh.deno.dev), built with Fresh + Vite +
+- **`www/`**: Documentation website (usefresh.dev), built with Fresh + Vite +
   Tailwind. Has its own routes, islands, and vite.config.ts.
 - **`docs/`**: Markdown documentation organized by version (`latest/`, `1.x/`,
   `canary/`).

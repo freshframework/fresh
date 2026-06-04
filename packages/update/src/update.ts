@@ -163,7 +163,7 @@ export async function updateProject(dir: string) {
         delete tasks.cli;
       }
 
-      if (tasks.update === "deno run -A -r https://fresh.deno.dev/update .") {
+      if (tasks.update === "deno run -A -r https://usefresh.dev/update .") {
         tasks.update = "deno run -A -r jsr:@fresh/update .";
       }
 

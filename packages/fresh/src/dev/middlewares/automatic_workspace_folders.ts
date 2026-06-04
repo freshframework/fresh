@@ -34,7 +34,7 @@ export function automaticWorkspaceFolders<T>(root: string): Middleware<T> {
     uuid ??= await generate(
       NAMESPACE_URL,
       new TextEncoder().encode(
-        `https://fresh.deno.dev?root=${encodeURIComponent(root)}&v=${0}`,
+        `https://usefresh.dev?root=${encodeURIComponent(root)}&v=${0}`,
       ),
     );
     content ??= JSON.stringify({ workspace: { root, uuid } }, undefined, 2);
