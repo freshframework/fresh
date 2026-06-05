@@ -112,28 +112,37 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
             }
           }
 
+          const relRoutes = path.relative(options.routeDir, filePath);
+          const isRouteFile = !relRoutes.startsWith("..") &&
+            !path.isAbsolute(relRoutes) &&
+            !/[\\/]+\(_[^)]+\)[\\/]+/.test(filePath);
+
           // Check for route files. We need to invalidate the snapshot if
           // they are removed or added.
-          if (
-            (ev === "add" || ev === "unlink") &&
-            !/[\\/]+\(_[^)]+\)[\\/]+/.test(filePath)
-          ) {
-            const relRoutes = path.relative(options.routeDir, filePath);
-            if (!relRoutes.startsWith("..")) {
-              const mod = ssr.moduleGraph.getModuleById(`\0${modName}`);
-              if (mod !== undefined) {
-                // Clear state
-                islands.clear();
-                islandsByFile.clear();
-                islandSpecByName.clear();
+          if ((ev === "add" || ev === "unlink") && isRouteFile) {
+            const mod = ssr.moduleGraph.getModuleById(`\0${modName}`);
+            if (mod !== undefined) {
+              // Clear state
+              islands.clear();
+              islandsByFile.clear();
+              islandSpecByName.clear();
 
-                ssr.moduleGraph.invalidateModule(mod);
-              }
+              ssr.moduleGraph.invalidateModule(mod);
             }
           }
 
-          // Finally, notify the client
-          viteServer.ws.send("fresh:reload");
+          // Only notify the client when the changed file is actually
+          // relevant to SSR — either a route file, or something already
+          // tracked in the SSR module graph. Vite attaches us directly to
+          // its chokidar instance, so `server.watch.ignored` does not
+          // filter events before we see them. Without this gate, any
+          // unrelated write (e.g. Deno KV `main-shm`/`main-wal` journals
+          // or editor temp files on Windows) would trigger a full reload.
+          // See https://github.com/denoland/fresh/issues/3637.
+          const ssrMods = ssr.moduleGraph.getModulesByFile(filePath);
+          if (isRouteFile || (ssrMods !== undefined && ssrMods.size > 0)) {
+            viteServer.ws.send("fresh:reload");
+          }
         });
       },
       resolveId: {

@@ -583,6 +583,77 @@ integrationTest("vite dev - source mapped stack traces", async () => {
   expect(text).toContain("throw.tsx:5:11");
 });
 
+// issue: https://github.com/denoland/fresh/issues/3637
+integrationTest(
+  "vite dev - unrelated file changes do not trigger fresh:reload",
+  async () => {
+    const fixture = path.join(FIXTURE_DIR, "no_static");
+    await using tmp = await prepareDevServer(fixture);
+    await using devServer = await spawnDevServer(tmp.dir);
+
+    const httpUrl = devServer.address();
+
+    // Load the route into the SSR module graph so the sanity check
+    // below has a known-good baseline to compare against.
+    const res = await fetch(`${httpUrl}/`);
+    await res.body?.cancel();
+
+    const wsUrl = httpUrl.replace(/^http/, "ws");
+    const ws = new WebSocket(wsUrl, "vite-hmr");
+    const messages: string[] = [];
+    ws.onmessage = (ev) => {
+      if (typeof ev.data === "string") messages.push(ev.data);
+    };
+    await new Promise<void>((resolve, reject) => {
+      ws.onopen = () => resolve();
+      ws.onerror = (err) => reject(new Error(String(err)));
+    });
+
+    try {
+      // Mimic the kind of file Deno KV or an editor would write
+      // alongside the project (this is the original Windows repro
+      // from the issue). It is not in routes/ and is not imported
+      // by anything in the SSR module graph.
+      const stray = path.join(tmp.dir, "main-shm");
+      await Deno.writeTextFile(stray, "garbage");
+      try {
+        await new Promise((r) => setTimeout(r, 1500));
+        const reloads = messages.filter((m) => m.includes("fresh:reload"));
+        expect(reloads).toEqual([]);
+      } finally {
+        await Deno.remove(stray).catch(() => {});
+      }
+
+      // Sanity check: editing a route file (which is in the SSR module
+      // graph after the fetch above) must still trigger fresh:reload —
+      // i.e. the gating did not throw the baby out with the bathwater.
+      messages.length = 0;
+      const routeFile = path.join(tmp.dir, "routes", "index.tsx");
+      const original = await Deno.readTextFile(routeFile);
+      try {
+        await Deno.writeTextFile(
+          routeFile,
+          original.replace("<h1>ok</h1>", "<h1>ok 2</h1>"),
+        );
+
+        const start = Date.now();
+        while (
+          Date.now() - start < 5000 &&
+          !messages.some((m) => m.includes("fresh:reload"))
+        ) {
+          await new Promise((r) => setTimeout(r, 50));
+        }
+
+        expect(messages.some((m) => m.includes("fresh:reload"))).toBe(true);
+      } finally {
+        await Deno.writeTextFile(routeFile, original);
+      }
+    } finally {
+      ws.close();
+    }
+  },
+);
+
 integrationTest("vite dev - client side <Head>", async () => {
   await withBrowser(async (page) => {
     await page.goto(`${demoServer.address()}/tests/head_counter`, {
