@@ -24,6 +24,29 @@ import type { PartialStateJson } from "../server/preact_hooks.ts";
 import { parse } from "../../jsonify/parse.ts";
 import { INTERNAL_PREFIX, PARTIAL_SEARCH_PARAM } from "../../constants.ts";
 
+type FreshTrustedTypes = { createHTML(s: string): string };
+type TrustedTypesWindow = {
+  trustedTypes?: {
+    createPolicy(name: string, v: FreshTrustedTypes): FreshTrustedTypes;
+  };
+};
+
+const freshTrustedTypes: FreshTrustedTypes = (() => {
+  const noop = { createHTML: (s: string) => s };
+  const window = globalThis as TrustedTypesWindow;
+  if (!window.trustedTypes) return noop;
+  try {
+    return window.trustedTypes.createPolicy(
+      "fresh-partials",
+      {
+        createHTML: (s: string) => s,
+      },
+    );
+  } catch (_e) {
+    return noop;
+  }
+})();
+
 export const PARTIAL_ATTR = "f-partial";
 
 class NoPartialsError extends Error {}
@@ -402,7 +425,10 @@ export async function applyPartials(res: Response): Promise<void> {
   const id = res.headers.get("X-Fresh-Id");
 
   const resText = await res.text();
-  const doc = new DOMParser().parseFromString(resText, "text/html") as Document;
+  const doc = new DOMParser().parseFromString(
+    freshTrustedTypes.createHTML(resText),
+    "text/html",
+  ) as Document;
 
   const state = doc.querySelector(`#__FRSH_STATE_${id}`);
   let allProps: DeserializedProps = [];
