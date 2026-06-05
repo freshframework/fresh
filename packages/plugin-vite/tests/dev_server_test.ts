@@ -583,6 +583,24 @@ integrationTest("vite dev - source mapped stack traces", async () => {
   expect(text).toContain("throw.tsx:5:11");
 });
 
+integrationTest(
+  "vite dev - strips deno:: prefix from stack traces",
+  async () => {
+    // Regression test for denoland/fresh#3464: the deno plugin's virtual
+    // module IDs (`\0deno::{type}::{specifier}`) used to leak into stack
+    // traces. The plugin now rewrites the loader's source maps so frames
+    // reference the original `jsr:` / `https:` / `file://` specifier.
+    const res = await fetch(`${demoServer.address()}/tests/throw`);
+    const text = await res.text();
+    expect(text).toContain("FAIL");
+    expect(text).not.toMatch(/deno::\d+::/);
+    // And no doubled cwd paths from a missing `sourceRoot` (the caveat
+    // described in the issue).
+    const cwd = Deno.cwd().replaceAll("\\", "/");
+    expect(text).not.toContain(`${cwd}${cwd}`);
+  },
+);
+
 integrationTest("vite dev - client side <Head>", async () => {
   await withBrowser(async (page) => {
     await page.goto(`${demoServer.address()}/tests/head_counter`, {

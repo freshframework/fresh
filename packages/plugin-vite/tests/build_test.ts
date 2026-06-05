@@ -134,6 +134,25 @@ integrationTest("vite build - without routes/ dir", async () => {
   );
 });
 
+integrationTest(
+  "vite build - strips deno:: from server stack traces",
+  async () => {
+    // Regression test for denoland/fresh#3464. Without identity source
+    // maps in the deno plugin, server-side stack traces contained the
+    // virtual module ID `\0deno::{type}::{specifier}` (rendered as
+    // `deno::N::…`) instead of the original specifier.
+    await launchProd(
+      { cwd: viteResult.tmp },
+      async (address) => {
+        const res = await fetch(`${address}/tests/throw`);
+        const text = await res.text();
+        expect(text).toContain("FAIL");
+        expect(text).not.toMatch(/deno::\d+::/);
+      },
+    );
+  },
+);
+
 integrationTest("vite build - load json inside npm package", async () => {
   await launchProd(
     { cwd: viteResult.tmp },

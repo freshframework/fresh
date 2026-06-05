@@ -23,7 +23,7 @@
   "imports": {
     "@babel/core": "npm:@babel/core@^7.28.0",
     "@babel/preset-react": "npm:@babel/preset-react@^7.27.1",
-    "@deno/loader": "jsr:@deno/loader@^0.4.0",
+    "@deno/loader": "jsr:@deno/loader@~0.3.10",
     "@marvinh-test/import-json": "jsr:@marvinh-test/import-json@^0.0.1",
     "@remix-run/node-fetch-server": "npm:@remix-run/node-fetch-server@^0.12.0",
     "@prefresh/vite": "npm:@prefresh/vite@^2.4.8",

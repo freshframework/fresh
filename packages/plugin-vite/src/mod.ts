@@ -167,6 +167,9 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
               },
             },
             ssr: {
+              resolve: {
+                builtins: [],
+              },
               build: {
                 manifest: true,
                 emitAssets: true,
