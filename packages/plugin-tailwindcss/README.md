@@ -11,7 +11,7 @@ import { app } from "./main.ts";
 import { tailwind } from "@fresh/plugin-tailwind";
 
 const builder = new Builder();
-tailwind(builder, app);
+tailwind(builder);
 
 if (Deno.args.includes("build")) {
   builder.build(app);
@@ -29,15 +29,12 @@ import { app } from "./main.ts";
 import { tailwind } from "@fresh/plugin-tailwind";
 
 const builder = new Builder();
-tailwind(builder, app, {
+tailwind(builder, {
   // Exclude certain files from processing
   exclude: ["/admin/**", "*.temp.css"],
 
   // Force optimization (defaults to production mode)
   optimize: true,
-
-  // Exclude base styles
-  base: null,
 });
 
 if (Deno.args.includes("build")) {
