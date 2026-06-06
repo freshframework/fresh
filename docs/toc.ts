@@ -86,6 +86,7 @@ const toc: RawTableOfContents = {
         title: "Plugins",
         link: "latest",
         pages: [
+          ["cache", "cache", "link:latest"],
           ["cors", "cors", "link:latest"],
           ["csrf", "csrf", "link:latest"],
           ["csp", "csp", "link:latest"],

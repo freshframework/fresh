@@ -18,6 +18,7 @@ export {
   type IpFilterOptions,
   type IpFilterRules,
 } from "./middlewares/ip_filter.ts";
+export { cache, type CacheOptions } from "./middlewares/cache.ts";
 export { csp, type CSPOptions } from "./middlewares/csp.ts";
 export type { FreshConfig, ResolvedFreshConfig } from "./config.ts";
 export type {
