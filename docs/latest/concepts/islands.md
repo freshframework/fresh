@@ -118,12 +118,34 @@ import OtherIsland from "../islands/other-island.tsx";
 </div>;
 ```
 
-## Rendering islands on client only
+## Client-only islands
 
-When using client-only APIs, like `EventSource` or `navigator.getUserMedia`, the
-component would error during server-side rendering. Use the `IS_BROWSER`
-constant from `fresh/runtime` to guard browser-only code. It is `false` on the
-server and `true` in the browser:
+Some libraries (e.g. Monaco Editor, certain charting libraries) reference
+browser globals like `document` at the module top level, which crashes during
+server-side rendering. You can mark an island as **client-only** by adding
+`export const clientOnly = true`. Fresh will skip executing the component on the
+server and render an empty placeholder instead. On the client, the component
+renders normally.
+
+```tsx islands/my-editor.tsx
+export const clientOnly = true;
+
+export default function MyEditor() {
+  // Safe to use document, window, etc. — this code never runs on the server.
+  return <div>{/* ... */}</div>;
+}
+```
+
+> [warn]: Client-only islands produce no meaningful HTML on the server. This
+> means search engines will not see their content, and users will see an empty
+> placeholder until JavaScript loads. Use this only when the component truly
+> cannot run on the server.
+
+### Using `IS_BROWSER` for a custom fallback
+
+If the module itself can be loaded on the server but you only need to guard
+certain API calls, use the `IS_BROWSER` constant from `fresh/runtime` instead.
+This lets you return a meaningful SSR fallback:
 
 ```tsx islands/my-island.tsx
 import { IS_BROWSER } from "fresh/runtime";

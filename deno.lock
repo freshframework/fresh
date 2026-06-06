@@ -1,6 +1,7 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@astral/astral@0.5.6": "0.5.6",
     "jsr:@astral/astral@~0.5.6": "0.5.6",
     "jsr:@deno-library/progress@^1.5.1": "1.5.1",
     "jsr:@deno/cache-dir@0.14": "0.14.0",
@@ -6108,6 +6109,17 @@
           "npm:@tailwindcss/vite@^4.1.12",
           "npm:vite-plugin-inspect@^11.3.2",
           "npm:vite@^7.1.4"
+        ]
+      }
+    },
+    "links": {
+      "npm:@deno/vite-plugin@2.0.2": {
+        "dependencies": [
+          "npm:@jsr/deno__loader@0.5",
+          "npm:@jsr/std__jsonc@1"
+        ],
+        "peerDependencies": [
+          "npm:vite@5 || 6 || 7 || 8"
         ]
       }
     }

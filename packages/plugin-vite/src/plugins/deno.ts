@@ -9,17 +9,13 @@ import {
 import * as path from "@std/path";
 import * as babel from "@babel/core";
 import { httpAbsolute } from "./patches/http_absolute.ts";
-import { JS_REG, JSX_REG } from "../utils.ts";
+import { JSX_REG } from "../utils.ts";
 import { builtinModules } from "node:module";
 
 // @ts-ignore Workaround for https://github.com/denoland/deno/issues/30850
 const { default: babelReact } = await import("@babel/preset-react");
 
 const BUILTINS = new Set(builtinModules);
-
-interface DenoState {
-  type: RequestedModuleType;
-}
 
 export function deno(): Plugin {
   let ssrLoader: Loader;
@@ -83,6 +79,21 @@ export function deno(): Plugin {
       if (id.startsWith("/") && importer && /^https?:\/\//g.test(importer)) {
         const url = new URL(importer);
         id = `${url.origin}${id}`;
+      }
+
+      // Apply resolve.alias before Deno resolution so that
+      // react -> preact/compat works even in externalized packages.
+      // Vite normalizes alias config to { find, replacement }[] format.
+      const aliases = this.environment?.config?.resolve?.alias;
+      if (aliases) {
+        const list = Array.isArray(aliases) ? aliases : [];
+        for (const alias of list) {
+          const find = alias.find;
+          if (typeof find === "string" ? find === id : find?.test?.(id)) {
+            id = typeof alias.replacement === "string" ? alias.replacement : id;
+            break;
+          }
+        }
       }
 
       // We still want to allow other plugins to participate in
@@ -155,14 +166,13 @@ export function deno(): Plugin {
           resolved = path.fromFileUrl(resolved);
         }
 
-        return {
-          id: resolved,
-          meta: {
-            deno: {
-              type,
-            },
-          },
-        };
+        // For file:// resolved modules (npm packages in node_modules,
+        // local files), let Vite handle loading natively. This allows
+        // Vite to externalize CJS packages in SSR mode (Node.js handles
+        // them with native require()) and avoids needing a custom CJS
+        // transform. Only \0deno:: virtual modules (jsr:, non-default
+        // types) need Fresh's custom load hook.
+        return { id: resolved };
       } catch {
         // ignore
       }
@@ -171,6 +181,80 @@ export function deno(): Plugin {
       const loader = this.environment.config.consumer === "server"
         ? ssrLoader
         : browserLoader;
+
+      // In dev mode, CJS files need to be wrapped in an ESM shim:
+      // - SSR: module runner evaluates as ESM, needs module/exports/require
+      // - Client: browser evaluates as ESM, needs module/exports
+      // In build mode, Rollup's @rollup/plugin-commonjs handles CJS.
+      if (
+        isDev &&
+        !id.startsWith("\0") &&
+        id.includes("node_modules") &&
+        /\.(c?js|cjs)$/.test(id)
+      ) {
+        try {
+          const code = await Deno.readTextFile(id);
+          // Quick heuristic: if file has CJS patterns and no ESM
+          if (
+            !code.includes("export ") &&
+            !code.includes("import ") &&
+            (code.includes("module.exports") ||
+              code.includes("exports.") ||
+              code.includes("require("))
+          ) {
+            const isServer = this.environment.config.consumer === "server";
+
+            if (isServer) {
+              // SSR: use Node.js createRequire for full CJS compat
+              const wrapped = `
+import { createRequire as __cjs_createRequire } from "node:module";
+import { fileURLToPath as __cjs_fileURLToPath } from "node:url";
+import { dirname as __cjs_dirname } from "node:path";
+var __filename = __cjs_fileURLToPath(import.meta.url);
+var __dirname = __cjs_dirname(__filename);
+var require = __cjs_createRequire(import.meta.url);
+var module = { exports: {} };
+var exports = module.exports;
+
+${code}
+
+export default module.exports;
+`;
+              return { code: wrapped };
+            }
+
+            // Client: convert require() calls to ESM imports so
+            // browsers can load them. Hoist static require() calls
+            // to import statements at the top.
+            const imports: string[] = [];
+            let idx = 0;
+            const transformed = code.replace(
+              /\brequire\(["']([^"']+)["']\)/g,
+              (_match: string, spec: string) => {
+                const varName = `__cjs_import_${idx++}`;
+                imports.push(
+                  `import ${varName} from ${JSON.stringify(spec)};`,
+                );
+                return `(${varName}.default ?? ${varName})`;
+              },
+            );
+
+            const wrapped = `${imports.join("\n")}
+var module = { exports: {} };
+var exports = module.exports;
+var __filename = "";
+var __dirname = "";
+
+${transformed}
+
+export default module.exports;
+`;
+            return { code: wrapped };
+          }
+        } catch {
+          // Fall through to default loading
+        }
+      }
 
       if (isDenoSpecifier(id)) {
         const { type, specifier } = parseDenoSpecifier(id);
@@ -197,49 +281,6 @@ export function deno(): Plugin {
           code,
         };
       }
-
-      if (id.startsWith("\0")) {
-        id = id.slice(1);
-      }
-
-      const meta = this.getModuleInfo(id)?.meta.deno as
-        | DenoState
-        | undefined
-        | null;
-
-      if (meta === null || meta === undefined) return;
-
-      // Skip for non-js files like `.css`
-      if (
-        meta.type === RequestedModuleType.Default &&
-        !JS_REG.test(id)
-      ) {
-        return;
-      }
-
-      const url = path.toFileUrl(id);
-
-      const result = await loader.load(url.href, meta.type);
-      if (result.kind === "external") {
-        return null;
-      }
-
-      const code = new TextDecoder().decode(result.code);
-
-      const maybeJsx = babelTransform({
-        ssr: this.environment.config.consumer === "server",
-        media: result.mediaType,
-        id,
-        code,
-        isDev,
-      });
-      if (maybeJsx) {
-        return maybeJsx;
-      }
-
-      return {
-        code,
-      };
     },
     transform: {
       filter: {

@@ -35,6 +35,7 @@ export interface IslandModChunk {
   server: string;
   browser: string | null;
   css: string[];
+  clientOnly?: boolean;
 }
 
 export type FsRouteFileNoMod<State> = Omit<FsRouteFile<State>, "mod"> & {
@@ -494,6 +495,9 @@ export async function generateSnapshotServer(
     const browser = JSON.stringify(item.browser);
     const name = JSON.stringify(item.name);
     const css = JSON.stringify(item.css);
+    if (item.clientOnly) {
+      return `islandPreparer.prepare(islands, ${item.name}, ${browser}, ${name}, ${css}, true);`;
+    }
     return `islandPreparer.prepare(islands, ${item.name}, ${browser}, ${name}, ${css});`;
   }).join("\n");
 
