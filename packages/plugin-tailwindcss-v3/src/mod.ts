@@ -5,6 +5,9 @@ import cssnano from "cssnano";
 import autoprefixer from "autoprefixer";
 import * as path from "@std/path";
 
+/**
+ * @deprecated Use the Vite plugin with `@tailwindcss/vite` instead.
+ */
 export interface AutoprefixerOptions {
   /** environment for `Browserslist` */
   env?: string;
@@ -46,10 +49,17 @@ export interface AutoprefixerOptions {
   ignoreUnknownVersions?: boolean;
 }
 
+/**
+ * @deprecated Use the Vite plugin with `@tailwindcss/vite` instead.
+ */
 export interface TailwindPluginOptions {
   autoprefixer?: AutoprefixerOptions;
 }
 
+/**
+ * @deprecated Use the Vite plugin with `@tailwindcss/vite` instead.
+ * This plugin is only compatible with the legacy Builder API.
+ */
 export function tailwind(
   builder: Builder,
   options: TailwindPluginOptions = {},

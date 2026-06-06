@@ -115,6 +115,10 @@ export type ResolvedBuildConfig =
     sourceMap?: FreshBundleOptions["sourceMap"];
   };
 
+/**
+ * @deprecated Use the Vite plugin (`@fresh/plugin-vite`) instead.
+ * The Builder class will be removed in a future version of Fresh.
+ */
 // deno-lint-ignore no-explicit-any
 export class Builder<State = any> {
   #transformer: FileTransformer;

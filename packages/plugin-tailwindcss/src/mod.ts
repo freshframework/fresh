@@ -3,9 +3,15 @@ import twPostcss from "@tailwindcss/postcss";
 import postcss from "postcss";
 import type { TailwindPluginOptions } from "./types.ts";
 
-// Re-export types for public API
+/**
+ * @deprecated Use the Vite plugin with `@tailwindcss/vite` instead.
+ */
 export type { TailwindPluginOptions } from "./types.ts";
 
+/**
+ * @deprecated Use the Vite plugin with `@tailwindcss/vite` instead.
+ * This plugin is only compatible with the legacy Builder API.
+ */
 export function tailwind(
   builder: Builder,
   options: TailwindPluginOptions = {},
