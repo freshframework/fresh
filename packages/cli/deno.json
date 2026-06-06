@@ -1,0 +1,23 @@
+{
+  "name": "@fresh/cli",
+  "version": "0.1.0",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/mod.ts"
+  },
+  "publish": {
+    "include": [
+      "src/**/*.ts",
+      "deno.json",
+      "README.md"
+    ],
+    "exclude": ["**/*_test.*"]
+  },
+  "imports": {
+    "@std/cli": "jsr:@std/cli@^1.0.19",
+    "@std/fmt": "jsr:@std/fmt@^1.0.7",
+    "@std/path": "jsr:@std/path@^1.1.2",
+    "@std/fs": "jsr:@std/fs@^1.0.19",
+    "@std/jsonc": "jsr:@std/jsonc@^1.0.2"
+  }
+}
