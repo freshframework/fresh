@@ -23,6 +23,7 @@ import { createRootFragment, isCommentNode, isElementNode } from "./reviver.ts";
 import type { PartialStateJson } from "../server/preact_hooks.ts";
 import { parse } from "../../jsonify/parse.ts";
 import { INTERNAL_PREFIX, PARTIAL_SEARCH_PARAM } from "../../constants.ts";
+import { getCachedResponse } from "./prefetch.ts";
 
 export const PARTIAL_ATTR = "f-partial";
 
@@ -359,7 +360,15 @@ async function fetchPartials(
   init.redirect = "follow";
   partialUrl = new URL(partialUrl);
   partialUrl.searchParams.set(PARTIAL_SEARCH_PARAM, "true");
-  const res = await fetch(partialUrl, init);
+
+  // Check prefetch cache for GET requests (no custom init body)
+  let res: Response;
+  const cached = !init.body ? getCachedResponse(partialUrl) : null;
+  if (cached) {
+    res = cached;
+  } else {
+    res = await fetch(partialUrl, init);
+  }
 
   if (res.redirected) {
     const nextUrl = new URL(res.url);
