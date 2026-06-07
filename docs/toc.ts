@@ -76,6 +76,7 @@ const toc: RawTableOfContents = {
           ["deno-compile", "deno compile", "link:latest"],
           ["docker", "Docker", "link:latest"],
           ["cloudflare-workers", "Cloudflare Workers", "link:latest"],
+          ["deployhq", "DeployHQ", "link:latest"],
         ],
       },
       testing: {
