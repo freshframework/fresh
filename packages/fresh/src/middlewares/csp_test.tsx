@@ -260,3 +260,54 @@ Deno.test("CSP - useNonce replaces unsafe-inline in default-src", async () => {
   // default-src should have nonce, not unsafe-inline
   expect(cspHeader).toMatch(/default-src 'self' 'nonce-[a-f0-9]+'/);
 });
+
+Deno.test("CSP - useNonce with insecureUnsafeInline keeps both", async () => {
+  const app = new App()
+    .use(csp({ useNonce: true, insecureUnsafeInline: true }))
+    .get("/", (ctx) => {
+      return ctx.render(
+        <html>
+          <head>
+            <style>{"body { color: red; }"}</style>
+          </head>
+          <body>
+            <h1>hello</h1>
+          </body>
+        </html>,
+      );
+    });
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  const html = await res.text();
+  const cspHeader = res.headers.get("Content-Security-Policy")!;
+
+  // Should contain both unsafe-inline and nonce
+  expect(cspHeader).toContain("'unsafe-inline'");
+  expect(cspHeader).toMatch(
+    /script-src 'self' 'unsafe-inline' 'nonce-[a-f0-9]+'/,
+  );
+  expect(cspHeader).toMatch(
+    /style-src 'self' 'unsafe-inline' 'nonce-[a-f0-9]+'/,
+  );
+
+  // HTML should still have nonce on the style tag
+  const nonceMatch = cspHeader.match(/nonce-([a-f0-9]+)/);
+  expect(nonceMatch).not.toBeNull();
+  const nonce = nonceMatch![1];
+  expect(html).toContain(`nonce="${nonce}"`);
+});
+
+Deno.test("CSP - insecureUnsafeInline without useNonce has no effect", async () => {
+  const handler = new App()
+    .use(csp({ insecureUnsafeInline: true }))
+    .get("/", () => new Response("ok"))
+    .handler();
+
+  const res = await handler(new Request("https://localhost/"));
+  const cspHeader = res.headers.get("Content-Security-Policy")!;
+
+  // Without useNonce, insecureUnsafeInline should not change anything
+  expect(cspHeader).toContain("'unsafe-inline'");
+  expect(cspHeader).not.toContain("'nonce-");
+});

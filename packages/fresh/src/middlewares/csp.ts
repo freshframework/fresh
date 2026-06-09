@@ -19,6 +19,14 @@ export interface CSPOptions {
    * allow those Fresh-rendered inline elements.
    */
   useNonce?: boolean;
+
+  /**
+   * If true and `useNonce` is also true, keeps `'unsafe-inline'`
+   * alongside the nonce in the CSP header instead of removing it.
+   * This is useful when third-party inline scripts or styles (e.g.
+   * analytics, reporting widgets) also need to execute on the page.
+   */
+  insecureUnsafeInline?: boolean;
 }
 
 /**
@@ -64,6 +72,7 @@ export function csp<State>(options: CSPOptions = {}): Middleware<State> {
     reportTo,
     csp = [],
     useNonce = false,
+    insecureUnsafeInline = false,
   } = options;
 
   const defaultCsp = [
@@ -124,6 +133,12 @@ export function csp<State>(options: CSPOptions = {}): Middleware<State> {
         const spaceIdx = d.indexOf(" ");
         const name = spaceIdx === -1 ? d : d.slice(0, spaceIdx);
         if (INLINE_DIRECTIVES.has(name) && d.includes("'unsafe-inline'")) {
+          if (insecureUnsafeInline) {
+            return d.replaceAll(
+              "'unsafe-inline'",
+              `'unsafe-inline' 'nonce-${nonce}'`,
+            );
+          }
           return d.replaceAll("'unsafe-inline'", `'nonce-${nonce}'`);
         }
         return d;
