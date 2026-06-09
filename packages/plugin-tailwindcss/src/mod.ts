@@ -1,5 +1,5 @@
 import type { Builder } from "fresh/dev";
-import twPostcss from "@tailwindcss/postcss";
+import * as twPostcss from "@tailwindcss/postcss";
 import postcss from "postcss";
 import type { TailwindPluginOptions } from "./types.ts";
 
@@ -11,7 +11,7 @@ export function tailwind(
   options: TailwindPluginOptions = {},
 ): void {
   const { exclude, ...tailwindOptions } = options;
-  const instance = postcss(twPostcss({
+  const instance = postcss(twPostcss.default({
     optimize: builder.config.mode === "production",
     ...tailwindOptions,
   }));

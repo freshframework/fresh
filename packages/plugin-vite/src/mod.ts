@@ -6,7 +6,7 @@ import {
 } from "./utils.ts";
 import { deno } from "./plugins/deno.ts";
 
-import prefresh from "@prefresh/vite";
+import * as prefresh from "@prefresh/vite";
 import { serverEntryPlugin } from "./plugins/server_entry.ts";
 import { clientEntryPlugin } from "./plugins/client_entry.ts";
 import { devServer } from "./plugins/dev_server.ts";
@@ -256,7 +256,7 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
     ...clientSnapshot(fConfig),
     buildIdPlugin(),
     ...devServer(fConfig),
-    prefresh({
+    prefresh.default({
       include: [/\.[cm]?[tj]sx?$/],
       exclude: [/node_modules/, /[\\/]+deno[\\/]+npm[\\/]+/],
       parserPlugins: [
