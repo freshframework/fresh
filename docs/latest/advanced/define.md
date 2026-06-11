@@ -51,7 +51,7 @@ export const otherMiddleware = define.middleware((ctx) => {
 
 ## File routes
 
-The `define.*` helpers include a `define.handler()` and `define.page()` function
+The `define.*` helpers include a `define.handlers()` and `define.page()` function
 to make it easy for TypeScript to establish a relation between the two. That way
 you can pass data from the handler to the component in a type-safe way.
 
