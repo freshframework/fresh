@@ -88,7 +88,7 @@ Deno.test("CSP - GET report only", async () => {
   );
 });
 
-Deno.test("CSP - useNonce replaces unsafe-inline with nonce", async () => {
+Deno.test("CSP - useNonce appends nonce alongside unsafe-inline", async () => {
   const app = new App()
     .use(csp({ useNonce: true }))
     .get("/", (ctx) => {
@@ -109,10 +109,14 @@ Deno.test("CSP - useNonce replaces unsafe-inline with nonce", async () => {
   const html = await res.text();
   const cspHeader = res.headers.get("Content-Security-Policy")!;
 
-  // Should contain nonce directive, not unsafe-inline
-  expect(cspHeader).not.toContain("'unsafe-inline'");
-  expect(cspHeader).toMatch(/script-src 'self' 'nonce-[a-f0-9]+'/);
-  expect(cspHeader).toMatch(/style-src 'self' 'nonce-[a-f0-9]+'/);
+  // Should contain both unsafe-inline and nonce
+  expect(cspHeader).toContain("'unsafe-inline'");
+  expect(cspHeader).toMatch(
+    /script-src 'self' 'unsafe-inline' 'nonce-[a-f0-9]+'/,
+  );
+  expect(cspHeader).toMatch(
+    /style-src 'self' 'unsafe-inline' 'nonce-[a-f0-9]+'/,
+  );
 
   // Nonce should not leak as a response header
   expect(res.headers.get("X-Fresh-Nonce")).toBeNull();
@@ -237,7 +241,7 @@ Deno.test("CSP - nonce does not leak as header without CSP middleware", async ()
   expect((res as any)[NONCE_SYMBOL]).toBeDefined();
 });
 
-Deno.test("CSP - useNonce replaces unsafe-inline in default-src", async () => {
+Deno.test("CSP - useNonce appends nonce alongside unsafe-inline in default-src", async () => {
   const app = new App()
     .use(csp({
       useNonce: true,
@@ -257,6 +261,44 @@ Deno.test("CSP - useNonce replaces unsafe-inline in default-src", async () => {
   await res.body?.cancel();
   const cspHeader = res.headers.get("Content-Security-Policy")!;
 
-  // default-src should have nonce, not unsafe-inline
-  expect(cspHeader).toMatch(/default-src 'self' 'nonce-[a-f0-9]+'/);
+  // default-src should contain both unsafe-inline and nonce
+  expect(cspHeader).toMatch(
+    /default-src 'self' 'unsafe-inline' 'nonce-[a-f0-9]+'/,
+  );
+});
+
+Deno.test("CSP - nonce only added when unsafe-inline is present in directive", async () => {
+  const app = new App()
+    .use(csp({
+      useNonce: true,
+      csp: ["script-src 'self'"],
+    }))
+    .get("/", (ctx) => {
+      return ctx.render(
+        <html>
+          <head />
+          <body>hello</body>
+        </html>,
+      );
+    });
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/");
+  await res.body?.cancel();
+  const cspHeader = res.headers.get("Content-Security-Policy")!;
+
+  // script-src (user override, no 'unsafe-inline'): no nonce, no unsafe-inline
+  const scriptSrc = cspHeader.split("; ").find((d) =>
+    d.startsWith("script-src")
+  )!;
+  expect(scriptSrc).toEqual("script-src 'self'");
+  expect(scriptSrc).not.toContain("'unsafe-inline'");
+  expect(scriptSrc).not.toMatch(/'nonce-/);
+
+  // style-src (default, has 'unsafe-inline'): nonce appended alongside
+  const styleSrc = cspHeader.split("; ").find((d) =>
+    d.startsWith("style-src")
+  )!;
+  expect(styleSrc).toContain("'unsafe-inline'");
+  expect(styleSrc).toMatch(/'nonce-[a-f0-9]+'/);
 });

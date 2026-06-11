@@ -12,11 +12,16 @@ export interface CSPOptions {
   csp?: string[];
 
   /**
-   * If true, replaces 'unsafe-inline' with a nonce-based policy for
-   * script-src and style-src directives. Fresh automatically injects
+   * If true, appends a nonce to 'unsafe-inline' entries in the policy
+   * for script-src and style-src directives. Fresh automatically injects
    * nonce attributes on inline `<script>` and `<style>` tags during
-   * server rendering, so this option locks down the policy to only
-   * allow those Fresh-rendered inline elements.
+   * server rendering, so this option allows those Fresh-rendered inline
+   * elements while keeping 'unsafe-inline' as a fallback for older
+   * browsers that don't support CSP Level 3 nonces.
+   *
+   * Note: 'unsafe-inline' is kept in the policy alongside the nonce.
+   * If you want only the nonce, omit 'unsafe-inline' from your
+   * directives.
    */
   useNonce?: boolean;
 }
@@ -124,7 +129,10 @@ export function csp<State>(options: CSPOptions = {}): Middleware<State> {
         const spaceIdx = d.indexOf(" ");
         const name = spaceIdx === -1 ? d : d.slice(0, spaceIdx);
         if (INLINE_DIRECTIVES.has(name) && d.includes("'unsafe-inline'")) {
-          return d.replaceAll("'unsafe-inline'", `'nonce-${nonce}'`);
+          return d.replace(
+            "'unsafe-inline'",
+            `'unsafe-inline' 'nonce-${nonce}'`,
+          );
         }
         return d;
       });
