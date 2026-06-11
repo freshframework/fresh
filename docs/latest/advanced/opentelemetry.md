@@ -114,7 +114,7 @@ with Docker:
 docker run -d --name jaeger \
   -p 16686:16686 \
   -p 4317:4317 \
-  jaegertracing/all-in-one:latest
+  cr.jaegertracing.io/jaegertracing/jaeger:latest
 ```
 
 Then start your Fresh app pointing at the Jaeger collector:
