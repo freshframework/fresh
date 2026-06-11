@@ -230,6 +230,8 @@ function applyCommandsInner<State>(
   basePath: string,
   onError?: (err: unknown) => void,
 ) {
+  const routePhase: (() => void)[] = [];
+
   for (let i = 0; i < commands.length; i++) {
     const cmd = commands[i];
 
@@ -274,13 +276,14 @@ function applyCommandsInner<State>(
         break;
       }
       case CommandType.Route: {
-        const { pattern, route, config } = cmd;
         const segment = getOrCreateSegment(
           root,
-          pattern,
+          cmd.pattern,
           cmd.includeLastSegment,
         );
-        const fns = segmentToMiddlewares(segment);
+        const { pattern, route, config } = cmd;
+        routePhase.push(() => {
+          const fns = segmentToMiddlewares(segment);
 
         if (isLazy(route)) {
           const routePath = mergePath(
@@ -337,33 +340,35 @@ function applyCommandsInner<State>(
             }
           }
         }
+        });
         break;
       }
       case CommandType.Handler: {
-        const { pattern, fns, method } = cmd;
         const segment = getOrCreateSegment(
           root,
-          pattern,
+          cmd.pattern,
           cmd.includeLastSegment,
         );
-        const result = segmentToMiddlewares(segment);
+        const { pattern, fns, method } = cmd;
+        routePhase.push(() => {
+          const result = segmentToMiddlewares(segment);
 
-        result.push(...fns);
+          result.push(...fns);
 
-        const compiled = compileMiddlewares(result, onError);
-        const resPath = toRoutePath(mergePath(basePath, pattern, false));
-        if (method === "ALL") {
-          router.add("GET", resPath, compiled);
-          router.add("DELETE", resPath, compiled);
-          router.add("HEAD", resPath, compiled);
-          router.add("OPTIONS", resPath, compiled);
-          router.add("PATCH", resPath, compiled);
-          router.add("POST", resPath, compiled);
-          router.add("PUT", resPath, compiled);
-        } else {
-          router.add(method, resPath, compiled);
-        }
-
+          const compiled = compileMiddlewares(result, onError);
+          const resPath = toRoutePath(mergePath(basePath, pattern, false));
+          if (method === "ALL") {
+            router.add("GET", resPath, compiled);
+            router.add("DELETE", resPath, compiled);
+            router.add("HEAD", resPath, compiled);
+            router.add("OPTIONS", resPath, compiled);
+            router.add("PATCH", resPath, compiled);
+            router.add("POST", resPath, compiled);
+            router.add("PUT", resPath, compiled);
+          } else {
+            router.add(method, resPath, compiled);
+          }
+        });
         break;
       }
       case CommandType.FsRoute: {
@@ -375,5 +380,12 @@ function applyCommandsInner<State>(
       default:
         throw new Error(`Unknown command: ${JSON.stringify(cmd)}`);
     }
+  }
+
+  // Phase 2: Register routes after all middlewares are in place.
+  // This ensures that middleware declared after routes still wraps
+  // those routes correctly.
+  for (const fn of routePhase) {
+    fn();
   }
 }
