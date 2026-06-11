@@ -66,22 +66,6 @@ docs.
 We appreciate your help! To contribute, please read our
 [contributing guideline](./.github/CONTRIBUTING.md).
 
-## Adding your project to the showcase
-
-If you feel that your project would be helpful to other Fresh users, please
-consider putting your project on the [showcase](https://usefresh.dev/showcase).
-However, websites that are just for promotional purposes may not be listed.
-
-To take a screenshot, run the following command.
-
-```sh
-deno task screenshot [url] [your-app-name]
-```
-
-Then add your site to
-[showcase.json](https://github.com/denoland/fresh/blob/main/www/data/showcase.json),
-preferably with source code on GitHub, but not required.
-
 ## Badges
 
 ![Made with Fresh](./www/static/fresh-badge.svg)
