@@ -1,3 +1,24 @@
+/**
+ * @module
+ *
+ * The official Vite plugin for the
+ * [Fresh](https://usefresh.dev) web framework for Deno.
+ *
+ * This plugin uses Vite's Environment API to provide dual
+ * client/server builds, HMR, island-based code splitting,
+ * and Deno-native module resolution for Fresh applications.
+ *
+ * @example vite.config.ts
+ * ```ts
+ * import { defineConfig } from "vite";
+ * import { fresh } from "@fresh/plugin-vite";
+ *
+ * export default defineConfig({
+ *   plugins: [fresh()],
+ * });
+ * ```
+ */
+
 import type { Plugin } from "vite";
 import {
   type FreshViteConfig,
@@ -27,7 +48,11 @@ import { isBuiltin } from "node:module";
 import { load as stdLoadEnv } from "@std/dotenv";
 import path from "node:path";
 
+// -- Types ----------------------------------------------------------
+
+/** @category Types */
 export type { FreshViteConfig };
+/** @category Types */
 export type {
   ImportCheck,
   ImportCheckDiagnostic,
@@ -41,6 +66,7 @@ export type {
  *
  * @param config Fresh config options
  * @returns Vite plugin with Fresh support
+ * @category Plugin
  *
  * @example Basic usage
  * ```ts vite.config.ts
