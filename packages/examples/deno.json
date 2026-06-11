@@ -1,6 +1,7 @@
 {
   "name": "@fresh/examples",
   "version": "1.0.1",
+  "description": "Example components for Fresh tests",
   "license": "MIT",
   "imports": {
     "fresh": "jsr:@fresh/core@^2.0.0",

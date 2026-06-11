@@ -1,6 +1,7 @@
 {
   "name": "@fresh/update",
   "version": "2.3.3",
+  "description": "Automated Fresh 1.x to 2.x migration tool",
   "license": "MIT",
   "exports": "./src/mod.ts",
   "exclude": ["**/tmp/*"],

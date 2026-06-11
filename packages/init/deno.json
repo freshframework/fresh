@@ -1,6 +1,7 @@
 {
   "name": "@fresh/init",
   "version": "2.3.3",
+  "description": "Project scaffolding for Fresh",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",

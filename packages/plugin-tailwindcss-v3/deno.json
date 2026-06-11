@@ -1,6 +1,7 @@
 {
   "name": "@fresh/plugin-tailwind-v3",
   "version": "1.1.0",
+  "description": "TailwindCSS v3 plugin for Fresh",
   "license": "MIT",
   "exports": "./src/mod.ts",
   "imports": {

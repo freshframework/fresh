@@ -1,6 +1,7 @@
 {
   "name": "@fresh/core",
   "version": "2.3.3",
+  "description": "The next-gen web framework for Deno",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",

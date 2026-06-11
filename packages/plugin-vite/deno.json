@@ -1,6 +1,7 @@
 {
   "name": "@fresh/plugin-vite",
   "version": "1.1.2",
+  "description": "Vite integration plugin for Fresh",
   "license": "MIT",
   "exports": {
     ".": "./src/mod.ts",
