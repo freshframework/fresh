@@ -223,7 +223,9 @@ export function fresh(config?: FreshViteConfig): Plugin[] {
       },
       async configResolved(vConfig) {
         // Run update check in background
-        updateCheck(UPDATE_INTERVAL).catch(() => {});
+        updateCheck(UPDATE_INTERVAL).catch((e) =>
+          console.warn("Update check failed:", e),
+        );
 
         fConfig.islandsDir = pathWithRoot(fConfig.islandsDir, vConfig.root);
         fConfig.routeDir = pathWithRoot(fConfig.routeDir, vConfig.root);
