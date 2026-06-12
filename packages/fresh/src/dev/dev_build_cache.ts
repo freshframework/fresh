@@ -296,9 +296,8 @@ export class DiskBuildCache<State> implements DevBuildCache<State> {
     await Deno.writeFile(filePath, content);
   }
 
-  // deno-lint-ignore require-await
-  async readFile(_pathname: string): Promise<StaticFile | null> {
-    throw new Error("Not implemented in build mode");
+  readFile(_pathname: string): Promise<StaticFile | null> {
+    return Promise.reject(new Error("Not implemented in build mode"));
   }
 
   async prepare(): Promise<void> {
