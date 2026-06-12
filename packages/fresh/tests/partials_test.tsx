@@ -1413,7 +1413,6 @@ Deno.test({
 
 Deno.test({
   name: "partials - opt out of partial navigation",
-  ignore: true, // TODO: test is flaky
   fn: async () => {
     const app = testApp()
       .get("/partial", (ctx) => {
@@ -1463,7 +1462,10 @@ Deno.test({
         await page.locator(".increment").click();
         await waitForText(page, ".output", "1");
 
-        await page.locator(".update").click();
+        await Promise.all([
+          page.waitForNavigation(),
+          page.locator(".update").click(),
+        ]);
         await page.locator(".done").wait();
 
         await page.waitForFunction(() => {
@@ -1479,7 +1481,6 @@ Deno.test({
 
 Deno.test({
   name: "partials - opt out of partial navigation #2",
-  ignore: true, // TODO: test is flaky
   fn: async () => {
     const app = testApp()
       .get("/partial", (ctx) => {
@@ -1532,7 +1533,10 @@ Deno.test({
         await page.locator(".increment").click();
         await waitForText(page, ".output", "1");
 
-        await page.locator(".update").click();
+        await Promise.all([
+          page.waitForNavigation(),
+          page.locator(".update").click(),
+        ]);
         await page.waitForSelector(".done");
 
         const url = new URL(page.url!);
