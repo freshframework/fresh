@@ -319,3 +319,47 @@ Deno.test("UrlPatternRouter - non-standard method on dynamic route", () => {
     pattern: "/books/:id",
   });
 });
+
+Deno.test("UrlPatternRouter - specific route matches before catch-all regardless of registration order", () => {
+  const router = new UrlPatternRouter<() => string>();
+  const catchAll = () => "catch-all";
+  const specific = () => "specific";
+
+  // Register catch-all first, then specific route
+  router.add("GET", "/blog/:rest*", catchAll);
+  router.add("GET", "/blog/:id", specific);
+
+  // Specific route should match /blog/123
+  const res = router.match("GET", new URL("/blog/123", "http://localhost"));
+  expect(res.item).toBe(specific);
+  expect(res.params).toEqual({ id: "123" });
+
+  // Catch-all should still match paths the specific route doesn't
+  const res2 = router.match(
+    "GET",
+    new URL("/blog/a/b/c", "http://localhost"),
+  );
+  expect(res2.item).toBe(catchAll);
+  expect(res2.params).toEqual({ rest: "a/b/c" });
+});
+
+Deno.test("UrlPatternRouter - multiple dynamic routes sorted by specificity", () => {
+  const router = new UrlPatternRouter<() => string>();
+  const catchAll = () => "catch-all";
+  const byId = () => "by-id";
+  const byName = () => "by-name";
+
+  // Register catch-all first, then specific routes
+  router.add("GET", "/api/:rest*", catchAll);
+  router.add("GET", "/api/:name", byName);
+  router.add("GET", "/api/:id", byId);
+
+  // Registration order was: catchAll, byName, byId
+  // After sorting, more specific routes should match first.
+  // /api/:id and /api/:name are equally specific (both dynamic),
+  // so the sort order between them is stable/deterministic.
+  const res = router.match("GET", new URL("/api/hello", "http://localhost"));
+  // Should match one of the specific routes, not the catch-all
+  expect(res.item).not.toBe(catchAll);
+  expect(res.methodMatch).toBe(true);
+});

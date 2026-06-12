@@ -1,3 +1,5 @@
+import { sortRoutePaths } from "./fs_routes.ts";
+
 export type Method =
   | "HEAD"
   | "GET"
@@ -89,6 +91,20 @@ export class UrlPatternRouter<T> implements Router<T> {
         };
         this.#dynamics.set(pathname, def);
         this.#dynamicArr.push(def);
+        this.#dynamicArr.sort((a, b) => {
+          const aPath = a.pattern.pathname;
+          const bPath = b.pattern.pathname;
+          // Convert URLPattern format (:param, :param*) to
+          // filesystem route format ([param], [...param]) so that
+          // sortRoutePaths can rank by specificity.
+          const aFs = aPath
+            .replace(/:(\w+)\*/g, "[...$1]")
+            .replace(/:(\w+)/g, "[$1]");
+          const bFs = bPath
+            .replace(/:(\w+)\*/g, "[...$1]")
+            .replace(/:(\w+)/g, "[$1]");
+          return sortRoutePaths(aFs, bFs);
+        });
       }
 
       byMethod = def.byMethod;
