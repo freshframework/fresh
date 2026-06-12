@@ -129,6 +129,9 @@ export function csp<State>(options: CSPOptions = {}): Middleware<State> {
         return d;
       });
     } else {
+      console.warn(
+        "CSP nonce not found on response. Did you use ctx.render() or a non-render response method like ctx.html()?",
+      );
       directives = merged;
     }
 
