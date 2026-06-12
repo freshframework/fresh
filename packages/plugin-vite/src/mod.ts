@@ -6,6 +6,7 @@ import {
 } from "./utils.ts";
 import { deno } from "./plugins/deno.ts";
 
+// @ts-ignore TS1192 - @prefresh/vite uses `export =` CJS syntax
 import prefresh from "@prefresh/vite";
 import { serverEntryPlugin } from "./plugins/server_entry.ts";
 import { clientEntryPlugin } from "./plugins/client_entry.ts";

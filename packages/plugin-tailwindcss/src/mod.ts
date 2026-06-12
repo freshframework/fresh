@@ -1,4 +1,5 @@
 import type { Builder } from "fresh/dev";
+// @ts-ignore TS1192 - @tailwindcss/postcss uses `export =` CJS syntax
 import twPostcss from "@tailwindcss/postcss";
 import postcss from "postcss";
 import type { TailwindPluginOptions } from "./types.ts";
