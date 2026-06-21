@@ -321,6 +321,7 @@ test("matches the on-disk example/ project", async () => {
     { path: "example/islands/Clicks.tsx" },
     { path: "example/islands/Counter.tsx" },
     { path: "example/islands/double.tsx" },
+    { path: "example/islands/KeptCounter.tsx" },
     { path: "example/islands/Wrapper.tsx" },
   ]);
 
