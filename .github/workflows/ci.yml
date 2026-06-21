@@ -104,4 +104,4 @@ jobs:
       - name: Build
         run: pnpm run build
       - name: Publish unreleased versions
-        run: pnpm -r publish --provenance --publish-branch next --access public
+        run: pnpm -r stage publish --provenance --publish-branch next --access public
