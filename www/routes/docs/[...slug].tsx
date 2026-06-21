@@ -58,7 +58,11 @@ const pattern = new URLPattern({ pathname: "/:version/:page*" });
 
 export const handlers = handler({
   async GET(ctx): Promise<{ data: Data } | Response> {
-    const slug = ctx.params.slug;
+    let slug = ctx.params.slug;
+
+    // `/docs/<path>.md` serves the raw markdown source for that page.
+    const rawMarkdown = slug.endsWith(".md");
+    if (rawMarkdown) slug = slug.slice(0, -3);
 
     // Check if the slug is the index page of a version tag
     if (TABLE_OF_CONTENTS[slug]) {
@@ -133,6 +137,12 @@ export const handlers = handler({
     }
     const fileContent = await loadMarkdown();
     const { body, attrs } = frontMatter<Record<string, unknown>>(fileContent);
+
+    if (rawMarkdown) {
+      return new Response(body, {
+        headers: { "content-type": "text/markdown; charset=utf-8" },
+      });
+    }
 
     return {
       data: {
@@ -225,7 +235,7 @@ export default definePage(function DocsPage(props) {
                     />
                   </div>
                   <hr />
-                  <div class="px-4 md:px-0 flex justify-between my-6">
+                  <div class="px-4 md:px-0 flex flex-wrap gap-3 justify-between my-6">
                     <a
                       href={`https://github.com/denoland/fresh/edit/main/${page.file}`}
                       class="text-gray-700 dark:text-gray-200 text-md flex items-center bg-[#ebedf0] dark:bg-[#2c2d39] px-4 py-2 rounded-sm hover:bg-gray-200 dark:hover:bg-[#36394c] transition-colors"
@@ -234,6 +244,12 @@ export default definePage(function DocsPage(props) {
                     >
                       <span class="mr-2 inline-flex">Edit this page</span>
                       <Icons.GitHub />
+                    </a>
+                    <a
+                      href={`${props.url.pathname}.md`}
+                      class="text-gray-700 dark:text-gray-200 text-md flex items-center bg-[#ebedf0] dark:bg-[#2c2d39] px-4 py-2 rounded-sm hover:bg-gray-200 dark:hover:bg-[#36394c] transition-colors"
+                    >
+                      View as Markdown
                     </a>
                   </div>
                 </div>
