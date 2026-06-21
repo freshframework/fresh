@@ -1,7 +1,7 @@
 {
   "deploy": {
     "framework": "nuxt",
-    "install": "deno run -A npm:pnpm@11.8.0 install",
-    "build": "deno run -A npm:pnpm@11.8.0 build"
+    "install": "deno run -A --unstable-unsafe-proto npm:pnpm@11.8.0 install",
+    "build": "deno run -A --unstable-unsafe-proto npm:pnpm@11.8.0 build"
   }
 }
