@@ -12,7 +12,7 @@ Some stand-out features:
 
 ## 📖 Documentation
 
-The documentation lives in [`www/docs/latest/`](https://github.com/freshframework/fresh/tree/main/www/docs/latest) in the repo — it isn't published to a website yet.
+The documentation is published at [next.usefresh.dev/docs](https://next.usefresh.dev/docs).
 
 ## 🚀 Getting started
 
@@ -43,7 +43,7 @@ npm run dev
 
 Now open http://localhost:5173 in your browser. Edits to the project source are reflected immediately.
 
-For a more in-depth walkthrough, see the [Getting Started](https://github.com/freshframework/fresh/blob/main/www/docs/latest/getting-started/index.md) docs page.
+For a more in-depth walkthrough, see the [Getting Started](https://next.usefresh.dev/docs/getting-started) docs page.
 
 ## Contributing
 
