@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [next]
   pull_request:
 
 # The three jobs have no `needs:` between them, so they run in parallel.
@@ -78,3 +78,30 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
+
+  publish:
+    name: Publish unreleased package versions
+    if: github.event_name == 'push' && github.ref == 'refs/heads/next'
+    needs: [check, unit, e2e]
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 26
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm run build
+      - name: Publish unreleased versions
+        run: pnpm stage publish --provenance
