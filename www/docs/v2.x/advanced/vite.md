@@ -3,10 +3,7 @@ description: |
   Configure the Fresh Vite plugin, add other Vite plugins, and understand how Fresh integrates with Vite.
 ---
 
-Fresh 2 uses [Vite](https://vite.dev/) for development and production builds.
-The Fresh Vite plugin handles JSX configuration, Hot Module Replacement (HMR),
-[island](/docs/concepts/islands) discovery, client/server code splitting, and
-React-to-Preact aliasing.
+Fresh 2 uses [Vite](https://vite.dev/) for development and production builds. The Fresh Vite plugin handles JSX configuration, Hot Module Replacement (HMR), [island](/docs/concepts/islands) discovery, client/server code splitting, and React-to-Preact aliasing.
 
 ## Configuration
 
@@ -44,8 +41,7 @@ export default defineConfig({
 
 ## Adding other Vite plugins
 
-You can use any Vite-compatible plugin alongside Fresh. The Fresh plugin should
-generally come first:
+You can use any Vite-compatible plugin alongside Fresh. The Fresh plugin should generally come first:
 
 ```ts vite.config.ts
 import { defineConfig } from "vite";
@@ -66,37 +62,24 @@ export default defineConfig({
 Behind the scenes, the Fresh Vite plugin:
 
 - **Configures JSX** for Preact automatically (`jsxImportSource: "preact"`)
-- **Aliases React to Preact** so npm packages that depend on React work out of
-  the box
-- **Enables HMR** via [Prefresh](https://github.com/preactjs/prefresh) for fast
-  component reloading during development
-- **Discovers islands** by scanning the islands directory and any
-  `islandSpecifiers`
-- **Builds separate client and server bundles** using Vite's Environments
-  feature
+- **Aliases React to Preact** so npm packages that depend on React work out of the box
+- **Enables HMR** via [Prefresh](https://github.com/preactjs/prefresh) for fast component reloading during development
+- **Discovers islands** by scanning the islands directory and any `islandSpecifiers`
+- **Builds separate client and server bundles** using Vite's Environments feature
 - **Generates a server entry** (`_fresh/server.js`) for production deployment
-- **Validates imports** to catch mistakes like importing Node.js-only modules in
-  browser code
+- **Validates imports** to catch mistakes like importing Node.js-only modules in browser code
 
 ## Hot Module Replacement
 
-During development (`deno task dev`), the Fresh Vite plugin enables HMR so that
-changes to components, islands, and CSS are reflected in the browser instantly
-without a full page reload. This is powered by Prefresh, Preact's fast refresh
-implementation.
+During development (`deno task dev`), the Fresh Vite plugin enables HMR so that changes to components, islands, and CSS are reflected in the browser instantly without a full page reload. This is powered by Prefresh, Preact's fast refresh implementation.
 
 ## Migrating from the Builder to Vite
 
-If your Fresh 2 project was created with `--builder` (or predates the Vite
-plugin), it uses the legacy [`Builder`](/docs/advanced/builder) class wired up
-in `dev.ts`. Migrating to Vite is mostly a matter of swapping `dev.ts` for a
-`vite.config.ts`, moving CSS into the module graph, and updating `deno.json`.
+If your Fresh 2 project was created with `--builder` (or predates the Vite plugin), it uses the legacy [`Builder`](/docs/advanced/builder) class wired up in `dev.ts`. Migrating to Vite is mostly a matter of swapping `dev.ts` for a `vite.config.ts`, moving CSS into the module graph, and updating `deno.json`.
 
 ### 1. Update `deno.json`
 
-Add the Vite plugin and `vite` itself to your imports, drop the Builder-only
-Tailwind packages (if any), and point `compilerOptions.types` at Vite's client
-types so HMR and asset imports type-check:
+Add the Vite plugin and `vite` itself to your imports, drop the Builder-only Tailwind packages (if any), and point `compilerOptions.types` at Vite's client types so HMR and asset imports type-check:
 
 ```diff deno.json
   {
@@ -124,8 +107,7 @@ types so HMR and asset imports type-check:
   }
 ```
 
-If you were using `@fresh/plugin-tailwind` / `@fresh/plugin-tailwindcss-v3`,
-remove those imports — Vite has a first-party Tailwind plugin (see step 4).
+If you were using `@fresh/plugin-tailwind` / `@fresh/plugin-tailwindcss-v3`, remove those imports — Vite has a first-party Tailwind plugin (see step 4).
 
 ### 2. Replace `dev.ts` with `vite.config.ts`
 
@@ -140,18 +122,13 @@ export default defineConfig({
 });
 ```
 
-If you passed options to `new Builder({ ... })` (custom `serverEntry`,
-`islandDir`, `routeDir`, `staticDir`, `ignore`), pass the equivalent options to
-`fresh({ ... })` — the names match. See [Configuration](#configuration) above.
+If you passed options to `new Builder({ ... })` (custom `serverEntry`, `islandDir`, `routeDir`, `staticDir`, `ignore`), pass the equivalent options to `fresh({ ... })` — the names match. See [Configuration](#configuration) above.
 
-Any `builder.registerIsland("jsr:@scope/pkg/Island.tsx")` calls become
-`fresh({ islandSpecifiers: ["jsr:@scope/pkg/Island.tsx"] })`.
+Any `builder.registerIsland("jsr:@scope/pkg/Island.tsx")` calls become `fresh({ islandSpecifiers: ["jsr:@scope/pkg/Island.tsx"] })`.
 
 ### 3. Add a `client.ts` entry
 
-The Builder discovered CSS by scanning `static/`. Vite needs CSS to be part of
-the module graph so it can hash, bundle, and hot-reload it. Move your stylesheet
-out of `static/` and import it from a new `client.ts` file:
+The Builder discovered CSS by scanning `static/`. Vite needs CSS to be part of the module graph so it can hash, bundle, and hot-reload it. Move your stylesheet out of `static/` and import it from a new `client.ts` file:
 
 ```diff Project structure
   <project root>
@@ -167,8 +144,7 @@ out of `static/` and import it from a new `client.ts` file:
 import "./assets/styles.css";
 ```
 
-Then remove the manual `<link>` from your app wrapper — Vite injects the
-stylesheet for you:
+Then remove the manual `<link>` from your app wrapper — Vite injects the stylesheet for you:
 
 ```diff routes/_app.tsx
   <head>
@@ -179,8 +155,7 @@ stylesheet for you:
   </head>
 ```
 
-Static assets that are not part of the JS/CSS graph (favicons, images served by
-URL, robots.txt, …) stay in `static/`.
+Static assets that are not part of the JS/CSS graph (favicons, images served by URL, robots.txt, …) stay in `static/`.
 
 ### 4. Switch the Tailwind plugin (if applicable)
 
@@ -206,8 +181,7 @@ export default defineConfig({
 });
 ```
 
-Make sure your stylesheet starts with `@import "tailwindcss";` and is imported
-from `client.ts`.
+Make sure your stylesheet starts with `@import "tailwindcss";` and is imported from `client.ts`.
 
 ### 5. Verify
 
@@ -219,9 +193,7 @@ deno task build    # writes _fresh/server.js and client assets
 deno task start    # deno serve -A _fresh/server.js
 ```
 
-The output layout under `_fresh/` is the same as the Builder produced, so
-deployment configuration (Deno Deploy, Docker, `deno compile`) does not need to
-change.
+The output layout under `_fresh/` is the same as the Builder produced, so deployment configuration (Deno Deploy, Docker, `deno compile`) does not need to change.
 
 ### Checklist
 
@@ -233,9 +205,7 @@ change.
 - [ ] `"vite/client"` in `compilerOptions.types`
 - [ ] Tailwind (if used) switched to `@tailwindcss/vite`
 
-> [info]: If you get stuck, run `deno run -Ar jsr:@fresh/init` in a scratch
-> directory and diff the generated project against yours — the generator is the
-> source of truth for a working Vite-based Fresh setup.
+> [info]: If you get stuck, run `deno run -Ar jsr:@fresh/init` in a scratch directory and diff the generated project against yours — the generator is the source of truth for a working Vite-based Fresh setup.
 
 ## Debugging
 
@@ -245,8 +215,7 @@ To debug Vite resolution issues, run Vite with the `--debug` flag:
 deno run -A npm:vite --debug
 ```
 
-To inspect plugin transformations, use
-[`vite-plugin-inspect`](https://github.com/antfu-collective/vite-plugin-inspect):
+To inspect plugin transformations, use [`vite-plugin-inspect`](https://github.com/antfu-collective/vite-plugin-inspect):
 
 ```ts vite.config.ts
 import { defineConfig } from "vite";

@@ -3,12 +3,9 @@ description: |
   The Builder class is used to generate optimized assets for production.
 ---
 
-> [warn]: The `Builder` class was used during the alpha phase of Fresh 2 before
-> the Fresh vite plugin was released. You can skip this page if you're using
-> vite.
+> [warn]: The `Builder` class was used during the alpha phase of Fresh 2 before the Fresh vite plugin was released. You can skip this page if you're using vite.
 
-The `Builder` class is used to generate production assets of your app. You'll
-typically find it being created inside your project's `dev.ts` file.
+The `Builder` class is used to generate production assets of your app. You'll typically find it being created inside your project's `dev.ts` file.
 
 ```ts dev.ts
 import { Builder } from "fresh/dev";
@@ -62,8 +59,7 @@ const builder = new Builder({
 
 ## Registering islands
 
-The builder is where you'll register files that contain islands. This is the
-same API that Fresh uses internally.
+The builder is where you'll register files that contain islands. This is the same API that Fresh uses internally.
 
 ```ts dev.ts
 const builder = new Builder();
@@ -98,14 +94,11 @@ builder.onTransformStaticFile(
 );
 ```
 
-> [info]: Only static files in `static/` or the directories you set `staticDir`
-> to will be processed. The builder won't process anything else.
+> [info]: Only static files in `static/` or the directories you set `staticDir` to will be processed. The builder won't process anything else.
 
 ### Multiple static directories
 
-You can pass an array to `staticDir` to serve files from multiple directories.
-When the same filename exists in more than one directory, the first directory in
-the array takes precedence.
+You can pass an array to `staticDir` to serve files from multiple directories. When the same filename exists in more than one directory, the first directory in the array takes precedence.
 
 ```ts dev.ts
 const builder = new Builder({
@@ -113,13 +106,11 @@ const builder = new Builder({
 });
 ```
 
-This is useful when you have a build step that generates assets into a separate
-directory and you want to keep them apart from hand-authored static files.
+This is useful when you have a build step that generates assets into a separate directory and you want to keep them apart from hand-authored static files.
 
 ## Testing
 
-Testing applications with the `Builder` class involves creating a build snapshot
-and assigning that to each app instance.
+Testing applications with the `Builder` class involves creating a build snapshot and assigning that to each app instance.
 
 ```ts my-app.test.ts
 // Best to do this once instead of for every test case for
@@ -149,10 +140,7 @@ Deno.test("My Test", async () => {
 
 ## Tailwindcss
 
-[Tailwindcss](https://tailwindcss.com/) is a utility-first CSS framework that
-generates CSS out of the class names that are used in JSX. Since we use
-Tailwindcss ourselves here at Deno, Fresh ships with an official plugin for
-that.
+[Tailwindcss](https://tailwindcss.com/) is a utility-first CSS framework that generates CSS out of the class names that are used in JSX. Since we use Tailwindcss ourselves here at Deno, Fresh ships with an official plugin for that.
 
 ### Usage
 
@@ -181,8 +169,7 @@ that.
 
 4. Add `@import "tailwindcss";` at the top of your main stylesheet.
 
-For more information on how to use tailwindcss, check out
-[their documentation](https://tailwindcss.com/docs/styling-with-utility-classes).
+For more information on how to use tailwindcss, check out [their documentation](https://tailwindcss.com/docs/styling-with-utility-classes).
 
 ### Options
 
@@ -201,9 +188,7 @@ tailwind(builder, {
 
 ### Tailwindcss v3
 
-If you can't update to the current version of tailwindcss we have a dedicated
-`@fresh/plugin-tailwindcss-v3` plugin that uses tailwindcss v3. That way you can
-decided on your own when it's best to update to v4.
+If you can't update to the current version of tailwindcss we have a dedicated `@fresh/plugin-tailwindcss-v3` plugin that uses tailwindcss v3. That way you can decided on your own when it's best to update to v4.
 
 ```ts dev.ts
 import { Builder } from "fresh/dev";

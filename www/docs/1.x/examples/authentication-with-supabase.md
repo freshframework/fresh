@@ -3,38 +3,17 @@ description: |
   Learn how to implement the PKCE authentication flow using Supabase.
 ---
 
-Fresh is a great tool for quickly building lightweight, server-side rendered web
-apps and Supabase provides an easy way to add authentication (and/or a
-PostgreSQL database backend) to your app.
+Fresh is a great tool for quickly building lightweight, server-side rendered web apps and Supabase provides an easy way to add authentication (and/or a PostgreSQL database backend) to your app.
 
-In this example, we'll create a small app that implements the PKCE
-authentication flow using Supabase.
+In this example, we'll create a small app that implements the PKCE authentication flow using Supabase.
 
-The PKCE authentication flow is designed specifically for applications that
-cannot store a client secret, such as native mobile apps or server-side rendered
-web apps. You can read up on the specifics of PKCE
-[here](https://auth0.com/docs/get-started/authentication-and-authorization-flow/authorization-code-flow-with-pkce)
-or have a look at
-[its specification](https://datatracker.ietf.org/doc/html/rfc7636). Our example
-is based on the information you can piece together from the
-[Supabase documentation](https://supabase.com/docs/guides/auth/server-side/oauth-with-pkce-flow-for-ssr)
-on the topic.
+The PKCE authentication flow is designed specifically for applications that cannot store a client secret, such as native mobile apps or server-side rendered web apps. You can read up on the specifics of PKCE [here](https://auth0.com/docs/get-started/authentication-and-authorization-flow/authorization-code-flow-with-pkce) or have a look at [its specification](https://datatracker.ietf.org/doc/html/rfc7636). Our example is based on the information you can piece together from the [Supabase documentation](https://supabase.com/docs/guides/auth/server-side/oauth-with-pkce-flow-for-ssr) on the topic.
 
-The purpose of the example app we're building here is to showcase the basic
-building blocks of an implementation. As such, it is limited in functionality
-and purposefully leaves out things like
-[password resets](https://supabase.com/docs/guides/auth/server-side/email-based-auth-with-pkce-flow-for-ssr),
-[proper error handling](https://usefresh.dev/docs/1.x/concepts/error-pages) as
-well as validating input form data. You can find the
-[full code here](https://github.com/morlinbrot/supa-fresh-pkce), where the
-missing functionality is implemented.
+The purpose of the example app we're building here is to showcase the basic building blocks of an implementation. As such, it is limited in functionality and purposefully leaves out things like [password resets](https://supabase.com/docs/guides/auth/server-side/email-based-auth-with-pkce-flow-for-ssr), [proper error handling](https://usefresh.dev/docs/1.x/concepts/error-pages) as well as validating input form data. You can find the [full code here](https://github.com/morlinbrot/supa-fresh-pkce), where the missing functionality is implemented.
 
 ## Supabase
 
-First of all, we need a Supabase account
-[which can be created for free here](https://supabase.com/). A handy way to
-supply the credentials to our app is via `.env` file (never check in `.env`
-files to version control).
+First of all, we need a Supabase account [which can be created for free here](https://supabase.com/). A handy way to supply the credentials to our app is via `.env` file (never check in `.env` files to version control).
 
 ```txt .env.example
 SUPABASE_URL=https://<projectName>.supabase.co
@@ -50,8 +29,7 @@ Update the imports section of your `deno.json` file to include the following:
 }
 ```
 
-Since Deno 1.38, we reading .env files is built-in and can be enabled with the
-`--env` flag. Here's the complete command to run our app:
+Since Deno 1.38, we reading .env files is built-in and can be enabled with the `--env` flag. Here's the complete command to run our app:
 
 ```shell
 deno run --unstable-kv --allow-env --allow-read --allow-write --allow-run --allow-net --watch=static/,routes/ dev.ts
@@ -59,9 +37,7 @@ deno run --unstable-kv --allow-env --allow-read --allow-write --allow-run --allo
 
 ### `@supabase/ssr`
 
-Supabase provides the `@supabase/ssr` package for working with its API in an SSR
-context. It exposes the `createServerClient` method that we can use on the
-server side. Set it up like so:
+Supabase provides the `@supabase/ssr` package for working with its API in an SSR context. It exposes the `createServerClient` method that we can use on the server side. Set it up like so:
 
 ```ts lib/supabase.ts
 import { deleteCookie, getCookies, setCookie } from "$std/http/cookie.ts";
@@ -102,16 +78,13 @@ export function createSupabaseClient(
 }
 ```
 
-Note: We are specifying the `flowType` to be `pkce` and that we're using
-[`encodeURIComponent()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent)
-to serialize and store the session object as a cookie.
+Note: We are specifying the `flowType` to be `pkce` and that we're using [`encodeURIComponent()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent) to serialize and store the session object as a cookie.
 
 Crucially, _we need to create a new instance of this client for each request!_
 
 ## Sign Up
 
-In our endpoints, we can now use this client to talk to the Supabase API. Here's
-the `/api/sign-up` handler:
+In our endpoints, we can now use this client to talk to the Supabase API. Here's the `/api/sign-up` handler:
 
 ```ts routes/api/sign-up.ts
 import { FreshContext, Handlers } from "$fresh/server.ts";
@@ -155,8 +128,7 @@ export default function SignUpPage() {
 
 ## Confirmation
 
-To complete the sign-up process, we need a `/confirm` route to intercept
-successful email confirmations:
+To complete the sign-up process, we need a `/confirm` route to intercept successful email confirmations:
 
 ```ts routes/api/confirm.ts
 import { Handlers } from "$fresh/server.ts";
@@ -184,9 +156,7 @@ export const handler: Handlers = {
 };
 ```
 
-Have a look at the Supabase docs on the
-[details on how to configure email templates and other endpoints](https://supabase.com/docs/guides/auth/server-side/email-based-auth-with-pkce-flow-for-ssr)
-like `/password-reset` you would need for a full implementation.
+Have a look at the Supabase docs on the [details on how to configure email templates and other endpoints](https://supabase.com/docs/guides/auth/server-side/email-based-auth-with-pkce-flow-for-ssr) like `/password-reset` you would need for a full implementation.
 
 ## Sign In
 
@@ -218,15 +188,11 @@ export const handler: Handlers = {
 };
 ```
 
-Note: We're passing `headers` this time. The Supabase client will set the
-session as a cookie for us, which we will want to pick up in the middleware that
-we are writing next.
+Note: We're passing `headers` this time. The Supabase client will set the session as a cookie for us, which we will want to pick up in the middleware that we are writing next.
 
 ## Middleware
 
-We can now write a middleware that will check the auth status of any request,
-guarding any protected routes. You can read up on middlewares and where to put
-them [in the docs](https://usefresh.dev/docs/1.x/concepts/middleware).
+We can now write a middleware that will check the auth status of any request, guarding any protected routes. You can read up on middlewares and where to put them [in the docs](https://usefresh.dev/docs/1.x/concepts/middleware).
 
 ```ts routes/_middleware.ts
 import { FreshContext } from "$fresh/server.ts";
@@ -261,7 +227,4 @@ export const handler = [
 ];
 ```
 
-That's it! These are the building blocks for implementing the PKCE
-authentication flow in a Fresh app using Supabase. Again, have a look at the
-[full code here](https://github.com/morlinbrot/supa-fresh-pkce) for a fully
-featured version of the app.
+That's it! These are the building blocks for implementing the PKCE authentication flow in a Fresh app using Supabase. Again, have a look at the [full code here](https://github.com/morlinbrot/supa-fresh-pkce) for a fully featured version of the app.

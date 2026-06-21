@@ -29,16 +29,14 @@ export default function Counter(props: CounterProps) {
 }
 ```
 
-Note how `useSignal` is within the `Counter` component. Then if we instantiate
-some counters like this...
+Note how `useSignal` is within the `Counter` component. Then if we instantiate some counters like this...
 
 ```tsx routes/index.tsx
 <Counter start={3} />
 <Counter start={4} />
 ```
 
-they'll keep track of their own independent state. Not much sharing going on
-here, yet.
+they'll keep track of their own independent state. Not much sharing going on here, yet.
 
 ## Multiple Sibling Islands with Shared State
 
@@ -86,9 +84,7 @@ they would all use the same value.
 
 ## Sharing State Across Independent Islands
 
-When islands are not rendered as siblings (e.g. one in a sidebar and one in the
-main content), you can share state by creating a signal in a parent component
-and passing it as a prop to each island.
+When islands are not rendered as siblings (e.g. one in a sidebar and one in the main content), you can share state by creating a signal in a parent component and passing it as a prop to each island.
 
 ```tsx islands/AddToCart.tsx
 import { type Signal } from "@preact/signals";
@@ -102,10 +98,7 @@ interface AddToCartProps {
 export default function AddToCart(props: AddToCartProps) {
   const { cart, product } = props;
   return (
-    <Button
-      onClick={() => (cart.value = [...cart.value, product])}
-      class="w-full"
-    >
+    <Button onClick={() => (cart.value = [...cart.value, product])} class="w-full">
       Add{cart.value.includes(product) ? " another" : ""} "{product}" to cart
     </Button>
   );
@@ -188,11 +181,6 @@ export default define.page(function CartPage() {
 });
 ```
 
-The `cart` signal is created per-render (not at module level), so each request
-gets its own independent cart. Fresh [serializes](/docs/advanced/serialization)
-the signal and passes it to both islands, keeping them in sync on the client.
+The `cart` signal is created per-render (not at module level), so each request gets its own independent cart. Fresh [serializes](/docs/advanced/serialization) the signal and passes it to both islands, keeping them in sync on the client.
 
-> [!CAUTION] Avoid creating signals at the module level (e.g.
-> `export const cart = signal([])` in a utility file). Module-level state is
-> shared across all requests on the server, which means different users would
-> see the same cart. Always create signals inside components or handlers.
+> [!CAUTION] Avoid creating signals at the module level (e.g. `export const cart = signal([])` in a utility file). Module-level state is shared across all requests on the server, which means different users would see the same cart. Always create signals inside components or handlers.

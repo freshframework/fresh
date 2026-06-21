@@ -3,8 +3,7 @@ description: |
   With a few tweaks one can use twind v1
 ---
 
-When you initialize a project with `deno run -A -r https://usefresh.dev`, you'll
-end up with a `main.ts` like the following:
+When you initialize a project with `deno run -A -r https://usefresh.dev`, you'll end up with a `main.ts` like the following:
 
 ```ts main.ts
 /// <reference no-default-lib="true" />
@@ -45,9 +44,7 @@ Let's bump that up to v1:
  export default defineConfig({
 ```
 
-The twind config object has changed significantly in v1, so we must also change
-`twind.config.ts`. A good base looks like this (just replace whatever is there
-with this):
+The twind config object has changed significantly in v1, so we must also change `twind.config.ts`. A good base looks like this (just replace whatever is there with this):
 
 ```ts twind.config.ts
 import { defineConfig, Preset } from "https://esm.sh/@twind/core@1.1.3";
@@ -64,5 +61,4 @@ export default {
 
 (Note: the `as Preset` cast is required to fix a typing issue with twind.)
 
-To see what other presets exist, you can go to the
-[twind docs](https://twind.style/presets).
+To see what other presets exist, you can go to the [twind docs](https://twind.style/presets).

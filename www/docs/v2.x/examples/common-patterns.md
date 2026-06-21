@@ -7,8 +7,7 @@ This page collects common patterns you'll encounter when building Fresh apps.
 
 ## Protected routes
 
-Use [middleware](/docs/concepts/middleware) to check authentication and redirect
-unauthenticated users:
+Use [middleware](/docs/concepts/middleware) to check authentication and redirect unauthenticated users:
 
 ```ts routes/dashboard/_middleware.ts
 import { define } from "@/utils.ts";
@@ -23,8 +22,7 @@ export default define.middleware(async (ctx) => {
 });
 ```
 
-All routes under `routes/dashboard/` are now protected. The user data is
-available in any downstream handler or component via `ctx.state.user`.
+All routes under `routes/dashboard/` are now protected. The user data is available in any downstream handler or component via `ctx.state.user`.
 
 ## Redirect old URLs
 
@@ -47,8 +45,7 @@ export default define.middleware((ctx) => {
 });
 ```
 
-> [info]: `ctx.redirect()` includes protection against open redirect attacks.
-> Protocol-relative URLs like `//evil.com` are rejected.
+> [info]: `ctx.redirect()` includes protection against open redirect attacks. Protocol-relative URLs like `//evil.com` are rejected.
 
 ## Content negotiation
 
@@ -102,8 +99,7 @@ export default define.middleware(async (ctx) => {
 });
 ```
 
-See [Session management](/docs/examples/session-management) for a complete
-session example.
+See [Session management](/docs/examples/session-management) for a complete session example.
 
 ## Reading query parameters
 
@@ -175,8 +171,7 @@ export const handler = define.handlers({
 
 ## WebSockets
 
-Fresh provides first-class WebSocket support via `ctx.upgrade()`. See the full
-[WebSocket guide](/docs/advanced/websockets) for all options.
+Fresh provides first-class WebSocket support via `ctx.upgrade()`. See the full [WebSocket guide](/docs/advanced/websockets) for all options.
 
 ## Subdomain routing
 
@@ -232,13 +227,11 @@ export const handler = define.handlers({
 });
 ```
 
-This is useful for proxying to backend services or working around CORS
-restrictions during development.
+This is useful for proxying to backend services or working around CORS restrictions during development.
 
 ## Lazy-loading island content
 
-Use Preact's `lazy()` and `<Suspense>` to code-split heavy components inside an
-island, so their JavaScript is only loaded when needed:
+Use Preact's `lazy()` and `<Suspense>` to code-split heavy components inside an island, so their JavaScript is only loaded when needed:
 
 ```tsx islands/HeavyFeature.tsx
 import { lazy, Suspense } from "preact/compat";
@@ -254,8 +247,7 @@ export function HeavyFeature() {
 }
 ```
 
-The `Chart` component's code is split into a separate chunk and only fetched
-when `HeavyFeature` renders in the browser.
+The `Chart` component's code is split into a separate chunk and only fetched when `HeavyFeature` renders in the browser.
 
 ## Timing middleware
 

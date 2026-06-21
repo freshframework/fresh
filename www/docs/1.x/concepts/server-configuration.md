@@ -13,10 +13,7 @@ export async function start(manifest: Manifest, config: FreshConfig = {});
 
 ## Configuration
 
-`Manifest` comes from `fresh.gen.ts`, so nothing to do there. `config` is where
-things get interesting.
-[`FreshConfig`](https://deno.land/x/fresh/server.ts?s=FreshConfig) looks like
-this:
+`Manifest` comes from `fresh.gen.ts`, so nothing to do there. `config` is where things get interesting. [`FreshConfig`](https://deno.land/x/fresh/server.ts?s=FreshConfig) looks like this:
 
 ```ts fresh 🍋
 export interface FreshConfig {
@@ -78,8 +75,7 @@ export interface RouterOptions {
 
 ### outDir
 
-As the comment suggests, this can be used to configure where generated files are
-written:
+As the comment suggests, this can be used to configure where generated files are written:
 
 ```tsx dev.ts
 await dev(import.meta.url, "./main.ts", {
@@ -103,8 +99,7 @@ await dev(import.meta.url, "./main.ts", {
 
 ## Plugins
 
-See the [docs](/docs/1.x/concepts/plugins) on this topic for more detail. But as
-a quick example, you can do something like this to load plugins:
+See the [docs](/docs/1.x/concepts/plugins) on this topic for more detail. But as a quick example, you can do something like this to load plugins:
 
 ```ts main.ts
 await start(manifest, { plugins: [twindPlugin(twindConfig)] });
@@ -112,8 +107,7 @@ await start(manifest, { plugins: [twindPlugin(twindConfig)] });
 
 ## StaticDir
 
-This allows you to specify the location where your site's static assets are
-stored. Here's an example:
+This allows you to specify the location where your site's static assets are stored. Here's an example:
 
 ```ts main.ts
 await start(manifest, { staticDir: "./custom_static" });
@@ -121,16 +115,13 @@ await start(manifest, { staticDir: "./custom_static" });
 
 ## Render
 
-This is by far the most complicated option currently available. It allows you to
-configure how your components get rendered.
+This is by far the most complicated option currently available. It allows you to configure how your components get rendered.
 
 ## RouterOptions
 
 ### TrailingSlash
 
-By default Fresh uses URLs like `https://www.example.com/about`. If you'd like,
-you can configure this to `https://www.example.com/about/` by using the
-`trailingSlash` setting.
+By default Fresh uses URLs like `https://www.example.com/about`. If you'd like, you can configure this to `https://www.example.com/about/` by using the `trailingSlash` setting.
 
 ```ts main.ts
 await start(manifest, { router: { trailingSlash: true } });
@@ -138,21 +129,16 @@ await start(manifest, { router: { trailingSlash: true } });
 
 ### ignoreFilePattern
 
-By default Fresh ignores test files which are co-located next routes and
-islands. If you want, you can change the pattern Fresh uses ignore these files
+By default Fresh ignores test files which are co-located next routes and islands. If you want, you can change the pattern Fresh uses ignore these files
 
 ### basePath
 
-This setting allows you to serve a Fresh app from sub-path of a domain. A value
-of `/foo/bar` would serve the app from `http://localhost:8000/foo/bar` instead
-of `http://localhost:8000/` for example.
+This setting allows you to serve a Fresh app from sub-path of a domain. A value of `/foo/bar` would serve the app from `http://localhost:8000/foo/bar` instead of `http://localhost:8000/` for example.
 
-The `basePath` will be automatically applied to absolute links in your app. For
-example, when the `basePath` is `/foo/bar`, linking to `/about` will
-automatically become `/foo/bar/about`.
+The `basePath` will be automatically applied to absolute links in your app. For example, when the `basePath` is `/foo/bar`, linking to `/about` will automatically become `/foo/bar/about`.
 
 ```tsx
-<a href="/about">About</a>;
+<a href="/about">About</a>
 ```
 
 Rendered HTML:
@@ -161,16 +147,11 @@ Rendered HTML:
 <a href="/foo/bar/about">About</a>
 ```
 
-The `basePath` is also applied to the `src` and `srcset` attribute of
-`<img>`-tags, the `href` attribute of `<link>` and the `src` attribute of
-`<script>` tags.
+The `basePath` is also applied to the `src` and `srcset` attribute of `<img>`-tags, the `href` attribute of `<link>` and the `src` attribute of `<script>` tags.
 
 ## Server
 
-Now that Deno has stabilized
-[Deno.serve](https://docs.deno.com/api/deno/~/Deno.serve) and Fresh has switched
-to using this API, all server configuration options are embedded in `server`
-inside the `FreshConfig`. The fully expanded set of parameters looks like this:
+Now that Deno has stabilized [Deno.serve](https://docs.deno.com/api/deno/~/Deno.serve) and Fresh has switched to using this API, all server configuration options are embedded in `server` inside the `FreshConfig`. The fully expanded set of parameters looks like this:
 
 ```ts
 server: {

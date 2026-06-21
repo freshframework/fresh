@@ -2,15 +2,9 @@
 description: "Create re-usable layouts across routes"
 ---
 
-This page covers **programmatic layouts** defined via `app.layout()`. If you're
-using file-based routing, see [Layouts (file-based)](/docs/concepts/layouts)
-instead.
+This page covers **programmatic layouts** defined via `app.layout()`. If you're using file-based routing, see [Layouts (file-based)](/docs/concepts/layouts) instead.
 
-Layouts are plain Preact components that are inherited based on the matching
-pattern. When you have a section on your site where all pages share the same
-HTML structure and only the content changes, a layout is a neat way to abstract
-this. Layouts only ever render on the server. The passed `Component` value
-represents the children of this component.
+Layouts are plain Preact components that are inherited based on the matching pattern. When you have a section on your site where all pages share the same HTML structure and only the content changes, a layout is a neat way to abstract this. Layouts only ever render on the server. The passed `Component` value represents the children of this component.
 
 ```tsx
 function PageLayout({ Component }) {
@@ -22,10 +16,7 @@ function PageLayout({ Component }) {
   );
 }
 
-const app = new App().layout("*", PageLayout).get(
-  "/",
-  (ctx) => ctx.render(<h1>hello</h1>),
-);
+const app = new App().layout("*", PageLayout).get("/", (ctx) => ctx.render(<h1>hello</h1>));
 ```
 
 If you browse to the `/` route, Fresh will render the following HTML
@@ -39,9 +30,7 @@ If you browse to the `/` route, Fresh will render the following HTML
 
 ## Multiple layouts
 
-You can register multiple layouts for different paths. Layouts are inherited
-from parent paths - a layout at `"*"` applies to all routes, and more specific
-layouts are added on top:
+You can register multiple layouts for different paths. Layouts are inherited from parent paths - a layout at `"*"` applies to all routes, and more specific layouts are added on top:
 
 ```ts
 const app = new App()
@@ -51,8 +40,7 @@ const app = new App()
   .get("/admin/dashboard", (ctx) => ctx.render(<h1>Dashboard</h1>));
 ```
 
-For `/admin/dashboard`, both `MainLayout` and `AdminLayout` will wrap the page
-component (MainLayout as the outer wrapper, AdminLayout as the inner).
+For `/admin/dashboard`, both `MainLayout` and `AdminLayout` will wrap the page component (MainLayout as the outer wrapper, AdminLayout as the inner).
 
 ## Overriding layouts
 

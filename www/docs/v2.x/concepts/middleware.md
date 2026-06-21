@@ -3,13 +3,7 @@ description: |
   Add middleware routes to intercept requests or responses for analytics purposes, access control, or anything else.
 ---
 
-A middleware is a function that receives a [`Context`](/docs/concepts/context)
-object with the
-[`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) and
-returns a
-[`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response). They
-are typically used to set HTTP Headers, measure response times or fetch data and
-pass it to another middleware.
+A middleware is a function that receives a [`Context`](/docs/concepts/context) object with the [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) and returns a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response). They are typically used to set HTTP Headers, measure response times or fetch data and pass it to another middleware.
 
 ```tsx main.ts
 const app = new App<{ greeting: string }>()
@@ -31,8 +25,7 @@ const app = new App<{ greeting: string }>()
   });
 ```
 
-Middlewares can be chained and combined in whatever way you desire. They are an
-excellent way to make http-related logic reusable on the server.
+Middlewares can be chained and combined in whatever way you desire. They are an excellent way to make http-related logic reusable on the server.
 
 ## Middleware helper
 
@@ -58,9 +51,7 @@ Fresh ships with the following middlewares built-in:
 
 ## Filesystem-based middlewares
 
-With [file system based routing](/docs/concepts/file-routing) you can define a
-middleware in a `_middleware.ts` file inside the `routes/` folder or any of its
-subfolders.
+With [file system based routing](/docs/concepts/file-routing) you can define a middleware in a `_middleware.ts` file inside the `routes/` folder or any of its subfolders.
 
 ```ts routes/_middleware.ts
 import { define } from "../utils.ts";

@@ -3,22 +3,13 @@ description: |
   Change the source directory to effectively manage your project.
 ---
 
-As per the
-[MDN documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP):
+As per the [MDN documentation](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP):
 
-> Content Security Policy (CSP) is an added layer of security that helps to
-> detect and mitigate certain types of attacks, including Cross-Site Scripting
-> (XSS) and data injection attacks. These attacks are used for everything from
-> data theft, to site defacement, to malware distribution.
+> Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross-Site Scripting (XSS) and data injection attacks. These attacks are used for everything from data theft, to site defacement, to malware distribution.
 >
-> To enable CSP, you need to configure your web server to return the
-> Content-Security-Policy HTTP header. (Sometimes you may see mentions of the
-> X-Content-Security-Policy header, but that's an older version and you don't
-> need to specify it anymore.)
+> To enable CSP, you need to configure your web server to return the Content-Security-Policy HTTP header. (Sometimes you may see mentions of the X-Content-Security-Policy header, but that's an older version and you don't need to specify it anymore.)
 
-Fortunately Fresh has built in support for CSP. We don't need to worry about
-setting headers ourselves. We just have to configure our routes correctly. Let's
-dive into a few examples to see how this works.
+Fortunately Fresh has built in support for CSP. We don't need to worry about setting headers ourselves. We just have to configure our routes correctly. Let's dive into a few examples to see how this works.
 
 Fresh's CSP implementation supports the following
 
@@ -140,8 +131,7 @@ export interface ContentSecurityPolicyDirectives {
 
 </details>
 
-For our examples, we'll just be focused on `styleSrc`, but the technique can be
-applied to any of the directives.
+For our examples, we'll just be focused on `styleSrc`, but the technique can be applied to any of the directives.
 
 We'll start off by having an example stylesheet defined like this:
 
@@ -156,9 +146,7 @@ h1 {
 
 ## No CSP
 
-To kick things off, we'll create the following control route which doesn't do
-anything with CSP. We include a stylesheet to confirm that our sheet correctly
-styles the response.
+To kick things off, we'll create the following control route which doesn't do anything with CSP. We include a stylesheet to confirm that our sheet correctly styles the response.
 
 ```tsx routes/noCSP.tsx
 import { RouteContext } from "$fresh/server.ts";
@@ -181,10 +169,7 @@ This page doesn't use CSP at all. Styles will be applied.
 
 ## Incorrect CSP
 
-Let's invoke the `useCSP` hook in our response to try to secure our page. Watch
-closely, we're using the wrong URL! This will cause the browser to reject the
-stylesheet, due to the header that Fresh produces. We get a `(blocked:csp)`
-status when the browser tries to request this resource.
+Let's invoke the `useCSP` hook in our response to try to secure our page. Watch closely, we're using the wrong URL! This will cause the browser to reject the stylesheet, due to the header that Fresh produces. We get a `(blocked:csp)` status when the browser tries to request this resource.
 
 ```tsx routes/incorrectCSP.tsx
 import { RouteConfig, RouteContext } from "$fresh/server.ts";
@@ -218,8 +203,7 @@ This page violates our configured CSP. Styles won't be applied.
 
 ## Correct CSP
 
-Let's fix our simple mistake and use the correct URL. Everything is working
-correctly here.
+Let's fix our simple mistake and use the correct URL. Everything is working correctly here.
 
 ```tsx routes/correctCSP.tsx
 import { RouteConfig, RouteContext } from "$fresh/server.ts";
@@ -269,9 +253,8 @@ export default function Home(req: Request, ctx: RouteContext) {
   return (
     <>
       <h1>
-        This page violates our configured CSP. But we don't have a{" "}
-        <code>RouteConfig</code>{" "}
-        enabled, so Fresh doesn't know to use the CSP. Styles will be applied.
+        This page violates our configured CSP. But we don't have a <code>RouteConfig</code> enabled,
+        so Fresh doesn't know to use the CSP. Styles will be applied.
       </h1>
       <link rel="stylesheet" type="text/css" href="example.css" />
     </>
@@ -279,8 +262,7 @@ export default function Home(req: Request, ctx: RouteContext) {
 }
 ```
 
-We can hit `http://localhost:8000/cspNoRouteConfig` and we should see the
-following:
+We can hit `http://localhost:8000/cspNoRouteConfig` and we should see the following:
 
 ```txt Response body
 This page violates our configured CSP. But we don't have a RouteConfig enabled, so Fresh doesn't know to use the CSP. Styles will be applied.
@@ -288,11 +270,7 @@ This page violates our configured CSP. But we don't have a RouteConfig enabled, 
 
 ## Reporting
 
-Let's touch on the reporting aspect of CSP. CSP (and Fresh's framework) support
-a `reportOnly` flag and a `reportUri` endpoint. This is a destination that
-should be able to receive `POST` requests. If the `reportOnly` flag is enabled,
-then the browser will ignore the CSP headers and log any issues to the
-`reportUri` destination.
+Let's touch on the reporting aspect of CSP. CSP (and Fresh's framework) support a `reportOnly` flag and a `reportUri` endpoint. This is a destination that should be able to receive `POST` requests. If the `reportOnly` flag is enabled, then the browser will ignore the CSP headers and log any issues to the `reportUri` destination.
 
 ```tsx routes/incorrectCSPwithReport.tsx
 import { RouteConfig, RouteContext } from "$fresh/server.ts";
@@ -310,8 +288,7 @@ export default function Home(req: Request, ctx: RouteContext) {
   return (
     <>
       <h1>
-        This page violates our configured CSP. But we're using "reportOnly".
-        Styles will be applied.
+        This page violates our configured CSP. But we're using "reportOnly". Styles will be applied.
       </h1>
       <link rel="stylesheet" type="text/css" href="example.css" />
     </>
@@ -339,15 +316,13 @@ export const handler = {
 };
 ```
 
-We can hit `http://localhost:8000/incorrectCSPwithReport` and we should see the
-following:
+We can hit `http://localhost:8000/incorrectCSPwithReport` and we should see the following:
 
 ```txt Response body
 This page violates our configured CSP. But we're using "reportOnly". Styles will be applied.
 ```
 
-We can then check our server and we'll see that `csp-reports.txt` has an entry
-like this:
+We can then check our server and we'll see that `csp-reports.txt` has an entry like this:
 
 ```json csp-reports.txt
 {

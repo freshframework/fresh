@@ -5,16 +5,13 @@ description: |
   data, handle user interactions, and deploy it.
 ---
 
-Let's set up your first Fresh project. To create a new project, run this
-command:
+Let's set up your first Fresh project. To create a new project, run this command:
 
 ```sh Terminal
 deno run -Ar jsr:@fresh/init
 ```
 
-This will spawn a short wizard that guides you through the setup, like the
-project name, if you want to use tailwindcss and if you're using vscode. Your
-project folder should look like this:
+This will spawn a short wizard that guides you through the setup, like the project name, if you want to use tailwindcss and if you're using vscode. Your project folder should look like this:
 
 ```txt-files Project structure
 <project root>
@@ -38,9 +35,7 @@ project folder should look like this:
 
 ## Path aliases
 
-Your new project comes with a `@/` path alias pre-configured in `deno.json`.
-This allows you to use absolute imports from your project root instead of
-relative paths:
+Your new project comes with a `@/` path alias pre-configured in `deno.json`. This allows you to use absolute imports from your project root instead of relative paths:
 
 ```tsx routes/about.tsx
 // With @/ alias
@@ -63,8 +58,7 @@ The `@/` alias is configured in your `deno.json` imports section:
 }
 ```
 
-This makes imports cleaner and easier to refactor, especially as your project
-grows.
+This makes imports cleaner and easier to refactor, especially as your project grows.
 
 Run the `dev` task to launch your app in development mode:
 
@@ -76,14 +70,11 @@ Go to the URL printed in the terminal to view your app.
 
 ![Screenshot of the newly initialized Fresh app showing a counter](/docs/getting-started-1-init.jpg)
 
-> [info]: If you encounter any problems during setup or development, check the
-> [troubleshooting guide](/docs/latest/advanced/troubleshooting) for common
-> issues and solutions.
+> [info]: If you encounter any problems during setup or development, check the [troubleshooting guide](/docs/latest/advanced/troubleshooting) for common issues and solutions.
 
 ## Creating our first route
 
-Let's create a new about page at `/about`. We can do that by adding a new file
-at `routes/about.tsx`.
+Let's create a new about page at `/about`. We can do that by adding a new file at `routes/about.tsx`.
 
 ```tsx routes/about.tsx
 import { define } from "@/utils.ts";
@@ -104,8 +95,7 @@ If we navigate to `/about` in the browser we'll see our newly created page.
 
 ## Create an island
 
-We're going to create a countdown component that requires JavaScript to function
-in the browser.
+We're going to create a countdown component that requires JavaScript to function in the browser.
 
 Create a new file at `islands/Countdown.tsx`
 
@@ -161,13 +151,8 @@ Now, we can see our countdown in action:
 
 Now that you have a working Fresh project, here are some things to explore:
 
-- [**Routing**](/docs/concepts/routing) - Learn about route patterns, dynamic
-  parameters, and method-specific handlers
-- [**Data Fetching**](/docs/concepts/data-fetching) - Load data on the server
-  and pass it to page components
-- [**Islands**](/docs/concepts/islands) - Understand how Fresh's partial
-  hydration works and what can be passed as props
-- [**Middleware**](/docs/concepts/middleware) - Add authentication, logging, or
-  custom headers to your routes
-- [**Architecture**](/docs/concepts/architecture) - See how requests flow
-  through the entire framework
+- [**Routing**](/docs/concepts/routing) - Learn about route patterns, dynamic parameters, and method-specific handlers
+- [**Data Fetching**](/docs/concepts/data-fetching) - Load data on the server and pass it to page components
+- [**Islands**](/docs/concepts/islands) - Understand how Fresh's partial hydration works and what can be passed as props
+- [**Middleware**](/docs/concepts/middleware) - Add authentication, logging, or custom headers to your routes
+- [**Architecture**](/docs/concepts/architecture) - See how requests flow through the entire framework

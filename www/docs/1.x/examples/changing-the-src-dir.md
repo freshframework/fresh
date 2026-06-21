@@ -3,8 +3,7 @@ description: |
   Change the source directory to effectively manage your project.
 ---
 
-When you initialize a project with `deno run -A -r https://usefresh.dev`, you'll
-end up with a project like the following:
+When you initialize a project with `deno run -A -r https://usefresh.dev`, you'll end up with a project like the following:
 
 ```txt-files Project Structure
 <project root>
@@ -31,11 +30,9 @@ end up with a project like the following:
 
 ## Using a `src` directory
 
-If you'd like your code to live in an `src` directory (or any other directory of
-your choosing), then you'll need to do the following things:
+If you'd like your code to live in an `src` directory (or any other directory of your choosing), then you'll need to do the following things:
 
-1. Move all your files, except `deno.json` and `README.md`, to the `src`
-   directory.
+1. Move all your files, except `deno.json` and `README.md`, to the `src` directory.
 2. Modify the `start` task in `deno.json` to point to the new directory.
 
 Here's what the diff of `deno.json` looks like:

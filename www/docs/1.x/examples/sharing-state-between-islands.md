@@ -3,9 +3,7 @@ description: |
   When you need to have state shared between islands, this page provides a few recipes.
 ---
 
-All of this content is lifted from this great
-[example](https://fresh-with-signals.deno.dev/) by Luca. The source can be found
-[here](https://github.com/lucacasonato/fresh-with-signals).
+All of this content is lifted from this great [example](https://fresh-with-signals.deno.dev/) by Luca. The source can be found [here](https://github.com/lucacasonato/fresh-with-signals).
 
 ## Multiple Sibling Islands with Independent State
 
@@ -33,16 +31,14 @@ export default function Counter(props: CounterProps) {
 }
 ```
 
-Note how `useSignal` is within the `Counter` component. Then if we instantiate
-some counters like this...
+Note how `useSignal` is within the `Counter` component. Then if we instantiate some counters like this...
 
 ```tsx routes/index.tsx
 <Counter start={3} />
 <Counter start={4} />
 ```
 
-they'll keep track of their own independent state. Not much sharing going on
-here, yet.
+they'll keep track of their own independent state. Not much sharing going on here, yet.
 
 ## Multiple Sibling Islands with Shared State
 
@@ -90,8 +86,7 @@ they would all use the same value.
 
 ## Independent Islands
 
-We can also create a `signal` in a utility file and export it for consumption
-across multiple places.
+We can also create a `signal` in a utility file and export it for consumption across multiple places.
 
 ```ts utils/cart.ts
 import { signal } from "@preact/signals";
@@ -110,12 +105,8 @@ interface AddToCartProps {
 // This island is used to add a product to the cart state.
 export default function AddToCart(props: AddToCartProps) {
   return (
-    <Button
-      onClick={() => (cart.value = [...cart.value, props.product])}
-      class="w-full"
-    >
-      Add{cart.value.includes(props.product) ? " another" : ""}{" "}
-      "{props.product}" to cart
+    <Button onClick={() => (cart.value = [...cart.value, props.product])} class="w-full">
+      Add{cart.value.includes(props.product) ? " another" : ""} "{props.product}" to cart
     </Button>
   );
 }
@@ -185,5 +176,4 @@ Now we can add the islands to our site by doing the following:
 <Cart />
 ```
 
-What happens as a result? The `cart` signal is shared across the two `AddToCart`
-islands _and_ the `Cart` island.
+What happens as a result? The `cart` signal is shared across the two `AddToCart` islands _and_ the `Cart` island.

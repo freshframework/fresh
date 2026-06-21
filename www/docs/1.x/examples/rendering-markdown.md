@@ -3,16 +3,13 @@ description: |
   How to render markdown on your Fresh site.
 ---
 
-What if you want to render some markdown on your site? There are a few
-possibilities:
+What if you want to render some markdown on your site? There are a few possibilities:
 
 1. the markdown is coming from a remote source
 2. the markdown is defined in a string
 3. the markdown is on a file
 
-The following file uses
-[dynamic routing](https://usefresh.dev/docs/getting-started/dynamic-routes) to
-handle the three cases. It's assumed this file is called `[slug].tsx`:
+The following file uses [dynamic routing](https://usefresh.dev/docs/getting-started/dynamic-routes) to handle the three cases. It's assumed this file is called `[slug].tsx`:
 
 ```ts routes/[slug].tsx
 import { Handlers, PageProps } from "$fresh/server.ts";
@@ -96,5 +93,4 @@ You'll also need to import the `Github Flavored Markdown` module:
 deno add jsr:@deno/gfm
 ```
 
-Andy has a helpful [post](https://deno.com/blog/build-a-blog-with-fresh) on the
-Deno Blog which goes into a slightly more realistic example.
+Andy has a helpful [post](https://deno.com/blog/build-a-blog-with-fresh) on the Deno Blog which goes into a slightly more realistic example.

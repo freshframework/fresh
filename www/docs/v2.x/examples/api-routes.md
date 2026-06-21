@@ -3,8 +3,7 @@ description: |
   Create JSON API endpoints by defining handler-only routes without a page component.
 ---
 
-A route that exports only `handlers` (no default component export) becomes an
-API endpoint - it returns responses directly instead of rendering HTML.
+A route that exports only `handlers` (no default component export) becomes an API endpoint - it returns responses directly instead of rendering HTML.
 
 ## Basic JSON API
 
@@ -33,8 +32,7 @@ A `GET /api/users` request returns:
 
 ## Method-specific handlers
 
-Define different logic per HTTP method. Methods you don't define will
-automatically return `405 Method Not Allowed`:
+Define different logic per HTTP method. Methods you don't define will automatically return `405 Method Not Allowed`:
 
 ```ts routes/api/posts/[id].ts
 import { define } from "@/utils.ts";
@@ -75,8 +73,7 @@ export const handlers = define.handlers((ctx) => {
 
 ## Programmatic API routes
 
-API routes can also be defined directly on the app without
-[file-based routing](/docs/concepts/file-routing):
+API routes can also be defined directly on the app without [file-based routing](/docs/concepts/file-routing):
 
 ```ts main.ts
 const app = new App()

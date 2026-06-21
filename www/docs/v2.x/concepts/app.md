@@ -3,9 +3,7 @@ description: |
   The App class is the heart of Fresh, used to define routes, middlewares, layouts and more.
 ---
 
-The `App` class is the heart of Fresh and routes incoming requests to the
-correct [middlewares](/docs/concepts/middleware). This is where routes,
-middlewares, [layouts](/docs/concepts/layouts) and more are defined.
+The `App` class is the heart of Fresh and routes incoming requests to the correct [middlewares](/docs/concepts/middleware). This is where routes, middlewares, [layouts](/docs/concepts/layouts) and more are defined.
 
 ```ts main.ts
 const app = new App().use(staticFiles()).get("/", () => new Response("hello"));
@@ -14,9 +12,7 @@ const app = new App().use(staticFiles()).get("/", () => new Response("hello"));
 app.listen();
 ```
 
-> [tip]: To use JSX in your `main` file (e.g. with
-> `ctx.render(<h1>Hello</h1>)`), rename it to `main.tsx` and set
-> `serverEntry: "main.tsx"` in the `fresh()` plugin options in `vite.config.ts`.
+> [tip]: To use JSX in your `main` file (e.g. with `ctx.render(<h1>Hello</h1>)`), rename it to `main.tsx` and set `serverEntry: "main.tsx"` in the `fresh()` plugin options in `vite.config.ts`.
 
 ## Configuration
 
@@ -30,30 +26,21 @@ const app = new App({
 });
 ```
 
-With `basePath: "/my-app"`, a route registered at `/about` will respond to
-`/my-app/about`. This is useful when Fresh runs behind a reverse proxy or is
-mounted alongside other apps. The base path is available in handlers via
-`ctx.config.basePath`.
+With `basePath: "/my-app"`, a route registered at `/about` will respond to `/my-app/about`. This is useful when Fresh runs behind a reverse proxy or is mounted alongside other apps. The base path is available in handlers via `ctx.config.basePath`.
 
 ### Reverse proxy support
 
-When running behind a reverse proxy (nginx, Caddy, etc.), set `trustProxy` to
-make `ctx.url` reflect the client-facing URL instead of the internal one:
+When running behind a reverse proxy (nginx, Caddy, etc.), set `trustProxy` to make `ctx.url` reflect the client-facing URL instead of the internal one:
 
 ```ts
 const app = new App({ trustProxy: true });
 ```
 
-With this enabled, Fresh reads `X-Forwarded-Proto` and `X-Forwarded-Host`
-headers and rewrites `ctx.url` accordingly. For example, if your proxy
-terminates TLS and forwards `X-Forwarded-Proto: https`, `ctx.url.protocol` will
-be `https:` instead of `http:`.
+With this enabled, Fresh reads `X-Forwarded-Proto` and `X-Forwarded-Host` headers and rewrites `ctx.url` accordingly. For example, if your proxy terminates TLS and forwards `X-Forwarded-Proto: https`, `ctx.url.protocol` will be `https:` instead of `http:`.
 
-> [warn]: Only enable `trustProxy` when your app is actually behind a trusted
-> reverse proxy. Untrusted clients could otherwise spoof these headers.
+> [warn]: Only enable `trustProxy` when your app is actually behind a trusted reverse proxy. Untrusted clients could otherwise spoof these headers.
 
-All items are applied from top to bottom. This means that when you defined a
-middleware _after_ a `.get()` handler, it won't be included.
+All items are applied from top to bottom. This means that when you defined a middleware _after_ a `.get()` handler, it won't be included.
 
 ```ts
 const app = new App()
@@ -71,8 +58,7 @@ const app = new App()
 
 ## `.use()`
 
-Add one or more [middlewares](/docs/concepts/middleware). Middlewares are
-matched left to right.
+Add one or more [middlewares](/docs/concepts/middleware). Middlewares are matched left to right.
 
 ```ts
 // Add a middleware at the root
@@ -273,8 +259,7 @@ app.all("/api/foo", async () => {
 
 ## `.fsRoute()`
 
-Injects all [file-based routes](/docs/concepts/file-routing), middlewares,
-layouts and [error pages](/docs/advanced/error-handling) to the app instance.
+Injects all [file-based routes](/docs/concepts/file-routing), middlewares, layouts and [error pages](/docs/advanced/error-handling) to the app instance.
 
 ```ts
 app.fsRoutes();
@@ -286,9 +271,7 @@ You can optionally pass a path where they should be mounted.
 app.fsRoutes("/foo/bar");
 ```
 
-> [info]: If possible, routes are lazily loaded. Routes that set a route config
-> and set `routeOverride` in particular, are never lazily loaded as Fresh would
-> need to load the file to get the route pattern.
+> [info]: If possible, routes are lazily loaded. Routes that set a route config and set `routeOverride` in particular, are never lazily loaded as Fresh would need to load the file to get the route pattern.
 
 ## `.route()`
 
@@ -307,13 +290,11 @@ app.route("/about", {
 
 ## `.appWrapper()`
 
-Set the [App Wrapper](/docs/advanced/app-wrapper) component. This is where the
-outer HTML, typically up until the `<body>`-tag is rendered.
+Set the [App Wrapper](/docs/advanced/app-wrapper) component. This is where the outer HTML, typically up until the `<body>`-tag is rendered.
 
 ## `.layout()`
 
-Set a [Layout](/docs/advanced/layouts) component at the specified path. The app
-wrapper component and prior layouts are inherited by default unless opted out.
+Set a [Layout](/docs/advanced/layouts) component at the specified path. The app wrapper component and prior layouts are inherited by default unless opted out.
 
 ## `.onError()`
 
@@ -367,16 +348,12 @@ const someRoutes = new App()
     /* ... */
   });
 
-export const app = new App().use(staticFiles()).mountApp("/", someRoutes())
-  .fsRoutes();
+export const app = new App().use(staticFiles()).mountApp("/", someRoutes()).fsRoutes();
 ```
 
 ## `.handler()`
 
-Create a handler function out of your app. This is a function where you can pass
-a [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) instance
-to and receive a
-[`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response).
+Create a handler function out of your app. This is a function where you can pass a [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) instance to and receive a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response).
 
 ```ts
 const app = new App().get("/", () => new Response("hello"));
@@ -387,13 +364,11 @@ const response = await handler(new Request("http://localhost"));
 console.log(await response.text()); // Logs: "hello"
 ```
 
-This functionality is often used during testing or to run Fresh inside other
-frameworks.
+This functionality is often used during testing or to run Fresh inside other frameworks.
 
 ## `.listen()`
 
-Spawns a server and listens for incoming connections. This calls `Deno.serve()`
-internally.
+Spawns a server and listens for incoming connections. This calls `Deno.serve()` internally.
 
 ```ts
 const app = new App().get("/", () => new Response("hello"));
@@ -401,21 +376,15 @@ const app = new App().get("/", () => new Response("hello"));
 app.listen();
 ```
 
-You can pass an options object to customize which port to listen on and other
-aspects.
+You can pass an options object to customize which port to listen on and other aspects.
 
 ```ts
 app.listen({ port: 4000 });
 ```
 
-> **Important:** `.listen()` is only used when running your app directly with
-> `deno run -A main.ts`. The default project setup uses `deno task dev` (Vite
-> dev server) and `deno task start` (`deno serve`), which spawn their own
-> servers - calling `.listen()` alongside these will create a second server and
-> cause `AddrInUse` errors.
+> **Important:** `.listen()` is only used when running your app directly with `deno run -A main.ts`. The default project setup uses `deno task dev` (Vite dev server) and `deno task start` (`deno serve`), which spawn their own servers - calling `.listen()` alongside these will create a second server and cause `AddrInUse` errors.
 >
 > To customize the port in the default setup:
 >
 > - **Dev:** set `server.port` in `vite.config.ts`
-> - **Prod:** pass `--port` to `deno serve` in your task, e.g.
->   `"start": "deno serve --port 4000 -A _fresh/server.js"`
+> - **Prod:** pass `--port` to `deno serve` in your task, e.g. `"start": "deno serve --port 4000 -A _fresh/server.js"`

@@ -2,11 +2,7 @@
 description: The Context object is shared across all middlewares and provides access to the request, URL, params, state, and response helpers.
 ---
 
-The `Context` instance is shared across all
-[middlewares](/docs/concepts/middleware) in Fresh. Use it to respond with HTML,
-trigger redirects, access the incoming
-[`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) or read
-other metadata.
+The `Context` instance is shared across all [middlewares](/docs/concepts/middleware) in Fresh. Use it to respond with HTML, trigger redirects, access the incoming [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) or read other metadata.
 
 ## `.config`
 
@@ -21,8 +17,7 @@ app.get("/", (ctx) => {
 
 ## `.url`
 
-Contains a [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL)
-instance of the requested url.
+Contains a [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL) instance of the requested url.
 
 ```ts
 app.get("/", (ctx) => {
@@ -35,8 +30,7 @@ app.get("/", (ctx) => {
 
 ## `.req`
 
-Contains the incoming
-[`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) instance.
+Contains the incoming [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) instance.
 
 ```ts
 app.get("/", (ctx) => {
@@ -52,8 +46,7 @@ app.get("/", (ctx) => {
 
 ## `.route`
 
-Contains the matched route pattern as a `string`. Will be `null` if no pattern
-matched.
+Contains the matched route pattern as a `string`. Will be `null` if no pattern matched.
 
 ```ts
 app.get("/foo/:id", (ctx) => {
@@ -76,8 +69,7 @@ app.get("/foo/:id", (ctx) => {
 
 ## `.state`
 
-Pass data to the next middlewares with state. Every request has its own state
-object.
+Pass data to the next middlewares with state. Every request has its own state object.
 
 ```ts
 interface State {
@@ -98,15 +90,11 @@ app.use((ctx) => {
 
 ## `.error`
 
-If an error was thrown, this property will hold the caught value (default:
-`null`). This is typically used mainly on an
-[error page](/docs/advanced/error-handling).
+If an error was thrown, this property will hold the caught value (default: `null`). This is typically used mainly on an [error page](/docs/advanced/error-handling).
 
 ```ts
 app.onError((ctx) => {
-  const message = ctx.error instanceof Error
-    ? ctx.error.message
-    : String(ctx.error);
+  const message = ctx.error instanceof Error ? ctx.error.message : String(ctx.error);
 
   return new Response(message, { status: 500 });
 });

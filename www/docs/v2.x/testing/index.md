@@ -3,16 +3,11 @@ description: |
   Learn how to test Fresh applications using Deno's built-in test runner.
 ---
 
-To ensure that your application works as expected we can write tests. Any aspect
-of Fresh can be tested as a whole together or in isolation. We use Deno's
-built-in [test runner](https://docs.deno.com/runtime/fundamentals/testing/) to
-write tests.
+To ensure that your application works as expected we can write tests. Any aspect of Fresh can be tested as a whole together or in isolation. We use Deno's built-in [test runner](https://docs.deno.com/runtime/fundamentals/testing/) to write tests.
 
 ## Testing middlewares
 
-To test [middlewares](/docs/concepts/middleware) we're going to create a dummy
-app and return the relevant info we want to check in a custom `/` handler. This
-test assumes the `State` object in `utils.ts` has `text` property.
+To test [middlewares](/docs/concepts/middleware) we're going to create a dummy app and return the relevant info we want to check in a custom `/` handler. This test assumes the `State` object in `utils.ts` has `text` property.
 
 ```ts tests/middleware.test.ts
 import { expect } from "@std/expect";
@@ -39,13 +34,11 @@ Deno.test("My middleware - sets ctx.state.text", async () => {
 });
 ```
 
-You can extend this pattern for other middlewares. When you have a middleware
-that adds a header to the returned response, you can assert against that too.
+You can extend this pattern for other middlewares. When you have a middleware that adds a header to the returned response, you can assert against that too.
 
 ## Testing app wrapper or layouts
 
-Both the [app wrapper](/docs/advanced/app-wrapper) component and
-[layouts](/docs/advanced/layouts) can be tested in the same way.
+Both the [app wrapper](/docs/advanced/app-wrapper) component and [layouts](/docs/advanced/layouts) can be tested in the same way.
 
 ```tsx tests/appWrapper.test.tsx
 import { expect } from "@std/expect";
@@ -112,10 +105,7 @@ Deno.test("MyLayout - renders heading and content", async () => {
 
 ## Testing routes and handlers
 
-For testing your route handlers and business logic, you can use the same
-[`App`](/docs/concepts/app) pattern shown above. Fresh makes it easy to test
-individual routes without needing a full build process, as long as they export a
-handler:
+For testing your route handlers and business logic, you can use the same [`App`](/docs/concepts/app) pattern shown above. Fresh makes it easy to test individual routes without needing a full build process, as long as they export a handler:
 
 ```ts tests/routes.test.ts
 import { expect } from "@std/expect";
@@ -137,14 +127,11 @@ Deno.test("API route returns name", async () => {
 
 ## Testing islands
 
-Testing islands requires different approaches for server-side and client-side
-behavior:
+Testing islands requires different approaches for server-side and client-side behavior:
 
 ### Server-side rendering of islands
 
-You can test that your islands render correctly on the server using the same
-[`App`](/docs/concepts/app) pattern. Note: this requires a `.tsx` file extension
-to use JSX:
+You can test that your islands render correctly on the server using the same [`App`](/docs/concepts/app) pattern. Note: this requires a `.tsx` file extension to use JSX:
 
 ```tsx tests/island-ssr.test.tsx
 import { expect } from "@std/expect";
@@ -182,9 +169,7 @@ Deno.test("Counter page renders island", async () => {
 
 ### Client-side island interactivity
 
-For testing client-side island behavior (clicks, state changes, etc.), you need
-a full build and browser environment. You can use the approach similar to
-Fresh's own tests:
+For testing client-side island behavior (clicks, state changes, etc.), you need a full build and browser environment. You can use the approach similar to Fresh's own tests:
 
 ```tsx tests/island-client.test.tsx
 import { expect } from "@std/expect";
@@ -248,6 +233,4 @@ export function startTestServer(app: {
 }
 ```
 
-**Note:** For most applications, testing the server-side rendering is
-sufficient. Only test client-side interactivity if you have complex island logic
-that needs verification.
+**Note:** For most applications, testing the server-side rendering is sufficient. Only test client-side interactivity if you have complex island logic that needs verification.

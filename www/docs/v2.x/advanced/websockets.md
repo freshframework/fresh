@@ -3,26 +3,17 @@ description: |
   Add real-time WebSocket endpoints to your Fresh app with ctx.upgrade() or app.ws().
 ---
 
-Fresh provides built-in helpers for upgrading HTTP connections to WebSockets.
-There are two main approaches depending on your use case.
+Fresh provides built-in helpers for upgrading HTTP connections to WebSockets. There are two main approaches depending on your use case.
 
-> [info]: WebSocket upgrades under the Vite dev server (`deno task dev`) require
-> **Fresh 2.4+** and **Deno 2.8+**. On older versions `Deno.upgradeWebSocket()`
-> cannot complete the 101 handshake for requests Vite forwards from its Node
-> HTTP server, so `ctx.upgrade()` and `app.ws()` silently hang and the `open`
-> handler is never invoked.
+> [info]: WebSocket upgrades under the Vite dev server (`deno task dev`) require **Fresh 2.4+** and **Deno 2.8+**. On older versions `Deno.upgradeWebSocket()` cannot complete the 101 handshake for requests Vite forwards from its Node HTTP server, so `ctx.upgrade()` and `app.ws()` silently hang and the `open` handler is never invoked.
 >
-> If you're stuck on an older Deno or Fresh, exercise WebSocket endpoints with a
-> production-style build instead:
+> If you're stuck on an older Deno or Fresh, exercise WebSocket endpoints with a production-style build instead:
 >
 > ```sh
 > deno task build && deno task start
 > ```
 >
-> This runs `deno serve` directly, so `Deno.upgradeWebSocket()` works as
-> expected. Alternatively, run a separate Deno entry point (e.g.
-> `deno serve -A main.ts`) alongside Vite, or host the WebSocket server as a
-> sidecar on its own port.
+> This runs `deno serve` directly, so `Deno.upgradeWebSocket()` works as expected. Alternatively, run a separate Deno entry point (e.g. `deno serve -A main.ts`) alongside Vite, or host the WebSocket server as a sidecar on its own port.
 
 ## Quick start with `app.ws()`
 
@@ -44,13 +35,11 @@ const app = new App().ws("/ws", {
 });
 ```
 
-`app.ws(path, handlers)` registers a GET route that automatically upgrades the
-request to a WebSocket connection and wires up your event handlers.
+`app.ws(path, handlers)` registers a GET route that automatically upgrades the request to a WebSocket connection and wires up your event handlers.
 
 ## Using `ctx.upgrade()` in route handlers
 
-For file-based routes or when you need more control, use `ctx.upgrade()` inside
-a GET handler.
+For file-based routes or when you need more control, use `ctx.upgrade()` inside a GET handler.
 
 ### Managed mode
 
@@ -81,9 +70,7 @@ export const handlers = define.handlers({
 
 ### Bare mode
 
-Call `ctx.upgrade()` without arguments to get the raw `WebSocket` object. This
-is useful when you need to store the socket in a shared structure like a chat
-room or pub/sub registry:
+Call `ctx.upgrade()` without arguments to get the raw `WebSocket` object. This is useful when you need to store the socket in a shared structure like a chat room or pub/sub registry:
 
 ```ts routes/api/chat.ts
 import { define } from "@/utils.ts";
@@ -129,11 +116,7 @@ ctx.upgrade(handlers, {
 const { socket, response } = ctx.upgrade({ idleTimeout: 60 });
 ```
 
-> **How does Fresh tell the two calls apart?** The first argument is treated as
-> managed-mode handlers when it contains at least one function-valued handler
-> key (`open`, `message`, `close`, or `error`). A plain options object only has
-> non-function fields (`idleTimeout`, `protocol`), so it always enters bare
-> mode.
+> **How does Fresh tell the two calls apart?** The first argument is treated as managed-mode handlers when it contains at least one function-valued handler key (`open`, `message`, `close`, or `error`). A plain options object only has non-function fields (`idleTimeout`, `protocol`), so it always enters bare mode.
 
 The same options can be passed to `app.ws()`:
 
@@ -141,14 +124,11 @@ The same options can be passed to `app.ws()`:
 app.ws("/ws", handlers, { idleTimeout: 60 });
 ```
 
-> `app.ws()` always uses managed mode. For bare-mode access to the raw socket,
-> use `app.get()` with `ctx.upgrade()` instead.
+> `app.ws()` always uses managed mode. For bare-mode access to the raw socket, use `app.get()` with `ctx.upgrade()` instead.
 
 ## Error handling
 
-If a non-WebSocket request hits a WebSocket route, `ctx.upgrade()` throws an
-`HttpError(400)` with the message "Expected a WebSocket upgrade request". This
-is handled automatically by Fresh's error pipeline and returns a 400 response.
+If a non-WebSocket request hits a WebSocket route, `ctx.upgrade()` throws an `HttpError(400)` with the message "Expected a WebSocket upgrade request". This is handled automatically by Fresh's error pipeline and returns a 400 response.
 
 ## Handler reference
 

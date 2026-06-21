@@ -3,9 +3,7 @@ description: |
   Add a layout to provide common meta tags, context for application sub routes, and common layout.
 ---
 
-A layout is defined in a `_layout.tsx` file in any sub directory (at any level)
-under the `routes/` folder. It must contain a default export that is a regular
-Preact component. Only one such layout is allowed per sub directory.
+A layout is defined in a `_layout.tsx` file in any sub directory (at any level) under the `routes/` folder. It must contain a default export that is a regular Preact component. Only one such layout is allowed per sub directory.
 
 ```txt-files Project structure
 <project root>
@@ -20,10 +18,7 @@ Preact component. Only one such layout is allowed per sub directory.
     └── _app.tsx
 ```
 
-The component to be wrapped is received via props, in addition to a few other
-things. This allows for the introduction of a global container functioning as a
-template which can be conditioned based on state and params. Note that any state
-set by middleware is available via `props.state`.
+The component to be wrapped is received via props, in addition to a few other things. This allows for the introduction of a global container functioning as a template which can be conditioned based on state and params. Note that any state set by middleware is available via `props.state`.
 
 ```tsx routes/sub/_layout.tsx
 import { PageProps } from "$fresh/server.ts";
@@ -40,8 +35,7 @@ export default function Layout({ Component, state }: PageProps) {
 
 ## Async layouts
 
-In case you need to fetch data asynchronously before rendering the layout, you
-can use an async layout to do so.
+In case you need to fetch data asynchronously before rendering the layout, you can use an async layout to do so.
 
 ```tsx routes/sub/_layout.tsx
 import { FreshContext } from "$fresh/server.ts";
@@ -61,9 +55,7 @@ export default async function Layout(req: Request, ctx: FreshContext) {
 
 ### Define helper
 
-To make it a little quicker to write async layouts, Fresh ships with a
-`defineLayout` helper which automatically infers the correct types for the
-function arguments.
+To make it a little quicker to write async layouts, Fresh ships with a `defineLayout` helper which automatically infers the correct types for the function arguments.
 
 ```tsx routes/greet/_layout.tsx
 import { defineLayout } from "$fresh/server.ts";
@@ -82,9 +74,7 @@ export default defineLayout(async (req, ctx) => {
 
 ## Opting out of layout inheritance
 
-Sometimes you want to opt out of the layout inheritance mechanism for a
-particular route. This can be done via route configuration. Picture a directory
-structure like this:
+Sometimes you want to opt out of the layout inheritance mechanism for a particular route. This can be done via route configuration. Picture a directory structure like this:
 
 ```txt-files Project structure
 └── <root>/routes
@@ -95,8 +85,7 @@ structure like this:
     └── _layout.tsx
 ```
 
-To make `routes/sub/special.tsx` opt out of rendering layouts we can set
-`skipInheritedLayouts: true`.
+To make `routes/sub/special.tsx` opt out of rendering layouts we can set `skipInheritedLayouts: true`.
 
 ```tsx routes/sub/special.tsx
 import { RouteConfig } from "$fresh/server.ts";

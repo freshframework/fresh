@@ -3,15 +3,11 @@ description: |
   Signals provide reactive state management in Fresh islands using @preact/signals.
 ---
 
-[Signals](https://preactjs.com/guide/v10/signals/) are Preact's reactive
-primitive for managing state in [islands](/docs/concepts/islands). When a
-signal's value changes, any component that reads it re-renders automatically -
-no need for `setState` or manual subscriptions.
+[Signals](https://preactjs.com/guide/v10/signals/) are Preact's reactive primitive for managing state in [islands](/docs/concepts/islands). When a signal's value changes, any component that reads it re-renders automatically - no need for `setState` or manual subscriptions.
 
 ## Creating signals
 
-Use `useSignal` inside a component for local state, or `signal` at module level
-for shared state:
+Use `useSignal` inside a component for local state, or `signal` at module level for shared state:
 
 ```tsx islands/Counter.tsx
 import { useSignal } from "@preact/signals";
@@ -28,13 +24,11 @@ export default function Counter() {
 }
 ```
 
-> [info]: Signals can be rendered directly in JSX (`{count}`) without accessing
-> `.value`. Preact detects the signal and subscribes to updates automatically.
+> [info]: Signals can be rendered directly in JSX (`{count}`) without accessing `.value`. Preact detects the signal and subscribes to updates automatically.
 
 ## Computed signals
 
-Use `computed` to derive values from other signals. Computed signals update
-automatically when their dependencies change:
+Use `computed` to derive values from other signals. Computed signals update automatically when their dependencies change:
 
 ```tsx islands/TemperatureConverter.tsx
 import { useComputed, useSignal } from "@preact/signals";
@@ -62,8 +56,7 @@ export default function TemperatureConverter() {
 
 ## Passing signals as props
 
-Signals can be passed as props to islands. Fresh automatically serializes them
-on the server and reconstructs them as live signals on the client:
+Signals can be passed as props to islands. Fresh automatically serializes them on the server and reconstructs them as live signals on the client:
 
 ```tsx routes/index.tsx
 import { useSignal } from "@preact/signals";
@@ -80,19 +73,13 @@ export default function Home() {
 }
 ```
 
-Both sliders share the same signal - moving one updates the other. When the same
-signal object is passed to multiple islands, Fresh preserves the reference so
-they stay synchronized.
+Both sliders share the same signal - moving one updates the other. When the same signal object is passed to multiple islands, Fresh preserves the reference so they stay synchronized.
 
-> [info]: Using `useSignal` in a route component (not an island) is intentional
-> here. The signal is created during server rendering, serialized into the HTML,
-> and reconstructed as a live signal on the client. This is how Fresh shares
-> reactive state between multiple islands on the same page.
+> [info]: Using `useSignal` in a route component (not an island) is intentional here. The signal is created during server rendering, serialized into the HTML, and reconstructed as a live signal on the client. This is how Fresh shares reactive state between multiple islands on the same page.
 
 ## Shared state across islands
 
-For state that needs to be shared between unrelated islands, create a signal in
-a separate module:
+For state that needs to be shared between unrelated islands, create a signal in a separate module:
 
 ```ts utils/cart.ts
 import { signal } from "@preact/signals";
@@ -120,21 +107,14 @@ export default function CartCount() {
 }
 ```
 
-Since both islands import the same module-level signal, they share the same
-state automatically. See
-[Sharing state between islands](/docs/examples/sharing-state-between-islands)
-for more patterns.
+Since both islands import the same module-level signal, they share the same state automatically. See [Sharing state between islands](/docs/examples/sharing-state-between-islands) for more patterns.
 
 ## Serialization
 
-When signals are passed as island props, Fresh handles
-[serialization](/docs/advanced/serialization) automatically:
+When signals are passed as island props, Fresh handles [serialization](/docs/advanced/serialization) automatically:
 
 - The signal's current value is extracted on the server via `.peek()`
-- On the client, the value is wrapped back into a live `signal()` or
-  `computed()`
+- On the client, the value is wrapped back into a live `signal()` or `computed()`
 - Circular references and duplicate signal references are preserved
 
-The signal's inner value must itself be serializable (see
-[Islands - Passing props](/docs/concepts/islands#passing-props-to-islands) for
-the full list of supported types).
+The signal's inner value must itself be serializable (see [Islands - Passing props](/docs/concepts/islands#passing-props-to-islands) for the full list of supported types).

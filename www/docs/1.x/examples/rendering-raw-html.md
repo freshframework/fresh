@@ -3,24 +3,17 @@ description: |
   How to render raw HTML in Fresh.
 ---
 
-Text content in Fresh is always escaped, whether serverside rendered or rendered
-in islands. While this generally desired, it can create issues in certain
-situations.
+Text content in Fresh is always escaped, whether serverside rendered or rendered in islands. While this generally desired, it can create issues in certain situations.
 
 ## Warning
 
-The TL;DR is to use Preact's `dangerouslySetInnerHTML`. As the name implies, it
-should not be used lightly.
+The TL;DR is to use Preact's `dangerouslySetInnerHTML`. As the name implies, it should not be used lightly.
 
-Setting arbitrary HTML can be dangerous. Make sure you trust the source.
-Rendering user-supplied HTML to the DOM makes your site vulnerable to cross-
-site scripting. The markup must first be sanitizied, or better yet, something
-you trust.
+Setting arbitrary HTML can be dangerous. Make sure you trust the source. Rendering user-supplied HTML to the DOM makes your site vulnerable to cross- site scripting. The markup must first be sanitizied, or better yet, something you trust.
 
 ## Example: Rendering JSON-LD
 
-Suppose we need to add some microdata markup to a page. The following will
-result in **escaped characters, and will not work**:
+Suppose we need to add some microdata markup to a page. The following will result in **escaped characters, and will not work**:
 
 ```tsx components/json-ld.tsx
 const json = `
@@ -42,20 +35,13 @@ Instead, we can use `dangerouslySetInnerHTML`:
 
 ```tsx components/json-ld.tsx
 export default function JsonLd() {
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: json }}
-    />
-  );
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: json }} />;
 }
 ```
 
 ## Another example: Code highlighting
 
-Syntax highlighters parse strings into HTML tags, allowing them to be
-individually styled with CSS. We can build a simple Preact syntax highlighter
-like so:
+Syntax highlighters parse strings into HTML tags, allowing them to be individually styled with CSS. We can build a simple Preact syntax highlighter like so:
 
 ```tsx components/code.tsx
 import Prism from "https://esm.sh/prismjs@1.29.0";

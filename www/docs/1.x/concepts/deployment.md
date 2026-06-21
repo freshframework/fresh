@@ -3,8 +3,7 @@ description: |
   Fresh can be deployed to a variety of platforms easily.
 ---
 
-While Fresh is designed to be deployed to [Deno Deploy][deno-deploy], it can be
-deployed to any system or platform that can run a Deno based web server.
+While Fresh is designed to be deployed to [Deno Deploy][deno-deploy], it can be deployed to any system or platform that can run a Deno based web server.
 
 Here are instructions for specific providers / systems:
 
@@ -14,25 +13,15 @@ Here are instructions for specific providers / systems:
 
 ## Deno Deploy
 
-The recommended way to deploy Fresh is by using Deno Deploy. Deno Deploy
-provides a GitHub integration that can deploy your Fresh projects to its
-globally distributed edge network in seconds, automatically.
+The recommended way to deploy Fresh is by using Deno Deploy. Deno Deploy provides a GitHub integration that can deploy your Fresh projects to its globally distributed edge network in seconds, automatically.
 
-View [the getting started guide][deploy-to-production] for instructions on how
-to deploy Fresh to Deno Deploy.
+View [the getting started guide][deploy-to-production] for instructions on how to deploy Fresh to Deno Deploy.
 
 ## Docker
 
-You can deploy Fresh to any platform that can run Docker containers. Docker is a
-tool to containerize projects and portably run them on any supported platform.
+You can deploy Fresh to any platform that can run Docker containers. Docker is a tool to containerize projects and portably run them on any supported platform.
 
-When packaging your Fresh app for Docker, it is important that you set the
-`DENO_DEPLOYMENT_ID` environment variable in your container. This variable needs
-to be set to an opaque string ID that represents the version of your application
-that is currently being run. This could be a Git commit hash, or a hash of all
-files in your project. It is critical for the function of Fresh that this ID
-changes when _any_ file in your project changes - if it doesn't, incorrect
-caching **will** cause your project to not function correctly.
+When packaging your Fresh app for Docker, it is important that you set the `DENO_DEPLOYMENT_ID` environment variable in your container. This variable needs to be set to an opaque string ID that represents the version of your application that is currently being run. This could be a Git commit hash, or a hash of all files in your project. It is critical for the function of Fresh that this ID changes when _any_ file in your project changes - if it doesn't, incorrect caching **will** cause your project to not function correctly.
 
 Here is an example `Dockerfile` for a Fresh project:
 
@@ -64,17 +53,14 @@ Then run your Docker container:
 $ docker run -t -i -p 80:8000 my-fresh-app
 ```
 
-To deploy to a cloud provider, push it to a container registry and follow their
-documentation.
+To deploy to a cloud provider, push it to a container registry and follow their documentation.
 
 - [Amazon Web Services][aws-container-registry]
 - [Google Cloud][gcp-container-registry]
 
 ## Self Contained Executable
 
-With Deno 2.1, you can create a self-contained executable of your Fresh project
-that includes all assets and dependencies. This executable can run on any
-platform without requiring Deno to be installed.
+With Deno 2.1, you can create a self-contained executable of your Fresh project that includes all assets and dependencies. This executable can run on any platform without requiring Deno to be installed.
 
 ```sh Terminal
 $ deno task build

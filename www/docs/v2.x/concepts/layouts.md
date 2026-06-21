@@ -3,18 +3,13 @@ description: |
   Wrap pages in shared UI using _layout.tsx files. Layouts nest automatically, support async data loading, and can be skipped per route.
 ---
 
-This page covers **file-based layouts** using `_layout.tsx` files. If you're
-defining routes programmatically with `new App()`, see
-[Layouts (programmatic)](/docs/advanced/layouts) instead.
+This page covers **file-based layouts** using `_layout.tsx` files. If you're defining routes programmatically with `new App()`, see [Layouts (programmatic)](/docs/advanced/layouts) instead.
 
-Layouts let you wrap groups of pages in shared UI - navigation bars, sidebars,
-footers, or any common structure. They are defined in `_layout.tsx` files and
-nest automatically based on the directory tree.
+Layouts let you wrap groups of pages in shared UI - navigation bars, sidebars, footers, or any common structure. They are defined in `_layout.tsx` files and nest automatically based on the directory tree.
 
 ## How layouts work
 
-Place a `_layout.tsx` file in any directory under `routes/`. It wraps every page
-in that directory and its subdirectories. You can have one layout per directory.
+Place a `_layout.tsx` file in any directory under `routes/`. It wraps every page in that directory and its subdirectories. You can have one layout per directory.
 
 ```txt-files Project structure
 <project root>
@@ -32,8 +27,7 @@ in that directory and its subdirectories. You can have one layout per directory.
         └── dashboard.tsx
 ```
 
-When a user visits `/blog/my-post`, Fresh renders these components from the
-outside in:
+When a user visits `/blog/my-post`, Fresh renders these components from the outside in:
 
 1. `_app.tsx` - the outer `<html>`/`<head>`/`<body>` shell
 2. `routes/_layout.tsx` - root layout (e.g. site header and footer)
@@ -42,9 +36,7 @@ outside in:
 
 ## Basic layout
 
-A layout receives `Component` (the child to wrap) and other props like `state`
-and `url`. Any state set by [middleware](/docs/concepts/middleware) is available
-via `props.state`.
+A layout receives `Component` (the child to wrap) and other props like `state` and `url`. Any state set by [middleware](/docs/concepts/middleware) is available via `props.state`.
 
 ```tsx routes/_layout.tsx
 import { define } from "../utils.ts";
@@ -100,9 +92,7 @@ export default define.layout(async (ctx) => {
 
 ## Opting out of layout inheritance
 
-Sometimes a route needs completely different chrome - a login page, a
-full-screen dashboard, or a print view. Use `skipInheritedLayouts` in the route
-config to skip all layouts inherited from parent directories:
+Sometimes a route needs completely different chrome - a login page, a full-screen dashboard, or a print view. Use `skipInheritedLayouts` in the route config to skip all layouts inherited from parent directories:
 
 ```tsx routes/login.tsx
 import { type RouteConfig } from "fresh";
@@ -126,8 +116,7 @@ export default define.page(() => {
 });
 ```
 
-You can also skip inherited layouts from within a layout file itself. This is
-useful when a section of your site needs a completely different shell:
+You can also skip inherited layouts from within a layout file itself. This is useful when a section of your site needs a completely different shell:
 
 ```tsx routes/admin/_layout.tsx
 import { type LayoutConfig } from "fresh";
@@ -154,10 +143,7 @@ export default define.layout(({ Component, state }) => {
 
 ## Layout vs app wrapper
 
-The [app wrapper](/docs/concepts/app) (`_app.tsx`) and layouts serve different
-purposes:
+The [app wrapper](/docs/concepts/app) (`_app.tsx`) and layouts serve different purposes:
 
-- **App wrapper** - the outermost `<html>`/`<head>`/`<body>` structure. There is
-  only one, and it wraps everything.
-- **Layouts** - reusable UI shells that nest based on directory structure. There
-  can be many, and they sit between the app wrapper and the page component.
+- **App wrapper** - the outermost `<html>`/`<head>`/`<body>` structure. There is only one, and it wraps everything.
+- **Layouts** - reusable UI shells that nest based on directory structure. There can be many, and they sit between the app wrapper and the page component.

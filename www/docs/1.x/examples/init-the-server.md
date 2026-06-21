@@ -3,9 +3,7 @@ description: |
   For when you have some complicated setup that needs to be performed once.
 ---
 
-Let's pretend you've just initialized a new Fresh project. You want to do some
-complicated setup that runs once, before the server is started. This is,
-fortunately, quite easy. Here's how. Modify your `fresh.config.ts` like this:
+Let's pretend you've just initialized a new Fresh project. You want to do some complicated setup that runs once, before the server is started. This is, fortunately, quite easy. Here's how. Modify your `fresh.config.ts` like this:
 
 ```diff fresh.config.ts
  import twindConfig from "./twind.config.ts";
@@ -73,9 +71,7 @@ export async function handler(_req: Request, ctx: FreshContext<State>) {
 }
 ```
 
-So now in this `handler` (or any other `handler` functions you create) you can
-have access to the complicated initialization step by calling
-`Context.instance()`.
+So now in this `handler` (or any other `handler` functions you create) you can have access to the complicated initialization step by calling `Context.instance()`.
 
 ## Proving it out
 
@@ -111,8 +107,7 @@ The manifest has been generated for 6 routes and 1 islands.
 Assets written to: /path/to/my/project/_fresh
 ```
 
-There's no handling of routes associated with this, but note that the
-initialization occurred.
+There's no handling of routes associated with this, but note that the initialization occurred.
 
 ### Preview
 

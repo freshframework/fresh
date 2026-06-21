@@ -3,9 +3,7 @@ description: |
   For cases where the latest release doesn't fit your needs.
 ---
 
-Pretend you have a use case where you need to modify your project to use a
-canary version of Fresh. Or you want to use a slightly different initialization
-script. This page has you covered.
+Pretend you have a use case where you need to modify your project to use a canary version of Fresh. Or you want to use a slightly different initialization script. This page has you covered.
 
 ## Canary Fresh in `deno.json`
 
@@ -17,8 +15,7 @@ The easiest way to use Fresh 2 canary is with the update command:
 deno run -A -r jsr:@fresh/update@2.0.0-alpha.35 .
 ```
 
-This will automatically update your `deno.json` to use the specified canary
-version.
+This will automatically update your `deno.json` to use the specified canary version.
 
 ### Specific commit
 

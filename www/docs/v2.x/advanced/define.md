@@ -3,9 +3,7 @@ description: |
   Define helpers are a less TypeScripty way to declare [middlewares](/docs/concepts/middleware), routes and [layouts](/docs/concepts/layouts)
 ---
 
-Define helpers can be used to shorten the amount of types you have to type
-yourself in code. They are entirely optional as some developers prefer the
-explicitness of types, others like the convenience of `define.*` helpers.
+Define helpers can be used to shorten the amount of types you have to type yourself in code. They are entirely optional as some developers prefer the explicitness of types, others like the convenience of `define.*` helpers.
 
 Without define helpers:
 
@@ -51,9 +49,7 @@ export const otherMiddleware = define.middleware((ctx) => {
 
 ## File routes
 
-The `define.*` helpers include a `define.handler()` and `define.page()` function
-to make it easy for TypeScript to establish a relation between the two. That way
-you can pass data from the handler to the component in a type-safe way.
+The `define.*` helpers include a `define.handler()` and `define.page()` function to make it easy for TypeScript to establish a relation between the two. That way you can pass data from the handler to the component in a type-safe way.
 
 ```tsx routes/index.tsx
 export const handler = define.handlers({

@@ -3,8 +3,7 @@ description: |
   How routing works in Fresh, including route patterns, matching priority, method-specific handlers, and URLPattern support.
 ---
 
-Routing defines which middlewares and routes should respond to a particular
-request.
+Routing defines which middlewares and routes should respond to a particular request.
 
 ```ts main.ts
 import { App } from "fresh";
@@ -29,18 +28,14 @@ const app = new App()
   });
 ```
 
-Fresh supports the full
-[`URLPattern`](https://developer.mozilla.org/en-US/docs/Web/API/URL_Pattern_API)
-syntax for setting pathnames.
+Fresh supports the full [`URLPattern`](https://developer.mozilla.org/en-US/docs/Web/API/URL_Pattern_API) syntax for setting pathnames.
 
 ## Route matching priority
 
 Routes are matched in the following order:
 
-1. **Static routes** (exact path match like `/about`) are checked first and
-   always take precedence.
-2. **Dynamic routes** (patterns like `/posts/:id`) are checked in the order they
-   were registered. The first matching route wins.
+1. **Static routes** (exact path match like `/about`) are checked first and always take precedence.
+2. **Dynamic routes** (patterns like `/posts/:id`) are checked in the order they were registered. The first matching route wins.
 
 This means the registration order matters for dynamic routes:
 
@@ -55,9 +50,7 @@ const app = new App()
 
 ## HTTP method handlers
 
-Fresh provides method-specific route registration via `.get()`, `.post()`,
-`.put()`, `.delete()`, `.head()`, `.patch()`, and `.options()`. Each method only
-responds to its matching HTTP verb.
+Fresh provides method-specific route registration via `.get()`, `.post()`, `.put()`, `.delete()`, `.head()`, `.patch()`, and `.options()`. Each method only responds to its matching HTTP verb.
 
 Use `.all()` to respond to any HTTP method:
 
@@ -65,9 +58,7 @@ Use `.all()` to respond to any HTTP method:
 app.all("/api/health", () => new Response("ok"));
 ```
 
-If a route is registered for `GET` but receives a `POST` request, Fresh returns
-a `405 Method Not Allowed` response. `HEAD` requests automatically fall back to
-the `GET` handler if no dedicated `HEAD` handler is defined.
+If a route is registered for `GET` but receives a `POST` request, Fresh returns a `405 Method Not Allowed` response. `HEAD` requests automatically fall back to the `GET` handler if no dedicated `HEAD` handler is defined.
 
 ## File-based route handlers
 
@@ -98,5 +89,4 @@ export const handlers = define.handlers((ctx) => {
 });
 ```
 
-See [File routing](/docs/concepts/file-routing) for more on the file-based
-routing convention.
+See [File routing](/docs/concepts/file-routing) for more on the file-based routing convention.

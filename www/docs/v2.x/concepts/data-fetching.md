@@ -3,14 +3,11 @@ description: |
   Load data on the server in handlers and pass it to page components with full type safety.
 ---
 
-Data fetching in Fresh happens on the server. Handlers load data and pass it to
-page components via the `page()` helper. This keeps API keys, database
-connections, and sensitive logic out of the browser.
+Data fetching in Fresh happens on the server. Handlers load data and pass it to page components via the `page()` helper. This keeps API keys, database connections, and sensitive logic out of the browser.
 
 ## Handlers and page components
 
-A handler fetches data and returns it with `page()`. The page component receives
-it in `props.data`:
+A handler fetches data and returns it with `page()`. The page component receives it in `props.data`:
 
 ```tsx routes/projects/[id].tsx
 import { HttpError, page } from "fresh";
@@ -40,8 +37,7 @@ export default define.page<typeof handler>(({ data }) => {
 });
 ```
 
-The `define.page<typeof handler>` generic links the handler's return type to the
-component's props, giving you full autocompletion on `data`.
+The `define.page<typeof handler>` generic links the handler's return type to the component's props, giving you full autocompletion on `data`.
 
 ## Setting response headers and status
 
@@ -56,8 +52,7 @@ return page(data, {
 
 ## Async page components
 
-For simpler cases, you can fetch data directly in an async component without a
-separate handler:
+For simpler cases, you can fetch data directly in an async component without a separate handler:
 
 ```tsx routes/projects/[id].tsx
 import { HttpError } from "fresh";
@@ -78,13 +73,11 @@ export default define.page(async (ctx) => {
 });
 ```
 
-This is convenient for pages where you don't need the type-safe data bridge
-between handler and component.
+This is convenient for pages where you don't need the type-safe data bridge between handler and component.
 
 ## Passing state from middleware
 
-[Middleware](/docs/concepts/middleware) can set values on `ctx.state` that are
-available to all downstream handlers and components:
+[Middleware](/docs/concepts/middleware) can set values on `ctx.state` that are available to all downstream handlers and components:
 
 ```ts routes/_middleware.ts
 import { define } from "@/utils.ts";
