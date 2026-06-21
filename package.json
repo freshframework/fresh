@@ -12,7 +12,8 @@
     "dev": "pnpm --filter fresh-example run dev",
     "www": "pnpm --filter fresh-www run dev",
     "www:build": "pnpm --filter fresh-www run build",
-    "www:preview": "pnpm --filter fresh-www run preview"
+    "www:preview": "pnpm --filter fresh-www run preview",
+    "bump-version:alpha": "pnpm version --filter=@frsh/* $(node -p 'const now = Temporal.Now.zonedDateTimeISO().withTimeZone(\"UTC\"); `3.0.0-alpha.${now.year}${String(now.month).padStart(2, \"0\")}${String(now.day).padStart(2, \"0\")}${String(now.hour).padStart(2, \"0\")}${String(now.minute).padStart(2, \"0\")}`')"
   },
   "devDependencies": {
     "@playwright/test": "1.61.0",
