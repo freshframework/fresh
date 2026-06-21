@@ -336,6 +336,8 @@ test("matches the on-disk example/ project", async () => {
     "/partials",
     "/partials/about",
     "/partials/form",
+    "/partials/kept-a",
+    "/partials/kept-b",
     "/partials/time",
   ]);
 
