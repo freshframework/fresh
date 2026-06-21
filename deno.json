@@ -1,0 +1,5 @@
+{
+  "deploy": {
+    "framework": "nuxt"
+  }
+}
