@@ -1,5 +1,7 @@
 {
   "deploy": {
-    "framework": "nuxt"
+    "framework": "nuxt",
+    "install": "pnpm install",
+    "build": "pnpm build"
   }
 }
