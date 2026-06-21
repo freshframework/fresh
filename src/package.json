@@ -1,6 +1,6 @@
 {
   "name": "@frsh/fresh",
-  "version": "3.0.0-alpha.2026062102",
+  "version": "3.0.0-alpha.202606211445",
   "private": false,
   "description": "The framework so simple, you already know it.",
   "keywords": [
@@ -91,7 +91,6 @@
   },
   "dependencies": {
     "@prefresh/vite": "^3.0.1",
-    "devalue": "github:lucacasonato/devalue#1702212c72de15df77e019e35c9c53832916b126",
     "magic-string": "^0.30.0",
     "nitro": "^3.0.260522-beta",
     "preact-render-to-string": "^6.7.0",

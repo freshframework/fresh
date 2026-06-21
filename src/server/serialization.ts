@@ -43,7 +43,7 @@
 //     `<signalAlias>(<peeked-value>)`; the peeked inner value goes back
 //     through the replacer for nested signal / factory handling.
 
-import { uneval } from "devalue";
+import { uneval } from "../vendor/devalue/index.js";
 
 const SIGNAL_BRAND = Symbol.for("preact-signals");
 

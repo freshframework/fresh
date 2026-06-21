@@ -69,9 +69,6 @@ importers:
       '@prefresh/vite':
         specifier: ^3.0.1
         version: 3.0.1(preact@10.29.2)(vite@8.0.16(@types/node@25.9.1)(jiti@2.7.0))
-      devalue:
-        specifier: github:lucacasonato/devalue#1702212c72de15df77e019e35c9c53832916b126
-        version: https://codeload.github.com/lucacasonato/devalue/tar.gz/1702212c72de15df77e019e35c9c53832916b126
       magic-string:
         specifier: ^0.30.0
         version: 0.30.21
@@ -1141,10 +1138,6 @@ packages:
   detect-libc@2.1.2:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
-
-  devalue@https://codeload.github.com/lucacasonato/devalue/tar.gz/1702212c72de15df77e019e35c9c53832916b126:
-    resolution: {gitHosted: true, integrity: sha512-S+QMPseszbKRDN6n9ICj/dkuOk3BI8KahiAa1OCTrokiCOSQp7IrLjyiLSVNnsH1yTfqgfw4skgZVu1ij2ZGPQ==, tarball: https://codeload.github.com/lucacasonato/devalue/tar.gz/1702212c72de15df77e019e35c9c53832916b126}
-    version: 5.8.1
 
   devlop@1.1.0:
     resolution: {integrity: sha512-RWmIqhcFf1lRYBvNmr7qTNuyCt/7/ns2jbpp1+PalgE/rDQcBT0fioSMUpJ93irlUhC5hrg4cYqe6U+0ImW0rA==}
@@ -2642,8 +2635,6 @@ snapshots:
   dequal@2.0.3: {}
 
   detect-libc@2.1.2: {}
-
-  devalue@https://codeload.github.com/lucacasonato/devalue/tar.gz/1702212c72de15df77e019e35c9c53832916b126: {}
 
   devlop@1.1.0:
     dependencies:
