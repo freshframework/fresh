@@ -2,8 +2,23 @@ import { FancyLink } from "../../components/FancyLink.tsx";
 import LemonTop from "../../islands/LemonTop.tsx";
 import LemonBottom from "../../islands/LemonBottom.tsx";
 import { CopyButton } from "../CopyButton.tsx";
+import { PM_NAMES, type PmName } from "../../utils/markdown.ts";
 
-export function Hero() {
+const PM_COMMANDS: Record<PmName, string> = {
+  npm: "npm create @frsh/app@latest",
+  pnpm: "pnpm create @frsh/app",
+  yarn: "yarn create @frsh/app",
+  deno: "deno run -A npm:@frsh/create-app",
+};
+
+const PM_LABELS: Record<PmName, string> = {
+  npm: "npm",
+  pnpm: "pnpm",
+  yarn: "Yarn",
+  deno: "Deno",
+};
+
+export function Hero(props: { activePm: PmName }) {
   return (
     <>
       <div class="bg-green-300 mt-0 pt-32 md:pt-48 !mb-0 bg-gradient-to-br from-blue-100 via-green-200 to-yellow-100">
@@ -30,9 +45,9 @@ export function Hero() {
               Vite, with file-system routing and signals. Server-render by default, and ship
               JavaScript only for the islands that need it.
             </p>
-            <div class="mt-12 flex flex-wrap justify-center items-stretch md:justify-start gap-4">
+            <div class="mt-12 flex flex-col items-stretch md:items-start gap-4">
               <FancyLink href="/docs/getting-started">Get started</FancyLink>
-              <CopyArea code={`npm create @frsh/app@latest`} />
+              <PmInstall activePm={props.activePm} />
             </div>
           </div>
           <div class="md:col-span-2 flex justify-center items-end pb-8 md:pb-32">
@@ -45,12 +60,41 @@ export function Hero() {
   );
 }
 
-function CopyArea(props: { code: string }) {
+function PmInstall(props: { activePm: PmName }) {
+  const activePm = PM_NAMES.includes(props.activePm) ? props.activePm : "npm";
   return (
-    <div class="bg-slate-800 rounded-sm text-green-100 flex items-center min-w-0 overflow-x-auto">
-      <pre class="overflow-x-auto w-full flex-1 px-6 py-4">{props.code}</pre>
-
-      <CopyButton code={props.code} />
+    <div class="pm-tabs w-full max-w-md text-left" data-pm-tabs>
+      <div class="pm-tabs-bar" role="tablist">
+        {PM_NAMES.map((pm) => {
+          const active = pm === activePm;
+          return (
+            <button
+              type="button"
+              role="tab"
+              data-pm={pm}
+              aria-selected={active}
+              class={`pm-tab${active ? " pm-tab-active" : ""}`}
+            >
+              <img src={`/logos/${pm}.svg`} alt="" width={18} height={18} />
+              {PM_LABELS[pm]}
+            </button>
+          );
+        })}
+      </div>
+      {PM_NAMES.map((pm) => {
+        const active = pm === activePm;
+        const code = PM_COMMANDS[pm];
+        return (
+          <div class={`fenced-code pm-block${active ? " pm-active" : ""}`} data-pm={pm}>
+            <div class="pm-block-copy text-green-100">
+              <CopyButton code={code} />
+            </div>
+            <pre class="overflow-x-auto px-6 py-4 m-0 rounded-none bg-slate-800 text-green-100 text-left">
+              {code}
+            </pre>
+          </div>
+        );
+      })}
     </div>
   );
 }

@@ -12,6 +12,7 @@ import { FormsSection } from "../components/homepage/FormsSection.tsx";
 import { SocialProof } from "../components/homepage/SocialProof.tsx";
 import { MoreFeatures } from "../components/homepage/MoreFeatures.tsx";
 import { RuntimeSection } from "../components/homepage/RuntimeSection.tsx";
+import { parsePmCookie } from "../utils/markdown.ts";
 export const handlers = handler({
   GET(ctx) {
     const accept = ctx.req.headers.get("accept");
@@ -19,7 +20,12 @@ export const handlers = handler({
     if (userAgent?.includes("Deno/") && !accept?.includes("text/html")) {
       return ctx.redirect(`https://deno.land/x/fresh@${VERSIONS[0]}/init.ts`, 307);
     }
-    return { data: { topic: ctx.url.searchParams.get("topic") } };
+    return {
+      data: {
+        topic: ctx.url.searchParams.get("topic"),
+        activePm: parsePmCookie(ctx.req.headers.get("cookie")),
+      },
+    };
   },
   async POST(ctx) {
     const form = await ctx.req.formData();
@@ -29,7 +35,7 @@ export const handlers = handler({
 });
 
 export default page(function MainPage(props) {
-  const topic = props.data.topic;
+  const { topic, activePm } = props.data;
   return (
     <div class="flex flex-col min-h-screen bg-white">
       <Seo
@@ -42,7 +48,7 @@ export default page(function MainPage(props) {
         <Header title="" active="/" />
       </div>
       <div class="flex flex-col -mt-20 relative">
-        <Hero />
+        <Hero activePm={activePm} />
         <h2 class="text-3xl sm:text-4xl md:text-5xl text-gray-600 font-extrabold text-center mt-8 md:mt-12 lg:mt-16 px-4 italic">
           Take a tour of Fresh
         </h2>
