@@ -15,13 +15,10 @@ export function CTA() {
           </h2>
           <div class="flex flex-col justify-start items-center gap-4">
             <p class="text-xl text-balance max-w-prose">
-              Jump right in and build your website with Fresh. Learn everything
-              you need to know in seconds.
+              Jump right in and build your website with Fresh. Learn everything you need to know in
+              seconds.
             </p>
-            <FancyLink
-              href="/docs/getting-started"
-              class="mx-auto mt-4"
-            >
+            <FancyLink href="/docs/getting-started" class="mx-auto mt-4">
               Get started
             </FancyLink>
           </div>

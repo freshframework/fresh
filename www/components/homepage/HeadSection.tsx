@@ -23,12 +23,7 @@ export default function MyPage() {
 export function HeadSection() {
   return (
     <PageSection>
-      <SideBySide
-        mdColSplit="3/2"
-        lgColSplit="3/2"
-        reverseOnDesktop
-        class="!items-start"
-      >
+      <SideBySide mdColSplit="3/2" lgColSplit="3/2" reverseOnDesktop class="!items-start">
         <div class="flex flex-col gap-4 md:sticky md:top-4">
           <svg
             aria-hidden="true"
@@ -64,9 +59,8 @@ export function HeadSection() {
               // deno-lint-ignore react-no-danger
               dangerouslySetInnerHTML={{ __html: "&lt;Head&gt;" }}
             />{" "}
-            component from any page or island to set titles, meta tags,
-            stylesheets, and scripts — no hoisting hacks or side channels
-            needed.
+            component from any page or island to set titles, meta tags, stylesheets, and scripts —
+            no hoisting hacks or side channels needed.
           </p>
           <FancyLink href="/docs/advanced/head" class="mt-2">
             <span

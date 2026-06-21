@@ -1,11 +1,6 @@
-import type {
-  TableOfContentsCategory,
-  TableOfContentsCategoryEntry,
-} from "../data/docs.ts";
+import type { TableOfContentsCategory, TableOfContentsCategoryEntry } from "../data/docs.ts";
 
-export function SidebarCategory(props: {
-  category: TableOfContentsCategory;
-}) {
+export function SidebarCategory(props: { category: TableOfContentsCategory }) {
   const { title, href, entries } = props.category;
 
   return (
@@ -27,9 +22,7 @@ export function SidebarCategory(props: {
   );
 }
 
-export function SidebarEntry(props: {
-  entry: TableOfContentsCategoryEntry;
-}) {
+export function SidebarEntry(props: { entry: TableOfContentsCategoryEntry }) {
   const { title, href } = props.entry;
 
   return (

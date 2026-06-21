@@ -1,0 +1,184 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  --color-fresh: hsl(50 100% 56%);
+  --color-fresh-green: hsl(142 71% 29%);
+
+  --color-background-primary: hsl(215deg 100% 100%);
+  --color-background-secondary: hsl(210 29% 97%);
+  --color-background-tertiary: hsl(207 33% 95%);
+  --color-foreground-primary: hsl(0 0% 9%);
+  --color-foreground-secondary: hsl(0 0% 23%);
+  --color-foreground-tertiary: hsl(0 0% 32%);
+  --color-foreground-quaternary: hsl(0 0% 42%);
+}
+
+@variant dark {
+  --color-fresh: hsl(50 100% 56%);
+  --color-fresh-green: hsl(142 71% 29%);
+
+  --color-background-primary: hsl(220deg 11% 11%);
+  --color-background-secondary: hsl(216deg 19% 18%);
+  --color-background-tertiary: hsl(216deg 27.7% 22%);
+  --color-foreground-primary: hsl(215deg 17% 99%);
+  --color-foreground-secondary: hsl(215deg 17% 83%);
+  --color-foreground-tertiary: hsl(215deg 17% 20%);
+  --color-foreground-quaternary: hsl(215deg 17% 10%);
+
+  --color-info: hsl(194 76% 41%);
+}
+
+html[data-theme="dark"]:root {
+  color: var(--color-foreground-primary);
+  background-color: var(--color-background-primary);
+}
+
+/* Scrollbar colors that look good on light and dark theme */
+* {
+  scrollbar-color: hsl(0deg 0% 50% / 0.5) hsl(0 0% 50% / 0.1) !important;
+}
+
+@font-face {
+  font-family: Fixel;
+  font-style: normal;
+  src: url("/fonts/FixelVariable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: Fixel;
+  font-style: italic;
+  src: url("/fonts/FixelVariableItalic.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+body {
+  font-family:
+    Fixel,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif;
+  font-weight: 450;
+  font-size: 1.125rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  scroll-margin-top: 6rem;
+}
+
+hr {
+  border-color: hsl(from var(--color-foreground-secondary) h s l / 0.1);
+}
+
+::selection {
+  background-color: #b1d5ff;
+}
+
+html[data-theme="dark"] ::selection {
+  background-color: #064c9c;
+}
+
+.form-select-bg {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3e%3cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%239fa6b2' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-size: 1.5em 1.5em;
+  background-repeat: no-repeat;
+}
+
+.pm-tabs {
+  margin: 1rem 0;
+  border: 1px solid hsl(from var(--color-foreground-secondary) h s l / 0.18);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: var(--color-background-secondary);
+}
+
+.pm-tabs-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.375rem;
+  background: hsl(from var(--color-background-tertiary) h s l / 0.6);
+  border-bottom: 1px solid hsl(from var(--color-foreground-secondary) h s l / 0.12);
+}
+
+.pm-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-foreground-secondary);
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: transparent;
+  transition:
+    background-color 120ms,
+    color 120ms,
+    border-color 120ms;
+}
+
+.pm-tab:hover {
+  background: hsl(from var(--color-foreground-secondary) h s l / 0.08);
+  color: var(--color-foreground-primary);
+}
+
+.pm-tab img {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.pm-tab-active {
+  background: var(--color-background-primary);
+  color: var(--color-foreground-primary);
+  border-color: hsl(from var(--color-foreground-secondary) h s l / 0.2);
+}
+
+.pm-tabs .pm-block {
+  display: none;
+  margin: 0;
+  position: relative;
+}
+
+.pm-tabs .pm-block.pm-active {
+  display: block;
+}
+
+.pm-tabs .pm-block > pre {
+  margin: 0;
+  border-radius: 0;
+}
+
+.pm-block-copy {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1;
+}
+
+.group[data-copied] .group-not-copied,
+.group:not([data-copied]) .group-copied {
+  display: none;
+}

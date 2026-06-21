@@ -44,24 +44,20 @@ export function Simple() {
           The framework so simple, you already know it.
         </h2>
         <p class="text-xl text-balance max-w-prose mx-auto">
-          No config files, no build step, no node_modules. Just one file and you
-          have a server with routing, JSX, and islands.
+          No config files, no build step, no node_modules. Just one file and you have a server with
+          routing, JSX, and islands.
         </p>
       </div>
 
       <div class="grid md:grid-cols-2 gap-6 mt-8 items-start">
         <div class="flex flex-col gap-3">
-          <h3 class="font-bold text-lg text-gray-400 text-center">
-            The traditional way
-          </h3>
+          <h3 class="font-bold text-lg text-gray-400 text-center">The traditional way</h3>
           <CodeWindow name="8 config files + app code">
             <CodeBlock code={TRADITIONAL} lang="js" />
           </CodeWindow>
         </div>
         <div class="flex flex-col gap-3">
-          <h3 class="font-bold text-lg text-green-700 text-center">
-            The Fresh way
-          </h3>
+          <h3 class="font-bold text-lg text-green-700 text-center">The Fresh way</h3>
           <CodeWindow name="main.ts">
             <CodeBlock code={FRESH_EXAMPLE} lang="jsx" />
           </CodeWindow>

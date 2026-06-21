@@ -1,29 +1,21 @@
 {
-  "deno.enable": true,
-  "deno.lint": true,
-  "deno.codeLens.test": true,
-  "deno.documentPreloadLimit": 2000,
-  "editor.formatOnSave": true,
-  "editor.defaultFormatter": "denoland.vscode-deno",
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+  "deno.enable": false,
+  "[javascript]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[typescript]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[javascriptreact]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
-  "[javascript]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
   "[markdown]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   },
-  "css.customData": [
-    ".vscode/tailwind.json"
-  ],
   "[json]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+    "editor.defaultFormatter": "oxc.oxc-vscode"
   }
 }

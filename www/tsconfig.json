@@ -1,0 +1,10 @@
+{
+  "extends": "./.fresh/tsconfig.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "types": ["vite/client", "node"]
+  }
+}

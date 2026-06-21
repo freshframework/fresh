@@ -44,15 +44,13 @@ export function SecuritySection() {
           <SectionHeading>OpenTelemetry, built in</SectionHeading>
           <p>
             When OpenTelemetry is active, Fresh automatically injects a{" "}
-            <code class="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono">
-              traceparent
-            </code>{" "}
-            meta tag into every page — connecting your browser traces to server
-            spans end-to-end, zero config required.
+            <code class="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono">traceparent</code>{" "}
+            meta tag into every page — connecting your browser traces to server spans end-to-end,
+            zero config required.
           </p>
           <p>
-            Get full-stack observability across your entire request lifecycle
-            with zero configuration.
+            Get full-stack observability across your entire request lifecycle with zero
+            configuration.
           </p>
           <FancyLink href="/docs/advanced/opentelemetry" class="mt-2">
             Learn about OpenTelemetry

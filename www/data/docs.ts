@@ -1,4 +1,4 @@
-import toc from "../../docs/toc.ts";
+import toc from "../docs/toc.ts";
 
 export interface TableOfContentsEntry {
   slug: string;
@@ -19,16 +19,11 @@ export interface TableOfContentsCategoryEntry {
   href: string;
 }
 
-export const TABLE_OF_CONTENTS: Record<
-  string,
-  Record<string, TableOfContentsEntry>
-> = {};
+export const TABLE_OF_CONTENTS: Record<string, Record<string, TableOfContentsEntry>> = {};
 export const CATEGORIES: Record<string, TableOfContentsCategory[]> = {};
 
 export const VERSIONS = Object.keys(toc);
-export const CANARY_VERSION = toc.canary ? "canary" : "";
-export const LATEST_VERSION =
-  VERSIONS.find((version) => version !== "canary") ?? "";
+export const LATEST_VERSION = VERSIONS[0] ?? "";
 
 for (const version in toc) {
   const RAW_VERSION = toc[version];
@@ -39,13 +34,11 @@ for (const version in toc) {
   for (const parent in RAW_VERSION.content) {
     const rawEntry = RAW_VERSION.content[parent];
 
-    // Allow versioned documentation to stack on each other. This should
-    // only be used for canary versions. This avoids having us to copy
-    // all documentation content and backport changes.
+    // A `link` lets a version reuse another version's files (e.g. the
+    // `latest` entries point their files at `docs/latest/...`), so we don't
+    // have to copy and backport documentation content across versions.
     const fileVersion = rawEntry.link ?? version;
-    const versionFilePath = fileVersion === LATEST_VERSION
-      ? "/latest"
-      : `/${fileVersion}`;
+    const versionFilePath = fileVersion === LATEST_VERSION ? "/latest" : `/${fileVersion}`;
 
     const href = `/docs${versionSlug}/${parent}`;
     const file = `docs${versionFilePath}/${parent}/index.md`;
@@ -68,12 +61,9 @@ for (const version in toc) {
         const slug = `${parent}/${id}`;
 
         // Allow stacked documentation
-        const pageVersion = linkedVersion
-          ? linkedVersion.slice("link:".length)
-          : version;
-        const versionFilePath = !pageVersion || pageVersion === LATEST_VERSION
-          ? "/latest"
-          : `/${pageVersion}`;
+        const pageVersion = linkedVersion ? linkedVersion.slice("link:".length) : version;
+        const versionFilePath =
+          !pageVersion || pageVersion === LATEST_VERSION ? "/latest" : `/${pageVersion}`;
 
         const href = `/docs${versionSlug}/${slug}`;
 

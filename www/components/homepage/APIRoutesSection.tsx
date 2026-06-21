@@ -27,12 +27,7 @@ export const handlers = define.handlers({
 export function APIRoutesSection() {
   return (
     <PageSection>
-      <SideBySide
-        mdColSplit="3/2"
-        lgColSplit="3/2"
-        reverseOnDesktop
-        class="!items-start"
-      >
+      <SideBySide mdColSplit="3/2" lgColSplit="3/2" reverseOnDesktop class="!items-start">
         <div class="flex flex-col gap-4 md:sticky md:top-4">
           <svg
             aria-hidden="true"
@@ -56,18 +51,11 @@ export function APIRoutesSection() {
           </svg>
           <SectionHeading>Handlers for every method</SectionHeading>
           <p>
-            Define{" "}
-            <code class="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono">
-              GET
-            </code>,{" "}
-            <code class="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono">
-              POST
-            </code>,{" "}
-            <code class="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono">
-              DELETE
-            </code>{" "}
-            — any HTTP method as a named handler on your route. Fresh maps
-            requests to the right function automatically, with full type safety.
+            Define <code class="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono">GET</code>,{" "}
+            <code class="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono">POST</code>,{" "}
+            <code class="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono">DELETE</code> — any
+            HTTP method as a named handler on your route. Fresh maps requests to the right function
+            automatically, with full type safety.
           </p>
           <FancyLink href="/docs/concepts/routing" class="mt-2">
             Learn about handlers

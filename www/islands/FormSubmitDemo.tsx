@@ -4,10 +4,7 @@ export function FormSubmitDemo() {
       <fieldset class="mb-4">
         <legend class="mb-2 font-bold">What's your favorite treat?</legend>
 
-        <label
-          for="lemon-meringue-pie"
-          class="flex gap-2 items-center cursor-pointer"
-        >
+        <label for="lemon-meringue-pie" class="flex gap-2 items-center cursor-pointer">
           <input
             type="radio"
             value="lemon-meringue-pie"
@@ -17,10 +14,7 @@ export function FormSubmitDemo() {
           />
           Lemon meringue pie
         </label>
-        <label
-          for="lemon-shortbread-cookies"
-          class="flex gap-2 items-center cursor-pointer"
-        >
+        <label for="lemon-shortbread-cookies" class="flex gap-2 items-center cursor-pointer">
           <input
             type="radio"
             value="lemon-shortbread-cookies"
@@ -29,25 +23,12 @@ export function FormSubmitDemo() {
           />
           Lemon shortbread cookies
         </label>
-        <label
-          for="lemon-sherbet"
-          class="flex gap-2 items-center cursor-pointer"
-        >
-          <input
-            type="radio"
-            value="lemon-sherbet"
-            id="lemon-sherbet"
-            name="treat"
-          />
+        <label for="lemon-sherbet" class="flex gap-2 items-center cursor-pointer">
+          <input type="radio" value="lemon-sherbet" id="lemon-sherbet" name="treat" />
           Lemon sherbet
         </label>
         <label for="lemon-bars" class="flex gap-2 items-center cursor-pointer">
-          <input
-            type="radio"
-            value="lemon-bars"
-            id="lemon-bars"
-            name="treat"
-          />
+          <input type="radio" value="lemon-bars" id="lemon-bars" name="treat" />
           Lemon bars
         </label>
       </fieldset>

@@ -1,0 +1,16 @@
+{
+  "name": "fresh-test-fixture",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@preact/signals": "^2",
+    "fresh": "workspace:@frsh/fresh@*",
+    "preact": "^10",
+    "vite": "^8.0.14"
+  }
+}

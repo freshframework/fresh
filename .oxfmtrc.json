@@ -1,0 +1,6 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 100,
+  "proseWrap": "never",
+  "ignorePatterns": [".fresh", ".output", "www/public"]
+}

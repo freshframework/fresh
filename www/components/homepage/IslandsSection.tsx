@@ -29,12 +29,7 @@ export default function Counter(props) {
 export function IslandsSection() {
   return (
     <PageSection>
-      <SideBySide
-        mdColSplit="3/2"
-        lgColSplit="3/2"
-        reverseOnDesktop
-        class="!items-start"
-      >
+      <SideBySide mdColSplit="3/2" lgColSplit="3/2" reverseOnDesktop class="!items-start">
         <div class="flex flex-col gap-4 md:sticky md:top-4">
           <svg
             aria-hidden="true"
@@ -58,17 +53,19 @@ export function IslandsSection() {
           </svg>
           <SectionHeading>Interactive where it matters</SectionHeading>
           <p>
-            Most of your page is static HTML. Islands are the small, interactive
-            parts that get hydrated with JavaScript. You choose exactly what
-            runs on the client.
+            Most of your page is static HTML. Islands are the small, interactive parts that get
+            hydrated with JavaScript. You choose exactly what runs on the client.
           </p>
           <p>
             Built on{" "}
-            <a href="https://preactjs.com/" class="underline">Preact</a> and
-            {" "}
+            <a href="https://preactjs.com/" class="underline">
+              Preact
+            </a>{" "}
+            and{" "}
             <a href="https://preactjs.com/guide/v10/signals/" class="underline">
               Signals
-            </a>, so islands are tiny and reactive out of the box.
+            </a>
+            , so islands are tiny and reactive out of the box.
           </p>
           <FancyLink href="/docs/concepts/islands" class="mt-2">
             Learn more about islands
@@ -76,10 +73,7 @@ export function IslandsSection() {
         </div>
         <div class="flex flex-col gap-4 relative">
           <CodeWindow name="islands/Counter.tsx">
-            <CodeBlock
-              code={islandCode}
-              lang="jsx"
-            />
+            <CodeBlock code={islandCode} lang="jsx" />
           </CodeWindow>
           <ExampleArrow class="[transform:rotateY(-180deg)]" />
           <DemoBox flip>

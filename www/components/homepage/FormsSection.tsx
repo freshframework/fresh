@@ -8,19 +8,14 @@ import { ExampleArrow } from "../homepage/ExampleArrow.tsx";
 import { FancyLink } from "../FancyLink.tsx";
 import { FormSubmitDemo } from "../../islands/FormSubmitDemo.tsx";
 
-const routingCode = `import { createDefine } from "fresh";
-const define = createDefine();
+const routingCode = `import { handler } from "./$index.ts";
 
-export const handler = define.handlers({
+export const handlers = handler({
   async POST(ctx) {
     const form = await ctx.req.formData();
     const treat = form.get("treat");
     await db.votes.insert({ treat });
-
-    return new Response(null, {
-      status: 303,
-      headers: { location: "/thanks" },
-    });
+    return ctx.redirect("/thanks", 303);
   },
 });`;
 
@@ -51,20 +46,16 @@ export function FormsSection() {
           </div>
           <SectionHeading>Forms that just work</SectionHeading>
           <p>
-            Handle submissions server-side with standard Request and FormData.
-            No client-side state management, no serialization headaches.
-            Progressive enhancement comes free.
+            Handle submissions server-side with standard Request and FormData. No client-side state
+            management, no serialization headaches. Progressive enhancement comes free.
           </p>
-          <FancyLink href="/docs/advanced/forms" class="mt-2">
-            Forms in Fresh
+          <FancyLink href="/docs/concepts/routes" class="mt-2">
+            Routes and forms in Fresh
           </FancyLink>
         </div>
         <div class="flex flex-col gap-4">
           <CodeWindow name="routes/index.tsx">
-            <CodeBlock
-              code={routingCode}
-              lang="jsx"
-            />
+            <CodeBlock code={routingCode} lang="jsx" />
           </CodeWindow>
           <ExampleArrow />
           <DemoBox>

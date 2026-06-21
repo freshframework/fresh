@@ -1,9 +1,0 @@
-{
-  "workspace": [],
-  "lock": false,
-  "links": ["../../.."],
-  "compilerOptions": {
-    "jsx": "precompile",
-    "jsxImportSource": "preact"
-  }
-}

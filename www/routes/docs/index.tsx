@@ -1,6 +1,6 @@
-import { define } from "../../utils/state.ts";
+import { handler } from "./$index.ts";
 
-export const handler = define.handlers({
+export const handlers = handler({
   GET(ctx) {
     return ctx.url.pathname === "/concepts/architechture"
       ? ctx.redirect("/docs/concepts/architecture")

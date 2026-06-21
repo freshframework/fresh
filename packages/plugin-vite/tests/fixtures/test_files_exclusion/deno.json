@@ -1,8 +1,0 @@
-{
-  "imports": {
-    "fresh": "jsr:@fresh/core@^2.0.0",
-    "@fresh/plugin-vite": "jsr:@fresh/plugin-vite@^1.0.0",
-    "preact": "npm:preact@^10.27.2",
-    "preact/": "npm:/preact@^10.27.2/"
-  }
-}

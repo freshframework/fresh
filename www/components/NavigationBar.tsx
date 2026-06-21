@@ -1,9 +1,7 @@
 import ThemeToggle from "../islands/ThemeToggle.tsx";
 import * as Icons from "./Icons.tsx";
 
-export default function NavigationBar(
-  props: { active: string; class?: string },
-) {
+export default function NavigationBar(props: { active: string; class?: string }) {
   const items = [
     {
       name: "Docs",
@@ -24,11 +22,7 @@ export default function NavigationBar(
             <a
               href={item.href}
               class={`p-1 sm:p-2 ${
-                isHome
-                  ? "text-green-900"
-                  : isDocs
-                  ? "text-foreground-secondary"
-                  : "text-gray-600"
+                isHome ? "text-green-900" : isDocs ? "text-foreground-secondary" : "text-gray-600"
               } hover:underline aria-[current]:font-bold`}
             >
               {item.name}

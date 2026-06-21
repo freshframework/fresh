@@ -1,0 +1,7 @@
+node_modules
+dist
+.fresh
+.output
+.nitro
+*.log
+.DS_Store

@@ -1,8 +1,0 @@
-{
-  "imports": {
-    "fresh": "jsr:@fresh/core",
-    "@preact/signals": "npm:@preact/signals@^1.3.0",
-    "preact": "npm:preact@^10.26.1",
-    "preact/": "npm:/preact@^10.26.1/"
-  }
-}

@@ -47,8 +47,7 @@ function LemonBottom() {
     springs.value = [...waveTank.springs];
 
     const offset = 500;
-    const saw = (timestamp + offset) / 2000 -
-      Math.floor((timestamp + offset) / 2000);
+    const saw = (timestamp + offset) / 2000 - Math.floor((timestamp + offset) / 2000);
     if (saw < 0.01) {
       drop();
     }
@@ -64,11 +63,9 @@ function LemonBottom() {
   function drop() {
     let dropPosition = 50;
     if (widthRef.current >= 768) {
-      dropPosition = Math.round(100 / widthRef.current * lemonTopLeft);
+      dropPosition = Math.round((100 / widthRef.current) * lemonTopLeft);
     } else {
-      dropPosition = Math.round(
-        ((widthRef.current / 2 - 30) / widthRef.current) * 100,
-      );
+      dropPosition = Math.round(((widthRef.current / 2 - 30) / widthRef.current) * 100);
     }
     waveTank.springs[dropPosition].p = -40;
   }
@@ -78,9 +75,7 @@ function LemonBottom() {
   }, [width.value]);
 
   useEffect(() => {
-    const mediaQuery = globalThis.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    );
+    const mediaQuery = globalThis.matchMedia("(prefers-reduced-motion: reduce)");
     if (mediaQuery.matches) {
       return;
     }
@@ -106,12 +101,7 @@ function LemonBottom() {
       preserveAspectRatio="none"
       style="margin-top: -60px"
     >
-      <polygon
-        points={springsPath}
-        fill="white"
-        transform="translate(0, 50)"
-      >
-      </polygon>
+      <polygon points={springsPath} fill="white" transform="translate(0, 50)"></polygon>
     </svg>
   );
 }

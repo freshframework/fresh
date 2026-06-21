@@ -1,0 +1,24 @@
+.red {
+  color: blue;
+}
+
+.partials-nav {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+.partials-nav a.active {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.panel {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+}
+
+.clicks {
+  margin-bottom: 0.5rem;
+}

@@ -42,9 +42,11 @@ export function RenderingSection() {
           <SectionHeading>Server-rendered by default</SectionHeading>
           <p>
             Every route renders on the server as a{" "}
-            <a href="https://preactjs.com/" class="underline">Preact</a>{" "}
-            component. Zero JavaScript hits the browser unless you opt in with
-            an island. Pages are fast because they start as plain HTML.
+            <a href="https://preactjs.com/" class="underline">
+              Preact
+            </a>{" "}
+            component. Zero JavaScript hits the browser unless you opt in with an island. Pages are
+            fast because they start as plain HTML.
           </p>
         </div>
         <div class="flex flex-col gap-4">
@@ -53,10 +55,7 @@ export function RenderingSection() {
           </CodeWindow>
           <ExampleArrow class="ml-[55%]" />{" "}
           <DemoBox>
-            <p>
-              Freshly server-rendered{" "}
-              {Temporal.Now.plainDateTimeISO().toLocaleString("en-US")}
-            </p>
+            <p>Freshly server-rendered {Temporal.Now.plainDateTimeISO().toLocaleString("en-US")}</p>
           </DemoBox>
         </div>
       </SideBySide>

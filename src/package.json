@@ -1,0 +1,118 @@
+{
+  "name": "@frsh/fresh",
+  "version": "3.0.0-alpha.2026062102",
+  "private": false,
+  "description": "The framework so simple, you already know it.",
+  "keywords": [
+    "file-system-routing",
+    "fresh",
+    "islands",
+    "preact",
+    "ssr",
+    "vite",
+    "web-framework"
+  ],
+  "homepage": "https://usefresh.dev",
+  "bugs": {
+    "url": "https://github.com/freshframework/fresh/issues"
+  },
+  "license": "MIT",
+  "author": "the Fresh authors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/freshframework/fresh.git",
+    "directory": "src"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./entrypoints/index.ts",
+    "./vite": "./entrypoints/vite.ts",
+    "./types": "./entrypoints/types.ts",
+    "./errors": "./entrypoints/errors.ts",
+    "./signals": "./entrypoints/signals.ts",
+    "./serializable": "./entrypoints/serializable.ts",
+    "./events": "./entrypoints/events.ts",
+    "./runtime": "./entrypoints/runtime.ts",
+    "./internal/server": "./entrypoints/internal/server.ts",
+    "./internal/client": "./entrypoints/internal/client.ts"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/entrypoints/index.d.ts",
+        "default": "./dist/entrypoints/index.js"
+      },
+      "./vite": {
+        "types": "./dist/entrypoints/vite.d.ts",
+        "default": "./dist/entrypoints/vite.js"
+      },
+      "./types": {
+        "types": "./dist/entrypoints/types.d.ts",
+        "default": "./dist/entrypoints/types.js"
+      },
+      "./errors": {
+        "types": "./dist/entrypoints/errors.d.ts",
+        "default": "./dist/entrypoints/errors.js"
+      },
+      "./signals": {
+        "types": "./dist/entrypoints/signals.d.ts",
+        "default": "./dist/entrypoints/signals.js"
+      },
+      "./serializable": {
+        "types": "./dist/entrypoints/serializable.d.ts",
+        "default": "./dist/entrypoints/serializable.js"
+      },
+      "./events": {
+        "types": "./dist/entrypoints/events.d.ts",
+        "default": "./dist/entrypoints/events.js"
+      },
+      "./runtime": {
+        "types": "./dist/entrypoints/runtime.d.ts",
+        "default": "./dist/entrypoints/runtime.js"
+      },
+      "./internal/server": {
+        "types": "./dist/entrypoints/internal/server.d.ts",
+        "default": "./dist/entrypoints/internal/server.js"
+      },
+      "./internal/client": {
+        "types": "./dist/entrypoints/internal/client.d.ts",
+        "default": "./dist/entrypoints/internal/client.js"
+      }
+    }
+  },
+  "scripts": {
+    "build": "GOMAXPROCS=1 tsgo -p tsconfig.json && find dist -name '*.test.*' -delete",
+    "prepack": "rm -rf dist && pnpm run build"
+  },
+  "dependencies": {
+    "@prefresh/vite": "^3.0.1",
+    "devalue": "github:lucacasonato/devalue#1702212c72de15df77e019e35c9c53832916b126",
+    "magic-string": "^0.30.0",
+    "nitro": "^3.0.260522-beta",
+    "preact-render-to-string": "^6.7.0",
+    "rolldown": "^1.0.3",
+    "rou3": "^0.8.1",
+    "srvx": "^0.11.16"
+  },
+  "devDependencies": {
+    "@oxc-project/types": "^0.135.0",
+    "@preact/signals": "^2.9.1",
+    "@types/node": "^25.9.1",
+    "preact": "^10.29.2",
+    "vite": "^8.0.14",
+    "vitest": "^4.1.8"
+  },
+  "peerDependencies": {
+    "@preact/signals": "^2",
+    "preact": "^10",
+    "vite": "^8"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}

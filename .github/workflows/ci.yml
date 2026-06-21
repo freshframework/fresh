@@ -1,84 +1,80 @@
-name: ci
+name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
 
+# The three jobs have no `needs:` between them, so they run in parallel.
 jobs:
-  pr-title:
-    if: github.event_name == 'pull_request'
+  check:
+    name: Check (format, lint, typecheck)
     runs-on: ubuntu-latest
     steps:
-      - name: Validate PR title
-        env:
-          TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          if ! echo "$TITLE" | grep -qP '^(chore|ci|docs|feat|fix|perf|refactor|test):'; then
-            echo "::error::PR title must start with chore:, ci:, docs:, feat:, fix:, perf:, refactor: or test:"
-            exit 1
-          fi
-
-  test:
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
-
-    strategy:
-      fail-fast: false
-      matrix:
-        deno: ["v2.x", "canary"]
-        os: [macOS-latest, windows-latest, ubuntu-latest]
-        include:
-          - os: ubuntu-latest
-            cache_path: ~/.cache/deno/
-          - os: macos-latest
-            cache_path: ~/Library/Caches/deno/
-          - os: windows-latest
-            cache_path: ~\AppData\Local\deno\
-
-    steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v6
-
-      - name: Setup Deno
-        uses: denoland/setup-deno@v2
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
         with:
-          cache: true
-          deno-version: ${{ matrix.deno }}
-
+          node-version: 26
+          cache: pnpm
       - name: Install dependencies
-        run: deno install
-
-      - name: Verify formatting
-        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
-        run: deno fmt --check
-
+        run: pnpm install --frozen-lockfile
+      - name: Check formatting
+        run: pnpm run fmt:check
       - name: Run linter
-        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
-        run: deno lint
+        run: pnpm run lint
+      - name: Build
+        # Builds the example + fixture apps, which generates their `.fresh/`
+        # tsconfig + route typings that the typechecker depends on.
+        run: pnpm run build
+      - name: Run typechecker
+        run: pnpm run typecheck
 
-      - name: Spell-check
-        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
-        uses: crate-ci/typos@master
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 26
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run unit tests
+        run: pnpm test
 
-      - name: Type check project
-        run: deno task check:types
-
-      - name: Run tests
-        run: deno task test
-
-      - name: Check docs
-        run: deno task check:docs
-
-      - name: Build usefresh.dev
-        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
-        run: deno task build-www
-
-      - name: Check links
-        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
-        run: deno task check:links
-
-      - name: Dry-run publish
-        if: startsWith(matrix.os, 'ubuntu') && matrix.deno == 'v2.x'
-        run: deno publish --dry-run
+  # https://playwright.dev/docs/ci-intro#setting-up-github-actions
+  e2e:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 26
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Start Playwright runner container
+        uses: dtinth/setup-playwright-test-docker@main
+      - name: Run end-to-end tests
+        run: pnpm run test:e2e
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v7
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14

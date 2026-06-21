@@ -11,30 +11,15 @@ export default function Counter(props: CounterProps) {
 
   return (
     <div>
-      <h3 class="text-2xl font-bold">
-        Interactive island
-      </h3>
-      <p>
-        The server supplied the initial value of 3.
-      </p>
-      <div
-        class="flex justify-between items-center mt-4 mx-auto"
-        style="max-width: 20rem"
-      >
-        <RoundedButton
-          title="Subtract 1"
-          onClick={() => count.value -= 1}
-        >
+      <h3 class="text-2xl font-bold">Interactive island</h3>
+      <p>The server supplied the initial value of 3.</p>
+      <div class="flex justify-between items-center mt-4 mx-auto" style="max-width: 20rem">
+        <RoundedButton title="Subtract 1" onClick={() => (count.value -= 1)}>
           <Icons.IconMinus />
         </RoundedButton>
-        <div class="text-6xl tabular-nums font-bold">
-          {count}
-        </div>
+        <div class="text-6xl tabular-nums font-bold">{count}</div>
 
-        <RoundedButton
-          title="Add 1"
-          onClick={() => count.value += 1}
-        >
+        <RoundedButton title="Add 1" onClick={() => (count.value += 1)}>
           <Icons.IconPlus />
         </RoundedButton>
       </div>

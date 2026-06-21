@@ -1,19 +1,15 @@
-import { page } from "fresh";
+import { handler, page } from "./$thanks.ts";
 import { PageSection } from "../components/PageSection.tsx";
 import { DemoBox } from "../components/homepage/DemoBox.tsx";
-import { define } from "../utils/state.ts";
 
-export const handler = define.handlers({
+export const handlers = handler({
   GET(ctx) {
-    const search = new URLSearchParams(ctx.url.search);
-    const vote = search.get("vote");
-    return page({ vote });
+    const vote = ctx.url.searchParams.get("vote");
+    return { data: { vote } };
   },
 });
 
-export default define.page<typeof handler>(function ThanksForSubscribing(
-  props,
-) {
+export default page(function ThanksForSubscribing(props) {
   const vote = props.data.vote ? props.data.vote.replaceAll(/-/g, " ") : null;
   return (
     <>
@@ -21,17 +17,18 @@ export default define.page<typeof handler>(function ThanksForSubscribing(
         <DemoBox>
           <div class="space-y-2">
             <h1 class="text-2xl md:text-3xl lg:text-4xl">
-              {vote
-                ? `Thanks for voting for ${vote}!`
-                : `Form submitted successfully`}
+              {vote ? `Thanks for voting for ${vote}!` : `Form submitted successfully`}
             </h1>
             <p>
-              That was all handled server-side, with{" "}
-              <strong>no client-side JavaScript</strong>! Nifty, huh?
+              That was all handled server-side, with <strong>no client-side JavaScript</strong>!
+              Nifty, huh?
             </p>
             <p class="!mt-8">
               …Anyway, you probably want to{" "}
-              <a href="/#forms-section" class="underline">go back now</a>.
+              <a href="/#forms-section" class="underline">
+                go back now
+              </a>
+              .
             </p>
             <a
               href="/#forms-section"

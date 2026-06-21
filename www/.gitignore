@@ -1,0 +1,4 @@
+.fresh/
+.output/
+node_modules/
+dist/

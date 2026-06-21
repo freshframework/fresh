@@ -107,7 +107,7 @@ export class GA4Report {
       return;
     }
 
-    this.measurementId ??= Deno.env.get("GA4_MEASUREMENT_ID");
+    this.measurementId ??= process.env.GA4_MEASUREMENT_ID;
     if (!this.measurementId) {
       return this.warn(
         "GA4_MEASUREMENT_ID environment variable not set. " +
@@ -180,9 +180,9 @@ export class GA4Report {
 
     const headers = this.client.headers;
 
-    const body = eventParamsList.map((eventParams) =>
-      new URLSearchParams(eventParams).toString()
-    ).join("\n");
+    const body = eventParamsList
+      .map((eventParams) => new URLSearchParams(eventParams).toString())
+      .join("\n");
 
     const request = new Request(url, { method: "POST", headers, body });
 
@@ -221,10 +221,7 @@ function getClientId(request: Request): string | undefined {
   return cookies._ga ? cookies._ga : undefined;
 }
 
-function getClientIp(
-  request: Request,
-  conn: { remoteAddr?: { hostname: string } },
-): string {
+function getClientIp(request: Request, conn: { remoteAddr?: { hostname: string } }): string {
   const xForwardedFor = request.headers.get("x-forwarded-for");
   if (xForwardedFor) {
     return xForwardedFor.split(/\s*,\s*/)[0];
@@ -238,7 +235,10 @@ function getClientLanguage(request: Request): string | undefined {
   if (acceptLanguage == null) {
     return;
   }
-  const code = acceptLanguage.split(/[^a-z-]+/i).filter(Boolean).shift();
+  const code = acceptLanguage
+    .split(/[^a-z-]+/i)
+    .filter(Boolean)
+    .shift();
   if (code == null) {
     return undefined;
   }
@@ -246,32 +246,28 @@ function getClientLanguage(request: Request): string | undefined {
 }
 
 function getClientHeaders(request: Request): Headers {
-  const headerList = [
-    ...(request.headers as unknown as Iterable<[string, string]>),
-  ].filter(([name, _value]) => {
-    name = name.toLowerCase();
-    return name === "user-agent" || name === "sec-ch-ua" ||
-      name.startsWith("sec-ch-ua-");
-  });
+  const headerList = [...(request.headers as unknown as Iterable<[string, string]>)].filter(
+    ([name, _value]) => {
+      name = name.toLowerCase();
+      return name === "user-agent" || name === "sec-ch-ua" || name.startsWith("sec-ch-ua-");
+    },
+  );
   return new Headers(headerList);
 }
 
 function getPageTitle(request: Request, response: Response): string {
-  if (
-    (request.method === "GET" || request.method === "HEAD") &&
-    isSuccess(response)
-  ) {
-    return new URL(request.url)
-      .pathname
-      .replace(/\.[^\/]*$/, "") // Remove file extension.
-      .split(/\/+/) // Split into components.
-      .map(decodeURIComponent) // Unescape.
-      .map((s) => s.replace(/[\s_]+/g, " ")) // Underbars to spaces.
-      .map((s) => s.replace(/@v?[\d\.\s]+$/, "")) // Remove version number.
-      .map((s) => s.trim()) // Trim leading/trailing whitespace.
-      .filter(Boolean) // Remove empty path components.
-      .join(" / ") ||
-      "/";
+  if ((request.method === "GET" || request.method === "HEAD") && isSuccess(response)) {
+    return (
+      new URL(request.url).pathname
+        .replace(/\.[^/]*$/, "") // Remove file extension.
+        .split(/\/+/) // Split into components.
+        .map(decodeURIComponent) // Unescape.
+        .map((s) => s.replace(/[\s_]+/g, " ")) // Underbars to spaces.
+        .map((s) => s.replace(/@v?[\d.\s]+$/, "")) // Remove version number.
+        .map((s) => s.trim()) // Trim leading/trailing whitespace.
+        .filter(Boolean) // Remove empty path components.
+        .join(" / ") || "/"
+    );
   } else {
     return formatStatus(response).toLowerCase();
   }
@@ -279,9 +275,7 @@ function getPageTitle(request: Request, response: Response): string {
 
 function getPageReferrer(request: Request): string | undefined {
   const referrer = request.headers.get("referer");
-  if (
-    referrer !== null && new URL(referrer).host !== new URL(request.url).host
-  ) {
+  if (referrer !== null && new URL(referrer).host !== new URL(request.url).host) {
     return referrer;
   }
 }
@@ -303,8 +297,7 @@ function getCampaignObject(request: Request): Campaign {
 
 export function formatStatus(response: Response): string {
   let { status, statusText } = response;
-  statusText ||= STATUS_TEXT[status as keyof typeof STATUS_TEXT] ??
-    "Invalid Status";
+  statusText ||= STATUS_TEXT[status as keyof typeof STATUS_TEXT] ?? "Invalid Status";
   return `${status} ${statusText}`;
 }
 
@@ -375,9 +368,9 @@ const encoder = new TextEncoder();
 
 async function toDigest(msg: string): Promise<string> {
   const buffer = await crypto.subtle.digest("SHA-1", encoder.encode(msg));
-  return Array.from(new Uint8Array(buffer)).map((b) =>
-    b.toString(16).padStart(2, "0")
-  ).join("");
+  return Array.from(new Uint8Array(buffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 }
 
 export function isDocument(request: Request, response: Response): boolean {

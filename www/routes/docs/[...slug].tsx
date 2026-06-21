@@ -1,5 +1,7 @@
-import { HttpError, page } from "fresh";
-import { asset, Partial } from "fresh/runtime";
+import { handler, page as definePage } from "./$[...slug].ts";
+import { Partial } from "fresh/runtime";
+import { HttpError } from "fresh/errors";
+import { Seo } from "../../components/Seo.tsx";
 import { SidebarCategory } from "../../components/DocsSidebar.tsx";
 import Footer from "../../components/Footer.tsx";
 import Header from "../../components/Header.tsx";
@@ -11,15 +13,24 @@ import {
   TABLE_OF_CONTENTS,
   type TableOfContentsEntry,
 } from "../../data/docs.ts";
-import { frontMatter, renderMarkdown } from "../../utils/markdown.ts";
-import toc from "../../../docs/toc.ts";
+import { frontMatter, parsePmCookie, type PmName, renderMarkdown } from "../../utils/markdown.ts";
+import toc from "../../docs/toc.ts";
 import { TableOfContents } from "../../islands/TableOfContents.tsx";
 import SearchButton from "../../islands/SearchButton.tsx";
 import VersionSelect from "../../islands/VersionSelect.tsx";
-import { define } from "../../utils/state.ts";
+
+/**
+ * Every docs markdown file, bundled at build time via Vite's glob import.
+ * Keyed by `/docs/<version>/<path>.md`; each value lazily yields the raw text.
+ */
+const DOCS = import.meta.glob<string>("/docs/**/*.md", {
+  query: "?raw",
+  import: "default",
+});
 
 interface Data {
   page: Page;
+  activePm: PmName;
 }
 
 interface NavEntry {
@@ -45,17 +56,13 @@ interface Page extends TableOfContentsEntry {
 
 const pattern = new URLPattern({ pathname: "/:version/:page*" });
 
-export const handler = define.handlers<Data>({
-  async GET(ctx) {
+export const handlers = handler({
+  async GET(ctx): Promise<{ data: Data } | Response> {
     const slug = ctx.params.slug;
 
     // Check if the slug is the index page of a version tag
     if (TABLE_OF_CONTENTS[slug]) {
-      const href = getFirstPageUrl(slug);
-      return new Response("", {
-        status: 307,
-        headers: { location: href },
-      });
+      return ctx.redirect(getFirstPageUrl(slug), 307);
     }
 
     const match = pattern.exec("https://localhost/" + slug);
@@ -83,17 +90,17 @@ export const handler = define.handlers<Data>({
 
     // Build up the link map for the version selector.
     const versionLinks: VersionLink[] = [];
-    for (const version in TABLE_OF_CONTENTS) {
-      const label = toc[version].label;
-      const maybeEntry = TABLE_OF_CONTENTS[version][path];
+    for (const v in TABLE_OF_CONTENTS) {
+      const label = toc[v].label;
+      const maybeEntry = TABLE_OF_CONTENTS[v][path];
 
       // Check if the same page is available for this version and
       // link to that. Pick the index page for that version if an
       // exact match doesn't exist.
       versionLinks.push({
         label,
-        value: version,
-        href: maybeEntry ? maybeEntry.href : getFirstPageUrl(version),
+        value: v,
+        href: maybeEntry ? maybeEntry.href : getFirstPageUrl(v),
       });
     }
 
@@ -119,42 +126,46 @@ export const handler = define.handlers<Data>({
       nextNav = { title: nextEntry.title, category, href: nextEntry.href };
     }
 
-    // Parse markdown front matter
-    // deno-lint-ignore no-explicit-any
-    const url = (import.meta as any).env.PROD
-      ? new URL(`../${entry.file}`, import.meta.url)
-      : new URL(`../../../${entry.file}`, import.meta.url);
-    const fileContent = await Deno.readTextFile(url);
+    // Load the markdown file (bundled via the `DOCS` glob) and parse front matter.
+    const loadMarkdown = DOCS["/" + entry.file];
+    if (!loadMarkdown) {
+      throw new HttpError(404);
+    }
+    const fileContent = await loadMarkdown();
     const { body, attrs } = frontMatter<Record<string, unknown>>(fileContent);
 
-    ctx.state.title = `${entry.title ?? "Not Found"} | Fresh docs`;
-    ctx.state.description = attrs?.description
-      ? String(attrs.description)
-      : "Fresh Document";
-    ctx.state.ogImage = new URL(asset("/og-image.webp"), ctx.url).href;
-
-    return page({
-      page: {
-        ...entry,
-        markdown: body,
-        data: attrs ?? {},
-        versionLinks,
-        version,
-        prevNav,
-        nextNav,
+    return {
+      data: {
+        page: {
+          ...entry,
+          markdown: body,
+          data: attrs ?? {},
+          versionLinks,
+          version,
+          prevNav,
+          nextNav,
+        },
+        activePm: parsePmCookie(ctx.req.headers.get("cookie")),
       },
-    });
+    };
   },
 });
 
-export default define.page<typeof handler>(function DocsPage(props) {
-  const { page } = props.data;
-  const { html, headings } = renderMarkdown(page.markdown);
-
-  const isCanary = page.href.includes("/canary");
+export default definePage(function DocsPage(props) {
+  // `props.data` infers to `never` because the handler can also return a
+  // redirect `Response` (Fresh's `InferData` only resolves a pure data result);
+  // at render time the data is always `Data`, so assert that here.
+  const { page, activePm } = props.data as Data;
+  const { html, headings } = renderMarkdown(page.markdown, { activePm });
 
   return (
     <div class="flex flex-col min-h-screen mx-auto max-w-screen-2xl">
+      <Seo
+        url={props.url}
+        title={`${page.title ?? "Not Found"} | Fresh docs`}
+        description={page.data.description ? String(page.data.description) : "Fresh Document"}
+        ogImage={new URL("/og-image.webp", props.url).href}
+      />
       <Header title="docs" active="/docs" />
       <div f-client-nav>
         <MobileSidebar page={page} />
@@ -163,19 +174,13 @@ export default define.page<typeof handler>(function DocsPage(props) {
             for="docs_sidebar"
             class="px-4 py-3 lg:hidden flex items-center  rounded-sm gap-2 cursor-pointer"
           >
-            <svg
-              class="h-6 w-6"
-              stroke="currentColor"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
+            <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="2"
                 d="M4 6h16M4 12h16M4 18h7"
-              >
-              </path>
+              ></path>
             </svg>
             <div>Table of Contents</div>
           </label>
@@ -185,10 +190,7 @@ export default define.page<typeof handler>(function DocsPage(props) {
             <div class="flex-1 h-[calc(100vh_-_6rem)] overflow-y-auto pb-8">
               <SearchButton class="mr-4 sm:mr-0" />
               <div class="mb-4 px-1">
-                <VersionSelect
-                  selectedVersion={page.version}
-                  versions={page.versionLinks}
-                />
+                <VersionSelect selectedVersion={page.version} versions={page.versionLinks} />
               </div>
               <ul class="list-inside font-semibold nested ml-2.5">
                 {CATEGORIES[page.version].map((category) => (
@@ -205,14 +207,6 @@ export default define.page<typeof handler>(function DocsPage(props) {
                 <TableOfContents headings={headings} />
 
                 <div class="lg:order-1 min-w-0 max-w-3xl w-full">
-                  {isCanary
-                    ? (
-                      <div class="bg-[#F0900525] p-4 rounded-sm text-base text-yellow-700 dark:text-yellow-500 mb-8">
-                        🚧 This documentation is work in progress and for an
-                        unreleased version of Fresh.
-                      </div>
-                    )
-                    : null}
                   <h1 class="text-4xl text-foreground-primary tracking-tight font-bold md:mt-0 px-4 md:px-0 mb-4">
                     {page.title}
                   </h1>
@@ -258,26 +252,15 @@ export default define.page<typeof handler>(function DocsPage(props) {
 function MobileSidebar({ page }: { page: Page }) {
   return (
     <div class="lg:hidden">
-      <input
-        type="checkbox"
-        class="hidden toggle"
-        id="docs_sidebar"
-        autocomplete="off"
-      />
+      <input type="checkbox" class="hidden toggle" id="docs_sidebar" autocomplete="off" />
       <div class="fixed inset-0 flex z-50 hidden toggled">
-        <label
-          class="absolute inset-0 bg-gray-600 opacity-75"
-          for="docs_sidebar"
-        />
+        <label class="absolute inset-0 bg-gray-600 opacity-75" for="docs_sidebar" />
         <div class="relative flex-1 flex flex-col w-[18rem] h-full bg-background-primary border-r-2 border-foreground-secondary">
           <nav class="pt-0 pb-16 overflow-x-auto">
             <div class="flex-1 h-screen overflow-y-auto pt-4 px-4">
               <SearchButton class="mr-4 sm:mr-0" />
               <div class="mb-4">
-                <VersionSelect
-                  selectedVersion={page.version}
-                  versions={page.versionLinks}
-                />
+                <VersionSelect selectedVersion={page.version} versions={page.versionLinks} />
               </div>
               <ul class="list-inside font-semibold nested ml-2.5">
                 {CATEGORIES[page.version].map((category) => (
@@ -302,36 +285,28 @@ function ForwardBackButtons(props: {
 
   return (
     <div class="px-4 md:px-0 mt-8 flex flex-col sm:flex-row gap-4 justify-between">
-      {prev
-        ? (
-          <a
-            href={prev.href}
-            class="px-4 py-2 text-left rounded-sm border border-foreground-secondary/20 grid border-solid w-full hover:border-green-600 transition-colors"
-          >
-            <span class="text-sm text-gray-600 dark:text-gray-500">
-              Previous page
-            </span>
-            <span class="text-green-600 dark:text-green-400 font-medium">
-              {prev.title}
-            </span>
-          </a>
-        )
-        : <div class="w-full" />}
-      {next
-        ? (
-          <a
-            href={next.href}
-            class="px-4 py-2 text-left rounded-sm border border-foreground-secondary/20 grid border-solid w-full hover:border-green-600 transition-colors"
-          >
-            <span class="text-sm text-gray-600 dark:text-gray-500">
-              Next page
-            </span>
-            <span class="text-green-600 dark:text-green-400 font-medium">
-              {next.title}
-            </span>
-          </a>
-        )
-        : <div class="w-full" />}
+      {prev ? (
+        <a
+          href={prev.href}
+          class="px-4 py-2 text-left rounded-sm border border-foreground-secondary/20 grid border-solid w-full hover:border-green-600 transition-colors"
+        >
+          <span class="text-sm text-gray-600 dark:text-gray-500">Previous page</span>
+          <span class="text-green-600 dark:text-green-400 font-medium">{prev.title}</span>
+        </a>
+      ) : (
+        <div class="w-full" />
+      )}
+      {next ? (
+        <a
+          href={next.href}
+          class="px-4 py-2 text-left rounded-sm border border-foreground-secondary/20 grid border-solid w-full hover:border-green-600 transition-colors"
+        >
+          <span class="text-sm text-gray-600 dark:text-gray-500">Next page</span>
+          <span class="text-green-600 dark:text-green-400 font-medium">{next.title}</span>
+        </a>
+      ) : (
+        <div class="w-full" />
+      )}
     </div>
   );
 }

@@ -1,8 +1,6 @@
 import type { ComponentChildren } from "preact";
 
-export function FancyLink(
-  props: { href: string; children: ComponentChildren; class?: string },
-) {
+export function FancyLink(props: { href: string; children: ComponentChildren; class?: string }) {
   return (
     <a
       href={props.href}

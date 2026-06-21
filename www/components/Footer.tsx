@@ -11,8 +11,7 @@ const LINKS = [
   },
   {
     title: "Code of Conduct",
-    href:
-      "https://github.com/denoland/fresh/blob/main/.github/CODE_OF_CONDUCT.md",
+    href: "https://github.com/denoland/fresh/blob/main/.github/CODE_OF_CONDUCT.md",
   },
 ];
 
@@ -28,10 +27,7 @@ export default function Footer(props: JSX.HTMLAttributes<HTMLElement>) {
 
         <div class="flex items-center gap-8">
           {LINKS.map((link) => (
-            <a
-              href={link.href}
-              class="text-foreground-secondary hover:underline"
-            >
+            <a href={link.href} class="text-foreground-secondary hover:underline">
               {link.title}
             </a>
           ))}

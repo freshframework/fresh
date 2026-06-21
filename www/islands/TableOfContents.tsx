@@ -6,28 +6,18 @@ export interface TableOfContentsProps {
   headings: MarkdownHeading[];
 }
 
-function setActiveLink(
-  container: HTMLElement,
-  marker: HTMLElement,
-  id: string,
-) {
-  container.querySelectorAll(`a`).forEach((link) =>
-    link.classList.remove("active")
-  );
-  const tocLink = container.querySelector(
-    `a[href="#${id}"]`,
-  ) as HTMLElement;
+function setActiveLink(container: HTMLElement, marker: HTMLElement, id: string) {
+  container.querySelectorAll(`a`).forEach((link) => link.classList.remove("active"));
+  const tocLink = container.querySelector(`a[href="#${id}"]`) as HTMLElement;
 
   if (tocLink === null) return;
 
   tocLink.classList.add("active");
 
-  const rect = tocLink
-    .getBoundingClientRect();
+  const rect = tocLink.getBoundingClientRect();
   const markerRect = marker.getBoundingClientRect();
 
-  const top = tocLink.offsetTop + (rect.height / 2) -
-    (markerRect.height / 2);
+  const top = tocLink.offsetTop + rect.height / 2 - markerRect.height / 2;
   marker.style.cssText = `transform: translate3d(0, ${top}px, 0); opacity: 1`;
 }
 
@@ -46,8 +36,8 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
     if (!ref.current) return;
     const container = ref.current;
 
-    const activeList = new Array(headings.length).fill(false);
-    const visibleList = new Array(headings.length).fill(false);
+    const activeList = Array.from({ length: headings.length }, () => false);
+    const visibleList = Array.from({ length: headings.length }, () => false);
 
     const marker = refMarker.current!;
     const observer = new IntersectionObserver((entries) => {
@@ -58,8 +48,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
         for (let j = 0; j < headings.length; j++) {
           const heading = headings[j];
           if (heading.id === target.id) {
-            const active = entry.isIntersecting ||
-              entry.boundingClientRect.top < 0;
+            const active = entry.isIntersecting || entry.boundingClientRect.top < 0;
             activeList[j] = active;
             visibleList[j] = entry.isIntersecting;
           }
@@ -69,9 +58,7 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
       // Reset links
       for (let i = 0; i < headings.length; i++) {
         const id = headings[i].id;
-        const tocLink = container.querySelector(
-          `a[href="#${id}"]`,
-        );
+        const tocLink = container.querySelector(`a[href="#${id}"]`);
         if (tocLink !== null) {
           tocLink.classList.remove("active");
         }
@@ -90,11 +77,13 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
       }
     });
 
-    document.querySelectorAll(
-      ".markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6",
-    ).forEach((elem) => {
-      observer.observe(elem);
-    });
+    document
+      .querySelectorAll(
+        ".markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6",
+      )
+      .forEach((elem) => {
+        observer.observe(elem);
+      });
 
     return () => {
       observer.disconnect();
@@ -102,17 +91,14 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
   }, [headings]);
 
   return (
-    <div
-      ref={ref}
-      class="relative xl:order-2 w-56 xl:max-w-xs xl:top-14 shrink-0"
-    >
+    <div ref={ref} class="relative xl:order-2 w-56 xl:max-w-xs xl:top-14 shrink-0">
       {headings.length > 0 && (
         <>
           <div class="xl:hidden mx-4 md:mx-0 mt-4 md:mt-0">
             <button
               type="button"
               id="toc-outline-btn"
-              onClick={() => isOpen.value = !isOpen.value}
+              onClick={() => (isOpen.value = !isOpen.value)}
               class="bg-background-primary py-2 px-4 rounded-sm border border-foreground-secondary/30 flex items-center hover:border-fresh-green/80 transition-colors text-sm"
             >
               On this page
@@ -133,9 +119,9 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
                         <li key={heading.id}>
                           <a
                             href={`#${heading.id}`}
-                            class={`block ${
-                              hLevelToClass(heading.level)
-                            } truncate text-gray-600 dark:text-gray-400`}
+                            class={`block ${hLevelToClass(
+                              heading.level,
+                            )} truncate text-gray-600 dark:text-gray-400`}
                             // deno-lint-ignore react-no-danger
                             dangerouslySetInnerHTML={{ __html: heading.html }}
                           />
@@ -167,15 +153,11 @@ export function TableOfContents({ headings }: TableOfContentsProps) {
                         <li key={heading.id}>
                           <a
                             href={`#${heading.id}`}
-                            class={`block truncate transition-colors ${
-                              hLevelToClass(heading.level)
-                            } text-gray-600 dark:text-gray-400 [&.active]:text-green-600 dark:[&.active]:text-green-300`}
+                            class={`block truncate transition-colors ${hLevelToClass(
+                              heading.level,
+                            )} text-gray-600 dark:text-gray-400 [&.active]:text-green-600 dark:[&.active]:text-green-300`}
                             onClick={() => {
-                              setActiveLink(
-                                ref.current!,
-                                refMarker.current!,
-                                heading.id,
-                              );
+                              setActiveLink(ref.current!, refMarker.current!, heading.id);
                             }}
                             // deno-lint-ignore react-no-danger
                             dangerouslySetInnerHTML={{ __html: heading.html }}

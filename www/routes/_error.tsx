@@ -1,9 +1,24 @@
-import { HttpError, type PageProps } from "fresh";
+import { handler, page } from "./$_error.ts";
 import LemonDrop from "../islands/LemonDrop.tsx";
 
-export function ServerCodePage(
-  props: { serverCode: number; codeDescription: string },
-) {
+/**
+ * Read an HTTP status off a thrown error structurally. `instanceof` is
+ * unreliable on the error page (the error crosses the SSR realm boundary), so
+ * we duck-type the `status` field rather than checking `instanceof HttpError`.
+ */
+function httpStatus(error: unknown): number | null {
+  if (
+    error !== null &&
+    typeof error === "object" &&
+    "status" in error &&
+    typeof (error as { status: unknown }).status === "number"
+  ) {
+    return (error as { status: number }).status;
+  }
+  return null;
+}
+
+export function ServerCodePage(props: { serverCode: number; codeDescription: string }) {
   return (
     <>
       <section>
@@ -11,16 +26,14 @@ export function ServerCodePage(
           <LemonDrop />
         </div>
         <div class="text-center">
-          <h1 class="text-6xl md:text-9xl font-extrabold">
-            {props.serverCode}
-          </h1>
+          <h1 class="text-6xl md:text-9xl font-extrabold">{props.serverCode}</h1>
 
-          <p class="p-4 text-2xl md:text-3xl">
-            {props.codeDescription}
-          </p>
+          <p class="p-4 text-2xl md:text-3xl">{props.codeDescription}</p>
 
           <p class="p-4">
-            <a href="/" class="hover:underline">Back to the Homepage</a>
+            <a href="/" class="hover:underline">
+              Back to the Homepage
+            </a>
           </p>
         </div>
       </section>
@@ -28,15 +41,20 @@ export function ServerCodePage(
   );
 }
 
-export default function ErrorPage(props: PageProps) {
+export const handlers = handler({
+  GET(ctx) {
+    const status = httpStatus(ctx.error) ?? 500;
+    return { data: { status }, status };
+  },
+});
+
+export default page(function ErrorPage(props) {
   const error = props.error;
-  if (error instanceof HttpError) {
-    if (error.status === 404) {
-      return ServerCodePage({
-        serverCode: 404,
-        codeDescription: "Couldn’t find what you’re looking for.",
-      });
-    }
+  if (httpStatus(error) === 404) {
+    return ServerCodePage({
+      serverCode: 404,
+      codeDescription: "Couldn’t find what you’re looking for.",
+    });
   }
 
   // deno-lint-ignore no-console
@@ -46,4 +64,4 @@ export default function ErrorPage(props: PageProps) {
     serverCode: 500,
     codeDescription: "Oops! Something went wrong.",
   });
-}
+});

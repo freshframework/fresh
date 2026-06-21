@@ -11,9 +11,7 @@ export function DemoBox(props: DemoBoxProps) {
     <div
       class={`bg-gradient-to-br font-medium from-blue-200 via-green-300 to-yellow-200 p-5 py-8 text-center items-center flex justify-center text-sm ${outerFlip}`}
     >
-      <div class={`w-full ${innerFlip}`}>
-        {props.children}
-      </div>
+      <div class={`w-full ${innerFlip}`}>{props.children}</div>
     </div>
   );
 }

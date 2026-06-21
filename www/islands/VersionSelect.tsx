@@ -1,16 +1,17 @@
 // Copyright 2022-2023 the Deno authors. All rights reserved. MIT license.
 
-import { IS_BROWSER } from "fresh/runtime";
 import type { VersionLink } from "../routes/docs/[...slug].tsx";
 
-export default function VersionSelect(
-  { versions, selectedVersion }: {
-    versions: VersionLink[];
-    selectedVersion: string;
-  },
-) {
+const IS_BROWSER = typeof document !== "undefined";
+
+export default function VersionSelect({
+  versions,
+  selectedVersion,
+}: {
+  versions: VersionLink[];
+  selectedVersion: string;
+}) {
   const selectedIsLatest = selectedVersion === "latest";
-  const selectedIsCanary = selectedVersion === "canary";
 
   return (
     <>
@@ -25,13 +26,6 @@ export default function VersionSelect(
             </div>
           </div>
         )}
-        {selectedIsCanary && (
-          <div class="flex absolute pointer-events-none select-none w-full h-full items-center justify-end pr-8">
-            <div class="rounded-full px-2 py-1 text-xs tag-label bg-[#F0900525] text-yellow-600">
-              🚧 Preview
-            </div>
-          </div>
-        )}
         <select
           id="version"
           class={`rounded-md block border border-foreground-primary/20 appearance-none bg-background-primary form-select-bg font-semibold ${
@@ -40,9 +34,7 @@ export default function VersionSelect(
           value={selectedVersion}
           onChange={(e) => {
             if (e.currentTarget.value !== selectedVersion) {
-              const entry = versions.find((entry) =>
-                entry.value === e.currentTarget.value
-              );
+              const entry = versions.find((entry) => entry.value === e.currentTarget.value);
               if (entry) {
                 location.href = entry.href;
               }

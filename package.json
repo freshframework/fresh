@@ -1,0 +1,29 @@
+{
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "build": "pnpm -r build",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "oxlint --deny-warnings",
+    "typecheck": "GOMAXPROCS=1 tsgo -p src --noEmit && GOMAXPROCS=1 tsgo -p example --noEmit && GOMAXPROCS=1 tsgo -p tests/fixture --noEmit && GOMAXPROCS=1 tsgo -p www --noEmit",
+    "check": "pnpm run fmt:check && pnpm run lint && pnpm run build && pnpm run typecheck",
+    "dev": "pnpm --filter fresh-example run dev",
+    "www": "pnpm --filter fresh-www run dev",
+    "www:build": "pnpm --filter fresh-www run build",
+    "www:preview": "pnpm --filter fresh-www run preview"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.61.0",
+    "@types/node": "^25.9.1",
+    "@typescript/native-preview": "^7.0.0-dev.20260602.1",
+    "fresh": "workspace:@frsh/fresh@*",
+    "oxfmt": "^0.53.0",
+    "oxlint": "^1.68.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16",
+    "vitest": "^4.1.8"
+  },
+  "packageManager": "pnpm@11.5.1"
+}

@@ -27,12 +27,7 @@ export default function Header(props: { title: string; active: string }) {
 export function Logo() {
   return (
     <a href="/" class="flex mr-3 items-center shrink-0" aria-label="Top Page">
-      <img
-        src="/logo.svg"
-        alt="Fresh logo"
-        width={40}
-        height={40}
-      />
+      <img src="/logo.svg" alt="Fresh logo" width={40} height={40} />
       <svg
         preserveAspectRatio="xMinYMin"
         viewBox="0 0 250 75"

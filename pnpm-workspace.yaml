@@ -1,0 +1,6 @@
+packages:
+  - src
+  - example
+  - tests/fixture
+  - www
+  - packages/*

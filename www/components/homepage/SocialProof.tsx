@@ -10,10 +10,11 @@ export function SocialProof() {
           Built for the edge
         </h2>
         <p class="text-xl text-balance max-w-prose mx-auto">
-          Fresh is the secret sauce behind production-grade, enterprise-ready
-          software like{" "}
-          <a href="https://deco.cx" class="underline">Deco.cx</a>, Brazil's top
-          eCommerce platform
+          Fresh is the secret sauce behind production-grade, enterprise-ready software like{" "}
+          <a href="https://deco.cx" class="underline">
+            Deco.cx
+          </a>
+          , Brazil's top eCommerce platform
         </p>
       </div>
       <a href="https://deno.com/blog/deco-cx-subhosting-serve-their-clients-storefronts-fast">
@@ -29,16 +30,17 @@ export function SocialProof() {
           <blockquote class="text-center italic text-lg sm:text-xl md:text-2xl lg:text-2xl xl:text-3xl max-w-screen-md text-gray-700 text-balance font-normal border-l-yellow-300 mx-auto my-4">
             <span class="font-semibold inline-block transform scale-150 relative -left-3 top-1 leading-none">
               “
-            </span>The team also used{" "}
-            <b>Fresh</b>, a next-gen Deno-native full stack web framework that
-            sends zero JavaScript to the client, for its modern developer
-            experience and snappy performance…<br />
-            <br />This stack unlocked{" "}
-            <b>
+            </span>
+            The team also used <b>Fresh</b>, a next-gen Deno-native full stack web framework that
+            sends zero JavaScript to the client, for its modern developer experience and snappy
+            performance…
+            <br />
+            <br />
+            This stack unlocked <b>
               5x faster page load speeds and a 30% jump in conversion rates
             </b>{" "}
-            for their
-            clients.<span class="font-semibold inline-block transform scale-150 relative -right-2 top-1 leading-none">
+            for their clients.
+            <span class="font-semibold inline-block transform scale-150 relative -right-2 top-1 leading-none">
               ”
             </span>
           </blockquote>

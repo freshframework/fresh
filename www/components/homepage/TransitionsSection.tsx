@@ -56,12 +56,12 @@ export function TransitionsSection() {
             >
               View Transitions API
             </a>{" "}
-            out of the box, giving your app native-feeling page transitions with
-            a single config flag.
+            out of the box, giving your app native-feeling page transitions with a single config
+            flag.
           </p>
           <p>
-            Pages crossfade automatically. Customize animations per-element with
-            plain CSS — no JavaScript animation libraries needed.
+            Pages crossfade automatically. Customize animations per-element with plain CSS — no
+            JavaScript animation libraries needed.
           </p>
           <FancyLink href="/docs/advanced/view-transitions" class="mt-2">
             Learn about View Transitions

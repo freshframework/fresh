@@ -1,0 +1,47 @@
+{
+  "name": "@frsh/create-app",
+  "version": "3.0.0-alpha.2026062102",
+  "private": false,
+  "description": "Scaffold a new Fresh app.",
+  "keywords": [
+    "create",
+    "fresh",
+    "scaffold",
+    "starter",
+    "template"
+  ],
+  "homepage": "https://usefresh.dev",
+  "bugs": {
+    "url": "https://github.com/freshframework/fresh/issues"
+  },
+  "license": "MIT",
+  "author": "the Fresh authors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/freshframework/fresh.git",
+    "directory": "packages/create-app"
+  },
+  "bin": {
+    "create-app": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "template",
+    "README.md"
+  ],
+  "type": "module",
+  "scripts": {
+    "build": "GOMAXPROCS=1 tsgo -p tsconfig.json",
+    "prepack": "rm -rf dist && pnpm run build"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.7.0",
+    "picocolors": "^1.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}

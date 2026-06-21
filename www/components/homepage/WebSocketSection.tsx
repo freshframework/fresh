@@ -50,12 +50,9 @@ export function WebSocketSection() {
           <SectionHeading>First-class WebSockets</SectionHeading>
           <p>
             Add real-time endpoints with{" "}
-            <code class="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono">
-              app.ws()
-            </code>{" "}
-            — define open, message, and close handlers in a single object. Build
-            chat, live dashboards, or collaborative editing without leaving
-            Fresh.
+            <code class="bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono">app.ws()</code> —
+            define open, message, and close handlers in a single object. Build chat, live
+            dashboards, or collaborative editing without leaving Fresh.
           </p>
           <FancyLink href="/docs/advanced/websockets" class="mt-2">
             Learn about WebSockets

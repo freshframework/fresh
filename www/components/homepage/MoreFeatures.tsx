@@ -4,10 +4,10 @@ import { SectionHeading } from "../../components/homepage/SectionHeading.tsx";
 
 const features = [
   {
-    title: "View Transitions",
+    title: "<Head> component",
     description:
-      "Native-feeling page transitions with a single config flag. Customize per-element with plain CSS.",
-    href: "/docs/advanced/view-transitions",
+      "Set titles, meta tags, stylesheets, and scripts from any page or island. Fresh hoists them into the document head for you.",
+    href: "/docs/advanced/head",
     icon: (
       <svg
         aria-hidden="true"
@@ -28,16 +28,18 @@ const features = [
         <path d="M13 8l4 4l-4 4" />
       </svg>
     ),
-    code: `const app = new App({
-  viewTransition: true,
-});`,
-    lang: "js" as const,
+    code: `<Head>
+  <title>My Page</title>
+  <meta name="description"
+    content="..." />
+</Head>`,
+    lang: "jsx" as const,
   },
   {
-    title: "Route Handlers",
+    title: "Route handlers",
     description:
       "Define GET, POST, DELETE, or any HTTP method as a named handler on your route, with full type safety.",
-    href: "/docs/concepts/routing",
+    href: "/docs/concepts/routes",
     icon: (
       <svg
         aria-hidden="true"
@@ -59,7 +61,7 @@ const features = [
         <path d="M9 16v-5.5a2.5 2.5 0 0 0 -5 0v5.5" />
       </svg>
     ),
-    code: `export const handlers = define.handlers({
+    code: `export const handlers = handler({
   GET(ctx) { /* ... */ },
   POST(ctx) { /* ... */ },
   DELETE(ctx) { /* ... */ },
@@ -67,10 +69,10 @@ const features = [
     lang: "js" as const,
   },
   {
-    title: "WebSockets",
+    title: "Typed everything",
     description:
-      "Add real-time endpoints with app.ws(). Define open, message, and close handlers in a single object.",
-    href: "/docs/advanced/websockets",
+      "Generated $ helpers give you typed ctx, params, and props.data inferred from the actual handler. No manual interfaces.",
+    href: "/docs/advanced/type-checking",
     icon: (
       <svg
         aria-hidden="true"
@@ -90,19 +92,21 @@ const features = [
         <path d="M17 14h-14l4 4" />
       </svg>
     ),
-    code: `app.ws("/chat", {
-  open(socket) { /* ... */ },
-  message(socket, event) {
-    socket.send(event.data);
+    code: `import { handler, page } from
+  "./$[id].ts";
+
+export const handlers = handler({
+  GET(ctx) {
+    return { data: ctx.params.id };
   },
 });`,
     lang: "js" as const,
   },
   {
-    title: "<Head> Component",
+    title: "Nested layouts",
     description:
-      "Set titles, meta tags, stylesheets, and scripts from any page or island. No hoisting hacks needed.",
-    href: "/docs/advanced/head",
+      "Drop a _layout.tsx into any folder under routes/. Fresh composes the layouts outermost-first, automatically.",
+    href: "/docs/concepts/layouts",
     icon: (
       <svg
         aria-hidden="true"
@@ -124,18 +128,23 @@ const features = [
         <path d="M14 13l1 2l-1 2" />
       </svg>
     ),
-    code: `<Head>
-  <title>My Page</title>
-  <meta name="description"
-    content="..." />
-</Head>`,
+    code: `import { layout } from
+  "./$_layout.ts";
+
+export default layout(
+  ({ Component }) => (
+    <div class="app">
+      <Component />
+    </div>
+  ),
+);`,
     lang: "jsx" as const,
   },
   {
-    title: "OpenTelemetry",
+    title: "Events on static pages",
     description:
-      "Auto-injects a traceparent meta tag into every page, connecting browser traces to server spans.",
-    href: "/docs/advanced/opentelemetry",
+      "Wire onClick into server-rendered HTML with serializable handlers. No island required. The surrounding markup stays static.",
+    href: "/docs/concepts/events",
     icon: (
       <svg
         aria-hidden="true"
@@ -158,16 +167,18 @@ const features = [
         <path d="M12.602 8.3l-2.552 4.6" />
       </svg>
     ),
-    code: `const app = new App({
-  otel: true,
-});`,
-    lang: "js" as const,
+    code: `import { add } from "fresh/events";
+
+<button onClick={add(count, 1)}>
+  +
+</button>`,
+    lang: "jsx" as const,
   },
   {
-    title: "Content Security Policy",
+    title: "Vite-powered dev",
     description:
-      "Automatic nonce injection for inline scripts and styles. Strong security defaults with zero boilerplate.",
-    href: "/docs/plugins/csp",
+      "Built on Vite. Instant dev server, fast HMR with Preact Fast Refresh, and full Vite plugin support.",
+    href: "/docs/getting-started",
     icon: (
       <svg
         aria-hidden="true"
@@ -187,11 +198,12 @@ const features = [
         <path d="M15 19l2 2l4 -4" />
       </svg>
     ),
-    code: `app.use(csp({
-  directives: {
-    scriptSrc: ["'nonce'"],
-  },
-}));`,
+    code: `import { defineConfig } from "vite";
+import { fresh } from "fresh/vite";
+
+export default defineConfig({
+  plugins: [fresh()],
+});`,
     lang: "js" as const,
   },
 ];
@@ -199,9 +211,8 @@ const features = [
 const extras = [
   {
     title: "File-based routing",
-    description:
-      "Drop a file in routes/, get a URL. Dynamic params via [id].tsx.",
-    href: "/docs/concepts/file-routing",
+    description: "Drop a file in routes/, get a URL. Dynamic params via [id].tsx.",
+    href: "/docs/concepts/routing",
     icon: (
       <svg
         aria-hidden="true"
@@ -253,9 +264,9 @@ const extras = [
     ),
   },
   {
-    title: "Zero-config TypeScript",
-    description: "Just write .tsx. No tsconfig, no build step, it just works.",
-    href: "/docs/concepts/routing",
+    title: "Signals & reactivity",
+    description: "Preact Signals power reactive state inside islands and even on the static page.",
+    href: "/docs/concepts/signals",
     icon: (
       <svg
         aria-hidden="true"
@@ -280,9 +291,8 @@ const extras = [
   },
   {
     title: "Deploy anywhere",
-    description:
-      "Deno Deploy, Docker, Cloudflare Workers, or a single binary with deno compile.",
-    href: "/docs/deployment/deno-deploy",
+    description: "Nitro builds for Node, Deno Deploy, Cloudflare Workers, containers, and more.",
+    href: "/docs/getting-started",
     icon: (
       <svg
         aria-hidden="true"
@@ -307,10 +317,9 @@ const extras = [
     ),
   },
   {
-    title: "Layouts",
-    description:
-      "Nested layouts that compose automatically from the file system.",
-    href: "/docs/concepts/layouts",
+    title: "Error pages",
+    description: "A single _error.tsx renders 404s, 405s, and any thrown error.",
+    href: "/docs/concepts/error-pages",
     icon: (
       <svg
         aria-hidden="true"
@@ -333,10 +342,9 @@ const extras = [
     ),
   },
   {
-    title: "Built-in plugins",
-    description:
-      "CORS, CSRF, IP filtering, and trailing slashes out of the box.",
-    href: "/docs/plugins/cors",
+    title: "Partials",
+    description: "Swap regions of the page during navigation, with no full reload.",
+    href: "/docs/advanced/partials",
     icon: (
       <svg
         aria-hidden="true"
@@ -380,14 +388,12 @@ export function MoreFeatures() {
             >
               <div className="p-6 space-y-3">
                 <div class="flex items-center gap-2 justify-between">
-                  <h3 class="font-bold text-lg sm:text-xl lg:text-2xl">
-                    {f.title}
-                  </h3>
+                  <h3 class="font-bold text-lg sm:text-xl lg:text-2xl">{f.title}</h3>
                   {f.icon}
                 </div>
                 <p class="text-gray-600 text-sm">{f.description}</p>
               </div>
-              <div class="text-xs h-full [&>pre]:m-0! [&>pre]:rounded-none [&>pre]:h-full [&>pre]:p-6! flex-1">
+              <div class="text-xs h-full [&>div]:h-full [&_pre]:m-0! [&_pre]:rounded-none [&_pre]:h-full [&_pre]:p-6! flex-1">
                 <CodeBlock code={f.code} lang={f.lang} />
               </div>
             </a>

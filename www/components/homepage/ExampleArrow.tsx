@@ -1,8 +1,6 @@
 import type { JSX } from "preact";
 
-export function ExampleArrow(
-  props: JSX.HTMLAttributes<HTMLDivElement>,
-) {
+export function ExampleArrow(props: JSX.HTMLAttributes<HTMLDivElement>) {
   return (
     <svg
       aria-hidden="true"

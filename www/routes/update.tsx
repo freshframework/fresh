@@ -1,16 +1,13 @@
-import { define } from "../utils/state.ts";
-import VERSIONS from "../../versions.json" with { type: "json" };
+import { handler } from "./$update.ts";
+import VERSIONS from "../versions.json" with { type: "json" };
 
-export const handler = define.handlers({
-  GET({ req }) {
-    const accept = req.headers.get("accept");
+export const handlers = handler({
+  GET(ctx) {
+    const accept = ctx.req.headers.get("accept");
     let path = "/docs/concepts/updating";
     if (accept && !accept.includes("text/html")) {
       path = `https://deno.land/x/fresh@${VERSIONS[0]}/update.ts`;
     }
-    return new Response(`Redirecting to ${path}`, {
-      headers: { "Location": path },
-      status: 307,
-    });
+    return ctx.redirect(path, 307);
   },
 });
