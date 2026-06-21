@@ -86,7 +86,7 @@
     }
   },
   "scripts": {
-    "build": "GOMAXPROCS=1 tsgo -p tsconfig.json && find dist -name '*.test.*' -delete",
+    "build": "GOMAXPROCS=1 tsgo -p tsconfig.json && find dist -name '*.test.*' -delete && cp -R vendor dist/vendor",
     "prepack": "rm -rf dist && pnpm run build"
   },
   "dependencies": {
