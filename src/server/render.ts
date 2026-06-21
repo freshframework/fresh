@@ -28,10 +28,9 @@ import {
   isValidElement,
   type VNode,
 } from "preact";
-import { useContext } from "preact/hooks";
 import { renderToString } from "preact-render-to-string";
 import { buildImportLines, createSerializer, SIGNAL_HELPER_SPECIFIER } from "./serialization.ts";
-import { HeadContext } from "../runtime/head.ts";
+import { Head } from "../runtime/head.ts";
 import {
   CLIENT_NAV_ATTR,
   HEAD_END,
@@ -277,6 +276,26 @@ const HEAD_TAGS = new Set([
 const PATCHED_HEAD: WeakSet<object> = new WeakSet();
 
 /**
+ * Render-time depth counter for "we are inside an `<svg>` subtree". SVG
+ * has its own `<title>` element (the accessible name of the graphic)
+ * which is NOT document-head-eligible — without this guard, the first
+ * SVG `<title>` outside `<Head>` would consume the page's collected
+ * `<title>`, moving it into the body and leaving `<head>` titleless.
+ * Pushed/popped in the `__b` / `diffed` hooks on intrinsic `<svg>`.
+ */
+let SVG_DEPTH = 0;
+
+/**
+ * Render-time depth counter for "we are inside a `<Head>` provider".
+ * Tracked via `__b`/`diffed` on the `Head` component instead of a
+ * preact context lookup so the head-tag wrapper doesn't need to call
+ * `useContext` — calling it from a function vnode that lives outside a
+ * proper component-render frame trips `@preact/signals`' wrapped
+ * `useContext` (it reads `r.context` on a null current-component).
+ */
+let HEAD_DEPTH = 0;
+
+/**
  * Set while a head wrapper is in the middle of `h(originalType, props)`
  * — `options.vnode` fires synchronously inside that call (before we
  * have a reference to add to `PATCHED_HEAD`), so a plain set-based
@@ -323,12 +342,15 @@ function wrapHeadElement(vnode: VNode): void {
   const originalKey = vnode.key;
   // deno-lint-ignore no-explicit-any
   (vnode as any).type = (props: Record<string, unknown>) => {
-    const inHead = useContext(HeadContext);
-    if (currentRender === null) return h(originalType, props);
+    const inHead = HEAD_DEPTH > 0;
     CONSTRUCTING_HEAD_INNER = true;
     const inner = h(originalType, props);
     CONSTRUCTING_HEAD_INNER = false;
     PATCHED_HEAD.add(inner);
+    // SVG has its own `<title>` element — render inline, don't hoist
+    // or consume from `<Head>` collection.
+    if (SVG_DEPTH > 0) return inner;
+    if (currentRender === null) return inner;
     const cacheKey = computeHeadCacheKey(originalType, originalKey, props, currentRender);
     if (inHead) {
       // Inside a `<Head>` provider — collect and render null at the
@@ -528,6 +550,12 @@ function installHooks(): void {
   };
   const prevDiff = opts.__b;
   opts.__b = (vnode) => {
+    // Track depth into intrinsic `<svg>` subtrees so the head-tag
+    // wrapper can tell an SVG `<title>` from a document `<title>`.
+    if (vnode && vnode.type === "svg") SVG_DEPTH++;
+    // Track depth into `<Head>` so the head-tag wrapper knows it
+    // should collect rather than render inline.
+    if (vnode && vnode.type === Head) HEAD_DEPTH++;
     if (
       currentRender !== null &&
       vnode &&
@@ -605,6 +633,8 @@ function installHooks(): void {
   // check work for nested components.
   const prevDiffed = opts.diffed;
   opts.diffed = (vnode) => {
+    if (vnode && vnode.type === "svg" && SVG_DEPTH > 0) SVG_DEPTH--;
+    if (vnode && vnode.type === Head && HEAD_DEPTH > 0) HEAD_DEPTH--;
     if (
       currentRender !== null &&
       vnode &&

@@ -1175,6 +1175,21 @@ test("<Head><title> hoists into the document <head> and appears nowhere else", a
   assert.doesNotMatch(html, /<body>[\s\S]*<title>/);
 });
 
+test("an SVG <title> in the body does not consume a <Head><title>", async () => {
+  const html = await renderPage(
+    h(
+      "main",
+      null,
+      h(Head, null, h("title", null, "Page Title")),
+      h("svg", null, h("title", null, "Icon Description")),
+    ),
+  );
+  // Page title lands in <head>.
+  assert.match(html, /<head>[\s\S]*<title>Page Title<\/title>[\s\S]*<\/head>/);
+  // SVG title stays inside the SVG in the body.
+  assert.match(html, /<svg[^>]*><title>Icon Description<\/title><\/svg>/);
+});
+
 test("<Head><title> in the page replaces a <title> sitting in the app shell", async () => {
   const Shell = (props: { children: ComponentChildren }) =>
     h(
