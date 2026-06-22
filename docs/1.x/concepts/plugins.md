@@ -36,7 +36,7 @@ Fresh plugins are in essence a collection of hooks that allow the plugin to hook
 into various systems inside of Fresh.
 
 A Fresh plugin is just a JavaScript object that conforms to the
-[Plugin](https://deno.land/x/fresh/server.ts?s=Plugin) interface. The only
+[Plugin](https://jsr.io/@fresh/core) interface. The only
 required property of a plugin is its name. Names must only contain the
 characters `a`-`z`, and `_`.
 
@@ -65,19 +65,19 @@ libraries like Twind). After render is complete, the plugin can inject inline
 CSS and JS modules (with attached state) into the page.
 
 The render hook is called with the
-[`PluginRenderContext`](https://deno.land/x/fresh/server.ts?s=PluginRenderContext)
+[`PluginRenderContext`](https://jsr.io/@fresh/coreRenderContext)
 object, which contains a `render()` method. This method must be invoked during
 the render hook to actually render the page. It is a terminal error to not call
 the `render()` method during the render hook.
 
 The `render()` method returns a
-[`PluginRenderFunctionResult`](https://deno.land/x/fresh/server.ts?s=PluginRenderFunctionResult)
+[`PluginRenderFunctionResult`](https://jsr.io/@fresh/coreRenderFunctionResult)
 object which contains the HTML text of the rendered page, as well as a boolean
 indicating whether the page contains any islands that will be hydrated on the
 client.
 
 The `render` hook needs to synchronously return a
-[`PluginRenderResult`](https://deno.land/x/fresh/server.ts?s=PluginRenderResult)
+[`PluginRenderResult`](https://jsr.io/@fresh/coreRenderResult)
 object. Additional CSS and JS modules can be added to be injected into the page
 by adding them to `styles`, `links` and `scripts` arrays in this object. The
 plugin can also replace the HTML in side the `<body>`-element of the page by
@@ -106,11 +106,11 @@ For an example of a plugin that uses the `render` hook, see the first-party
 This hook is largely the same as the `render` hook, with a couple of key
 differences to make asynchronous style and script generation possible. It must
 asynchronously return its
-[`PluginRenderResult`](https://deno.land/x/fresh/server.ts?s=PluginRenderResult),
+[`PluginRenderResult`](https://jsr.io/@fresh/coreRenderResult),
 either from an `async/await` function or wrapped within a promise.
 
 The render hook is called with the
-[`PluginAsyncRenderContext`](https://deno.land/x/fresh/server.ts?s=PluginAsyncRenderContext)
+[`PluginAsyncRenderContext`](https://jsr.io/@fresh/coreAsyncRenderContext)
 object, which contains a `renderAsync()` method. This method must be invoked
 during the render hook to actually render the page. It is a terminal error to
 not call the `renderAsync()` method during the render hook.
@@ -124,7 +124,7 @@ variables to propagate state between the render hook and the renderer.
 The `renderAsync` hooks start before any page rendering occurs, and finish after
 all rendering is complete -- they wrap around the underlying JSX->string
 rendering, plugin `render` hooks, and the
-[`RenderFunction`](https://deno.land/x/fresh/server.ts?s=RenderFunction) that
+[`RenderFunction`](https://jsr.io/@fresh/core) that
 may be provided to Fresh's `start` entrypoint in the `main.ts` file.
 
 ### Hook: `buildStart`
@@ -134,7 +134,7 @@ This hook is run at the start of the Fresh
 synchronous or asynchronous.
 
 The build start hook is called with the
-[`ResolvedFreshConfig`](https://deno.land/x/fresh/src/server/types.ts?s=ResolvedFreshConfig)
+[`ResolvedFreshConfig`](https://jsr.io/@fresh/core)
 object, which contains the full Fresh configuration.
 
 This hook may be used to generate precompiled static assets. Any files saved to
