@@ -15,7 +15,7 @@ export async function start(manifest: Manifest, config: FreshConfig = {});
 
 `Manifest` comes from `fresh.gen.ts`, so nothing to do there. `config` is where
 things get interesting.
-[`FreshConfig`](https://deno.land/x/fresh/server.ts?s=FreshConfig) looks like
+[`FreshConfig`](https://jsr.io/@fresh/core) looks like
 this:
 
 ```ts fresh 🍋
