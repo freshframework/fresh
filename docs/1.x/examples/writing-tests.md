@@ -5,7 +5,7 @@ description: |
 
 You can write tests for your Fresh project by creating an application handler
 through
-[`createHandler()`](https://deno.land/x/fresh/server.ts?doc=&s=createHandler).
+[`createHandler()`](https://jsr.io/@fresh/core/doc).
 
 ## 1. Create your routes
 
@@ -104,7 +104,7 @@ export async function createHandler(
 When you're using it, you'll likely be importing the manifest from your project.
 You can of course import the config (`fresh.config.ts`) as well, but you're also
 free to provide your own bag of options.
-[`FreshConfig`](https://deno.land/x/fresh/server.ts?s=FreshConfig) is declared
+[`FreshConfig`](https://jsr.io/@fresh/core) is declared
 as follows:
 
 ```ts fresh 🍋
