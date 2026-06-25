@@ -119,6 +119,85 @@ integrationTest("vite dev - starts without routes/ dir", async () => {
   });
 });
 
+// Regression test for https://github.com/freshframework/fresh/issues/3814 —
+// vite's `server.proxy` config was being swallowed by Fresh's dev-server
+// middleware. When Fresh's handler returned a 404 (because no route matched
+// the proxy target path), the middleware terminated the request instead of
+// calling next() to let the proxy middleware run.
+integrationTest("vite dev - forwards server.proxy traffic", async () => {
+  const fixture = path.join(FIXTURE_DIR, "server_proxy");
+  // Copy the fixture files manually so prepareDevServer doesn't overwrite
+  // vite.config.ts (it injects a minimal default config).
+  const tmpDir = await Deno.makeTempDir({ prefix: "tmp_proxy_" });
+  try {
+    for (
+      const entry of [
+        "main.ts",
+        "proxy_target.ts",
+        "vite.config.ts",
+      ]
+    ) {
+      await Deno.copyFile(
+        path.join(fixture, entry),
+        path.join(tmpDir, entry),
+      );
+    }
+
+    // Boot the proxy target on an ephemeral port; pass the port to vite
+    // via env so its vite.config.ts can read it.
+    const proxyTarget = new Deno.Command(Deno.execPath(), {
+      cwd: tmpDir,
+      args: ["run", "-A", "proxy_target.ts"],
+      env: { NO_COLOR: "1" },
+      stdout: "piped",
+      stderr: "piped",
+    }).spawn();
+
+    // Deno.serve prints "Listening on http://127.0.0.1:NNNN" to stderr.
+    let proxyPort = 0;
+    const reader = proxyTarget.stderr.pipeThrough(new TextDecoderStream())
+      .getReader();
+    for (let i = 0; i < 50; i++) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      const m = /Listening on http:\/\/[^\s]+:(\d+)/.exec(value ?? "");
+      if (m) {
+        proxyPort = Number(m[1]);
+        break;
+      }
+    }
+    reader.cancel();
+
+    if (proxyPort === 0) {
+      proxyTarget.kill("SIGTERM");
+      throw new Error("proxy_target.ts never printed its listening port");
+    }
+
+    try {
+      await launchDevServer(tmpDir, async (address) => {
+        // `/api/ping` is not a Fresh route — without the fix Fresh
+        // returns 404 and short-circuits the request. With the fix,
+        // vite's proxy middleware runs and forwards to proxy_target.ts.
+        const res = await fetch(`${address}/api/ping`);
+        expect(res.status).toBe(200);
+        const body = await res.json();
+        expect(body.proxyReceived).toBe(true);
+        expect(body.pathname).toBe("/api/ping");
+      }, { PROXY_TARGET_PORT: String(proxyPort) });
+    } finally {
+      proxyTarget.kill("SIGTERM");
+    }
+  } finally {
+    if (Deno.env.get("CI") !== "true") {
+      try {
+        await Deno.remove(tmpDir, { recursive: true });
+      } catch {
+        // ignore
+      }
+    }
+  }
+});
+
 integrationTest({
   name: "vite dev - can apply HMR to islands (hooks)",
   ignore: true, // Test is very flaky
