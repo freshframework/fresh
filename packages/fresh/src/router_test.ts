@@ -1,5 +1,6 @@
 import { expect } from "@std/expect";
 import {
+  compareDynamicPatternSpecificity,
   IS_PATTERN,
   mergePath,
   pathToPattern,
@@ -318,4 +319,56 @@ Deno.test("UrlPatternRouter - non-standard method on dynamic route", () => {
     methodMatch: false,
     pattern: "/books/:id",
   });
+});
+
+Deno.test("UrlPatternRouter - more specific dynamic route matches over catch-all", () => {
+  const router = new UrlPatternRouter<() => string>();
+  const catchAll = () => "catch-all";
+  const specific = () => "specific";
+
+  // Catch-all registered first — would shadow the specific route without sorting.
+  router.add("GET", "/blog/*", catchAll);
+  router.add("GET", "/blog/:id", specific);
+
+  const res = router.match("GET", new URL("/blog/42", "http://localhost"));
+  expect(res.item).toBe(specific);
+  expect(res.pattern).toBe("/blog/:id");
+});
+
+Deno.test("UrlPatternRouter - dynamic route beats optional route", () => {
+  const router = new UrlPatternRouter<() => string>();
+  const optional = () => "optional";
+  const required = () => "required";
+
+  router.add("GET", "/api{/:opt}?", optional);
+  router.add("GET", "/api/:id", required);
+
+  // /api/123 should match the required, not the optional
+  const requiredRes = router.match(
+    "GET",
+    new URL("/api/123", "http://localhost"),
+  );
+  expect(requiredRes.item).toBe(required);
+  expect(requiredRes.pattern).toBe("/api/:id");
+
+  // /api alone still matches the optional
+  const optionalRes = router.match("GET", new URL("/api", "http://localhost"));
+  expect(optionalRes.item).toBe(optional);
+});
+
+Deno.test("compareDynamicPatternSpecificity - static beats param beats wildcard", () => {
+  const mk = (pathname: string) => ({
+    pattern: new URLPattern({ pathname }),
+    byMethod: { GET: null, POST: null, PATCH: null, DELETE: null, PUT: null, HEAD: null, OPTIONS: null },
+  });
+
+  const stat = mk("/foo/bar");
+  const dyn = mk("/foo/:bar");
+  const wild = mk("/foo/*");
+
+  expect(compareDynamicPatternSpecificity(stat, dyn)).toBeLessThan(0);
+  expect(compareDynamicPatternSpecificity(dyn, wild)).toBeLessThan(0);
+  expect(compareDynamicPatternSpecificity(stat, wild)).toBeLessThan(0);
+  // Tie preserves insertion order (returns 0)
+  expect(compareDynamicPatternSpecificity(dyn, mk("/baz/:qux"))).toBe(0);
 });

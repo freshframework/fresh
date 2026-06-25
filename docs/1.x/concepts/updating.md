@@ -6,7 +6,7 @@ description: |
 Fresh consists of multiple pieces which are independently versioned and
 released.
 
-- Fresh (https://deno.land/x/fresh)
+- Fresh (https://jsr.io/@fresh/core)
 - Preact (https://esm.sh/preact)
 - preact-render-to-string (https://esm.sh/preact-render-to-string)
 

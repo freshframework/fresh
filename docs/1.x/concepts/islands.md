@@ -211,7 +211,7 @@ An error occurred during route handling or page rendering. ReferenceError: Event
     ....
 ```
 
-Use the [`IS_BROWSER`](https://deno.land/x/fresh/runtime.ts?doc=&s=IS_BROWSER)
+Use the [`IS_BROWSER`](https://jsr.io/@fresh/core)
 flag as a guard to fix the issue:
 
 ```tsx islands/my-island.tsx
