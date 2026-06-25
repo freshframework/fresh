@@ -129,6 +129,17 @@ export function csp<State>(options: CSPOptions = {}): Middleware<State> {
         return d;
       });
     } else {
+      // The route returned a response without going through ctx.render(),
+      // so Fresh never attached a nonce. The merged directives still
+      // contain 'unsafe-inline' for script-src / style-src and the user's
+      // intent (useNonce: true) was a locked-down policy — warn loudly so
+      // they know the handler needs to switch to ctx.render().
+      // deno-lint-ignore no-console
+      console.warn(
+        `🍋 [fresh] csp middleware: useNonce is true but the response ${
+          ctx.url.pathname
+        } has no nonce (handler likely returned ctx.html/ctx.json/ctx.text instead of ctx.render). Falling back to 'unsafe-inline'.`,
+      );
       directives = merged;
     }
 
