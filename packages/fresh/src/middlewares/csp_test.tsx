@@ -165,6 +165,60 @@ Deno.test("CSP - useNonce with non-rendered response falls back to unsafe-inline
   expect(cspHeader).toContain("'unsafe-inline'");
 });
 
+Deno.test("CSP - useNonce with non-rendered response warns the developer", async () => {
+  const warnings: string[] = [];
+  const original = console.warn;
+  // deno-lint-ignore no-console
+  console.warn = (msg: string) => {
+    warnings.push(String(msg));
+  };
+  try {
+    const app = new App()
+      .use(csp({ useNonce: true }))
+      .get("/api", () => new Response(JSON.stringify({ ok: true })));
+    const server = new FakeServer(app.handler());
+    const res = await server.get("/api");
+    await res.body?.cancel();
+  } finally {
+    // deno-lint-ignore no-console
+    console.warn = original;
+  }
+
+  expect(warnings).toHaveLength(1);
+  expect(warnings[0]).toContain("/api");
+  expect(warnings[0]).toContain("useNonce is true");
+  expect(warnings[0]).toContain("unsafe-inline");
+});
+
+Deno.test("CSP - useNonce with rendered response does not warn", async () => {
+  const warnings: string[] = [];
+  const original = console.warn;
+  // deno-lint-ignore no-console
+  console.warn = (msg: string) => {
+    warnings.push(String(msg));
+  };
+  try {
+    const app = new App()
+      .use(csp({ useNonce: true }))
+      .get("/", (ctx) => {
+        return ctx.render(
+          <html>
+            <head />
+            <body>hello</body>
+          </html>,
+        );
+      });
+    const server = new FakeServer(app.handler());
+    const res = await server.get("/");
+    await res.body?.cancel();
+  } finally {
+    // deno-lint-ignore no-console
+    console.warn = original;
+  }
+
+  expect(warnings).toHaveLength(0);
+});
+
 Deno.test("CSP - useNonce generates unique nonce per request", async () => {
   const app = new App()
     .use(csp({ useNonce: true }))
