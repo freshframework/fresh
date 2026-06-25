@@ -54,6 +54,40 @@ export const IS_PATTERN = /[*:{}+?()]/;
 
 const EMPTY: string[] = [];
 
+/**
+ * Compare two URLPattern pathnames by specificity (less specific sorts later).
+ *
+ * Static segments win over required params win over wildcards. Score per
+ * segment: static = 0, `:param` / optional groups / regex groups = 1, `*`
+ * catch-all = 2. Total score is the sum across segments. Ties preserve
+ * insertion order (Array.prototype.sort is stable in V8).
+ */
+export function compareDynamicPatternSpecificity(
+  a: DynamicRouteDef<unknown>,
+  b: DynamicRouteDef<unknown>,
+): number {
+  return patternSpecificityScore(a.pattern.pathname) -
+    patternSpecificityScore(b.pattern.pathname);
+}
+
+function patternSpecificityScore(pathname: string): number {
+  let score = 0;
+  for (let i = 0; i < pathname.length; i++) {
+    const ch = pathname.charCodeAt(i);
+    if (ch === 0x2A) { // '*'
+      score += 2;
+    } else if (
+      ch === 0x3A || // ':'
+      ch === 0x3F || // '?' (optional marker)
+      ch === 0x28 || ch === 0x29 || // '(' ')'
+      ch === 0x7B || ch === 0x7D // '{' '}'
+    ) {
+      score += 1;
+    }
+  }
+  return score;
+}
+
 export class UrlPatternRouter<T> implements Router<T> {
   #statics = new Map<string, StaticRouteDef<T>>();
   #dynamics = new Map<string, DynamicRouteDef<T>>();
@@ -89,6 +123,11 @@ export class UrlPatternRouter<T> implements Router<T> {
         };
         this.#dynamics.set(pathname, def);
         this.#dynamicArr.push(def);
+        // Keep dynamic routes sorted by specificity so a more-specific
+        // pattern registered later wins over an earlier wildcard catch-all.
+        // Without this, app.route("/blog/[...rest]", A) followed by
+        // app.route("/blog/[id]", B) matches A on /blog/foo and shadows B.
+        this.#dynamicArr.sort(compareDynamicPatternSpecificity);
       }
 
       byMethod = def.byMethod;
