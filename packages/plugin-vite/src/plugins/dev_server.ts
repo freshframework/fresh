@@ -190,6 +190,15 @@ export function devServer(freshConfig: ResolvedFreshViteConfig): Plugin[] {
 
             const res = (await mod.default.fetch(req)) as Response;
 
+            // If Fresh didn't match a route, hand the request off to the
+            // next middleware (Vite's `server.proxy`, custom user
+            // middlewares, the SPA fallback, etc.). Without this, requests
+            // to `/api/*` proxy targets or other prefixed routes would be
+            // swallowed by a 404 from Fresh. See #3814.
+            if (res.status === 404) {
+              return next();
+            }
+
             // Collect css eagerly to avoid FOUC. This is a workaround for
             // Vite not supporting css natively. It's a bit hacky, but
             // gets the job done.
