@@ -50,11 +50,38 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
   const islands = new Map<string, { name: string; chunk: string | null }>();
   const islandsByFile = new Set<string>();
   const islandSpecByName = new Map<string, string>();
+  const islandNameBySpec = new Map<string, string>();
   const routeNamer = new UniqueNamer();
   const routeFileToName = new Map<string, string>();
 
   // deno-lint-ignore no-explicit-any
   const routes: Map<string, FsRouteFileNoMod<any>> = new Map();
+
+  // Rebuild the module-scoped island maps from scratch; a deleted island would
+  // otherwise linger and get emitted as a stale `import` in the snapshot.
+  function rebuildIslands(fileSpecs: string[]): void {
+    islands.clear();
+    islandsByFile.clear();
+    islandSpecByName.clear();
+
+    // Remote islands are re-seeded first.
+    options.islandSpecifiers.forEach((name, spec) => {
+      islands.set(spec, { name, chunk: null });
+      islandSpecByName.set(name, spec);
+    });
+
+    for (const spec of fileSpecs) {
+      let name = islandNameBySpec.get(spec);
+      if (name === undefined) {
+        name = options.namer.getUniqueName(specToName(spec));
+        islandNameBySpec.set(spec, name);
+      }
+
+      islands.set(spec, { name, chunk: null });
+      islandSpecByName.set(name, spec);
+      islandsByFile.add(spec);
+    }
+  }
 
   return [
     {
@@ -78,11 +105,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
           config.root,
         );
 
-        options.islandSpecifiers.forEach((name, spec) => {
-          islands.set(spec, { name, chunk: null });
-          islandSpecByName.set(name, spec);
-          // islandsByFile.add(spec);
-        });
+        rebuildIslands([]);
       },
       configureServer(viteServer) {
         server = viteServer;
@@ -112,21 +135,17 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
             }
           }
 
-          // Check for route files. We need to invalidate the snapshot if
-          // they are removed or added.
-          if (
-            (ev === "add" || ev === "unlink") &&
-            !/[\\/]+\(_[^)]+\)[\\/]+/.test(filePath)
-          ) {
-            const relRoutes = path.relative(options.routeDir, filePath);
-            if (!relRoutes.startsWith("..")) {
+          // Check for route and island files. We need to invalidate the
+          // snapshot if they are removed or added.
+          if (ev === "add" || ev === "unlink") {
+            const inRoutes = !/[\\/]+\(_[^)]+\)[\\/]+/.test(filePath) &&
+              !path.relative(options.routeDir, filePath).startsWith("..");
+            const inIslands = !path.relative(options.islandsDir, filePath)
+              .startsWith("..");
+
+            if (inRoutes || inIslands) {
               const mod = ssr.moduleGraph.getModuleById(`\0${modName}`);
               if (mod !== undefined) {
-                // Clear state
-                islands.clear();
-                islandsByFile.clear();
-                islandSpecByName.clear();
-
                 ssr.moduleGraph.invalidateModule(mod);
               }
             }
@@ -158,15 +177,7 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
             ignore: options.ignore,
           });
 
-          for (let i = 0; i < result.islands.length; i++) {
-            const spec = result.islands[i];
-            const specName = specToName(spec);
-            const name = options.namer.getUniqueName(specName);
-
-            islands.set(spec, { name, chunk: null });
-            islandSpecByName.set(name, spec);
-            islandsByFile.add(spec);
-          }
+          rebuildIslands(result.islands);
 
           for (let i = 0; i < result.routes.length; i++) {
             const route = result.routes[i];

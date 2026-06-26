@@ -110,6 +110,41 @@ integrationTest(
   },
 );
 
+// Deleting an auto-discovered island used to wedge the dev server with a
+// permanent 500: it lingered in the snapshot's island map as a dead import.
+integrationTest(
+  "vite dev - deleting an unreferenced island does not wedge the server",
+  async () => {
+    const fixture = path.join(FIXTURE_DIR, "delete_island");
+    await withDevServer(fixture, async (address, dir) => {
+      // Nothing references the island, but Fresh auto-discovers it.
+      await withBrowser(async (page) => {
+        await page.goto(`${address}/`, { waitUntil: "networkidle2" });
+        await waitForText(page, "h1", "ok");
+
+        // Evaluate the client snapshot so the island is wired into the SSR graph.
+        const snapshot = await fetch(`${address}/@id/fresh:client-snapshot`);
+        expect(snapshot.status).toEqual(200);
+        await snapshot.body?.cancel();
+
+        await Deno.remove(path.join(dir, "islands", "Extra.tsx"));
+
+        // The delete is async, so require several consecutive 200s to be sure.
+        await waitFor(async () => {
+          for (let i = 0; i < 5; i++) {
+            const res = await fetch(`${address}/`);
+            const text = await res.text();
+            expect(res.status).toEqual(200);
+            expect(text).toContain("ok");
+            await new Promise((r) => setTimeout(r, 150));
+          }
+          return true;
+        });
+      });
+    });
+  },
+);
+
 integrationTest("vite dev - starts without routes/ dir", async () => {
   const fixture = path.join(FIXTURE_DIR, "no_routes");
   await withDevServer(fixture, async (address) => {
