@@ -54,9 +54,14 @@ When `useNonce` is enabled:
 
 - Fresh automatically injects a unique `nonce` attribute onto every inline
   `<script>` and `<style>` tag during server rendering.
-- The CSP header replaces `'unsafe-inline'` with `'nonce-{value}'` in
-  `script-src`, `style-src`, `default-src`, `script-src-elem`, `style-src-elem`,
-  and `style-src-attr` directives.
+- The CSP header **appends** `'nonce-{value}'` to `script-src`, `style-src`,
+  `default-src`, `script-src-elem`, `style-src-elem`, and `style-src-attr`
+  directives. Any `'unsafe-inline'` you (or the defaults) wrote is preserved
+  alongside the nonce — modern browsers prefer the nonce and ignore
+  `'unsafe-inline'` when both are present, while older browsers fall back to
+  `'unsafe-inline'`. This matches the
+  [strict-CSP fallback pattern recommended
+  by web.dev](https://web.dev/articles/strict-csp#fallbacks).
 - Each request gets a fresh nonce, so the value cannot be predicted by an
   attacker.
 - Non-rendered responses (e.g. API routes returning JSON) fall back to
