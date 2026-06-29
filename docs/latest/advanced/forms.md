@@ -20,7 +20,7 @@ This example demonstrates how to handle `application/x-www-form-urlencoded`
 `<form>` submissions:
 
 ```tsx routes/subscribe.tsx
-import { define } from "../utils.ts";
+import { define } from "@/utils.ts";
 
 export const handlers = define.handlers({
   async GET(ctx) {
@@ -65,7 +65,7 @@ that this time, we have to explicitly declare the form's encoding to be
 `multipart/form-data`.
 
 ```tsx routes/subscribe.tsx
-import { define } from "../utils.ts";
+import { define } from "@/utils.ts";
 
 export const handler = define.handlers({
   async GET(ctx) {

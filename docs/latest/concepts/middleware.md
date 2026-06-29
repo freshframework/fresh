@@ -39,7 +39,7 @@ excellent way to make http-related logic reusable on the server.
 Use the `define.middleware()` helper to get typings out of the box:
 
 ```ts middleware/my-middleware.ts
-import { define } from "../utils.ts";
+import { define } from "@/utils.ts";
 
 const middleware = define.middleware(async (ctx) => {
   console.log("my middleware");
@@ -63,7 +63,7 @@ middleware in a `_middleware.ts` file inside the `routes/` folder or any of its
 subfolders.
 
 ```ts routes/_middleware.ts
-import { define } from "../utils.ts";
+import { define } from "@/utils.ts";
 
 export default define.middleware(async (ctx) => {
   console.log("my middleware");
@@ -74,7 +74,7 @@ export default define.middleware(async (ctx) => {
 You can also export an array of middlewares:
 
 ```ts routes/_middleware.ts
-import { define } from "../utils.ts";
+import { define } from "@/utils.ts";
 
 const middleware1 = define.middleware(async (ctx) => {
   console.log("A");

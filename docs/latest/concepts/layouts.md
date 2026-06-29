@@ -47,7 +47,7 @@ and `url`. Any state set by [middleware](/docs/concepts/middleware) is available
 via `props.state`.
 
 ```tsx routes/_layout.tsx
-import { define } from "../utils.ts";
+import { define } from "@/utils.ts";
 
 export default define.layout(({ Component, state, url }) => {
   return (
@@ -71,7 +71,7 @@ export default define.layout(({ Component, state, url }) => {
 Layouts can be async to fetch data before rendering:
 
 ```tsx routes/blog/_layout.tsx
-import { define } from "../../utils.ts";
+import { define } from "@/utils.ts";
 
 export default define.layout(async (ctx) => {
   const categories = await db.categories.list();
@@ -104,7 +104,7 @@ config to skip all layouts inherited from parent directories:
 
 ```tsx routes/login.tsx
 import { type RouteConfig } from "fresh";
-import { define } from "../utils.ts";
+import { define } from "@/utils.ts";
 
 export const config: RouteConfig = {
   skipInheritedLayouts: true,
@@ -129,7 +129,7 @@ useful when a section of your site needs a completely different shell:
 
 ```tsx routes/admin/_layout.tsx
 import { type LayoutConfig } from "fresh";
-import { define } from "../../utils.ts";
+import { define } from "@/utils.ts";
 
 export const config: LayoutConfig = {
   skipInheritedLayouts: true,

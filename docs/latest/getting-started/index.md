@@ -48,7 +48,7 @@ import { define } from "@/utils.ts";
 import { Button } from "@/components/Button.tsx";
 
 // Without alias (relative paths)
-import { define } from "../utils.ts";
+import { define } from "@/utils.ts";
 import { Button } from "../components/Button.tsx";
 ```
 
