@@ -24,7 +24,7 @@ If you're using [file-based routing](/docs/concepts/file-routing), create a
 ## Basic example
 
 ```tsx routes/_app.tsx
-import { define } from "../utils.ts";
+import { define } from "@/utils.ts";
 
 export default define.page(({ Component, url }) => {
   return (
@@ -84,7 +84,7 @@ The app wrapper receives the same props as page components - `url`, `state`,
 `params`, and more. This is useful for conditional logic:
 
 ```tsx routes/_app.tsx
-import { define } from "../utils.ts";
+import { define } from "@/utils.ts";
 
 export default define.page(({ Component, url, state }) => {
   return (
@@ -112,7 +112,7 @@ structure. Use `skipAppWrapper` in the route config:
 
 ```tsx routes/embed.tsx
 import { type RouteConfig } from "fresh";
-import { define } from "../utils.ts";
+import { define } from "@/utils.ts";
 
 export const config: RouteConfig = {
   skipAppWrapper: true,

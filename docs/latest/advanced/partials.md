@@ -18,7 +18,7 @@ The quickest way to get started is to enable partials for every page in
 `routes/_app.tsx` by making the following changes.
 
 ```diff routes/_app.tsx
-  import { define } from "../utils.ts";
+  import { define } from "@/utils.ts";
 + import { Partial } from "fresh/runtime";
 
   export default define.page(function App({ Component }) {
@@ -81,7 +81,7 @@ documentation (marked green here).
 The code for such a page (excluding styling) might look like this:
 
 ```tsx routes/docs/[id].tsx
-import { define } from "../../utils.ts";
+import { define } from "@/utils.ts";
 
 export default define.page(async (ctx) => {
   const content = await loadContent(ctx.params.id);
@@ -104,7 +104,7 @@ An optimal route that only renders the content instead of the outer layout with
 the sidebar might look like this respectively.
 
 ```tsx routes/partials/docs/[id].tsx
-import { define } from "../utils.ts";
+import { define } from "@/utils.ts";
 import { Partial } from "fresh/runtime";
 
 // We only want to render the content, so disable

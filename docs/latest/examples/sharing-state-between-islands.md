@@ -174,7 +174,7 @@ Then wire them together from a route, passing the same signal to both:
 import { useSignal } from "@preact/signals";
 import AddToCart from "../islands/AddToCart.tsx";
 import Cart from "../islands/Cart.tsx";
-import { define } from "../utils.ts";
+import { define } from "@/utils.ts";
 
 export default define.page(function CartPage() {
   const cart = useSignal<string[]>([]);
