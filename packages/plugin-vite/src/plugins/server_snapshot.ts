@@ -64,21 +64,23 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
     islandsByFile.clear();
     islandSpecByName.clear();
 
-    // Remote islands are re-seeded first.
-    options.islandSpecifiers.forEach((name, spec) => {
+    const add = (spec: string, name: string) => {
       islands.set(spec, { name, chunk: null });
       islandSpecByName.set(name, spec);
-    });
+    };
+
+    // Remote islands are re-seeded first.
+    options.islandSpecifiers.forEach((name, spec) => add(spec, name));
 
     for (const spec of fileSpecs) {
+      // Reuse the cached name so the namer doesn't suffix `_1` on each rebuild.
       let name = islandNameBySpec.get(spec);
       if (name === undefined) {
         name = options.namer.getUniqueName(specToName(spec));
         islandNameBySpec.set(spec, name);
       }
 
-      islands.set(spec, { name, chunk: null });
-      islandSpecByName.set(name, spec);
+      add(spec, name);
       islandsByFile.add(spec);
     }
   }
@@ -207,7 +209,10 @@ export function serverSnapshot(options: ResolvedFreshViteConfig): Plugin[] {
               const mod = server.environments.client.moduleGraph.getModuleById(
                 id,
               );
-              if (mod !== undefined) {
+              // Skip a `fresh-island::Name` virtual `mod.url` (from the fallback
+              // resolver when the client graph was cold): emitting it as the chunk
+              // leaves a bare import the browser can't resolve. Keep the `/@id/` URL.
+              if (mod !== undefined && !mod.url.startsWith("fresh-island::")) {
                 const def = islands.get(id);
                 if (def !== undefined) def.chunk = mod.url;
               }

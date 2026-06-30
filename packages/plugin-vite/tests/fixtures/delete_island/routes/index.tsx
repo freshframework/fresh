@@ -1,3 +1,10 @@
+import Keep from "../islands/Keep.tsx";
+
 export default function Hello() {
-  return <h1>ok</h1>;
+  return (
+    <div>
+      <h1>ok</h1>
+      <Keep />
+    </div>
+  );
 }
