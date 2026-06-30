@@ -110,6 +110,49 @@ integrationTest(
   },
 );
 
+// Deleting an auto-discovered island used to break the dev server two ways: the
+// stale island lingered in the snapshot map as a dead import (permanent 500),
+// and the surviving sibling's boot import got rewritten to the unresolvable
+// `fresh-island::Name` specifier, killing its hydration after a reload.
+integrationTest(
+  "vite dev - deleting an island recovers and keeps siblings interactive",
+  async () => {
+    const fixture = path.join(FIXTURE_DIR, "delete_island");
+    await withDevServer(fixture, async (address, dir) => {
+      await withBrowser(async (page) => {
+        // Wire the surviving island into the client graph and hydrate it.
+        await page.goto(`${address}/`, { waitUntil: "networkidle2" });
+        await waitForText(page, ".keep", "keep 0");
+        await page.locator(".keep").click();
+        await waitForText(page, ".keep", "keep 1");
+
+        // Delete the sibling: the watcher rebuilds the island map and reloads.
+        await Deno.remove(path.join(dir, "islands", "Extra.tsx"));
+
+        // The delete is async, so require several consecutive 200s to be sure
+        // the server didn't wedge on the dead import.
+        await waitFor(async () => {
+          for (let i = 0; i < 5; i++) {
+            const res = await fetch(`${address}/`);
+            const html = await res.text();
+            expect(res.status).toEqual(200);
+            // Boot import must stay resolvable, no virtual specifier leaked.
+            expect(/from\s+"fresh-island::/.test(html)).toBe(false);
+            await new Promise((r) => setTimeout(r, 150));
+          }
+          return true;
+        });
+
+        // The survivor still hydrates and stays interactive after the reload.
+        await page.goto(`${address}/`, { waitUntil: "networkidle2" });
+        await waitForText(page, ".keep", "keep 0");
+        await page.locator(".keep").click();
+        await waitForText(page, ".keep", "keep 1");
+      });
+    });
+  },
+);
+
 integrationTest("vite dev - starts without routes/ dir", async () => {
   const fixture = path.join(FIXTURE_DIR, "no_routes");
   await withDevServer(fixture, async (address) => {
