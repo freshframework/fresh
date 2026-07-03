@@ -217,6 +217,27 @@ export default definePage(function DocsPage(props) {
                 <TableOfContents headings={headings} />
 
                 <div class="lg:order-1 min-w-0 max-w-3xl w-full">
+                  <div class="px-4 md:px-0 mb-2">
+                    <a
+                      href={`${props.url.pathname}.md`}
+                      class="inline-flex items-center gap-1 text-xs text-foreground-secondary hover:text-foreground-primary hover:underline"
+                    >
+                      <svg
+                        class="h-3.5 w-3.5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <path d="M14 2v6h6" />
+                      </svg>
+                      View as Markdown
+                    </a>
+                  </div>
                   <h1 class="text-4xl text-foreground-primary tracking-tight font-bold md:mt-0 px-4 md:px-0 mb-4">
                     {page.title}
                   </h1>
@@ -235,7 +256,7 @@ export default definePage(function DocsPage(props) {
                     />
                   </div>
                   <hr />
-                  <div class="px-4 md:px-0 flex flex-wrap gap-3 justify-between my-6">
+                  <div class="px-4 md:px-0 flex justify-between my-6">
                     <a
                       href={`https://github.com/denoland/fresh/edit/main/${page.file}`}
                       class="text-gray-700 dark:text-gray-200 text-md flex items-center bg-[#ebedf0] dark:bg-[#2c2d39] px-4 py-2 rounded-sm hover:bg-gray-200 dark:hover:bg-[#36394c] transition-colors"
@@ -244,12 +265,6 @@ export default definePage(function DocsPage(props) {
                     >
                       <span class="mr-2 inline-flex">Edit this page</span>
                       <Icons.GitHub />
-                    </a>
-                    <a
-                      href={`${props.url.pathname}.md`}
-                      class="text-gray-700 dark:text-gray-200 text-md flex items-center bg-[#ebedf0] dark:bg-[#2c2d39] px-4 py-2 rounded-sm hover:bg-gray-200 dark:hover:bg-[#36394c] transition-colors"
-                    >
-                      View as Markdown
                     </a>
                   </div>
                 </div>
