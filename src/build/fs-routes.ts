@@ -1,19 +1,3 @@
-// Turn a Fresh-style filesystem layout into a config object.
-//
-// Conventions handled:
-//   routes/index.tsx          -> /
-//   routes/about.tsx          -> /about
-//   routes/blog/index.tsx     -> /blog
-//   routes/blog/[slug].tsx    -> /blog/:slug
-//   routes/[...rest].tsx      -> /*
-//   routes/(group)/foo.tsx    -> /foo            (route groups are transparent)
-//   routes/_app.tsx           -> result.app      (root only)
-//   routes/_error.tsx         -> result.error    (root only)
-//   routes/.../_layout.tsx    -> layouts chain
-//   routes/.../_middleware.tsx -> middlewares chain
-//   islands/**/*.{ts,tsx,js,jsx} -> islands[]
-//   routes/**/(_islands)/**/*.{ts,tsx,js,jsx} -> islands[]  (co-located)
-
 export interface DirEntry {
   name: string;
   isDirectory: boolean;
@@ -41,16 +25,7 @@ export interface FreshConfig {
   routes: Map<string, RouteEntry>;
   app: string | null;
   error: string | null;
-  /**
-   * Project-relative path to `entry.client.{ts,tsx,js,jsx}` at the project
-   * root, or `null` when no client entry exists.
-   */
   clientEntry: string | null;
-  /**
-   * Project-relative path to `entry.server.{ts,tsx,js,jsx}` at the project
-   * root, or `null` when none exists. When present it default-exports an
-   * `App` as `app`, whose `app.use(...)` middlewares run ahead of every route.
-   */
   serverEntry: string | null;
 }
 
@@ -69,11 +44,6 @@ export function stripExt(name: string): string {
 
 export function segmentToPattern(segment: string): string | null {
   if (/^\(.+\)$/.test(segment)) return null;
-  // Named catch-all: `[...path]` → `:path*` (rou3's named-greedy syntax,
-  // matches zero-or-more remaining segments and surfaces them under the
-  // declared name in `params`). The trailing `*` is what makes it greedy;
-  // the leading `:name` is what gives `ctx.params.<name>` instead of the
-  // anonymous `_` rou3 falls back to for `**`.
   const catchAll = segment.match(/^\[\.\.\.(.+)\]$/);
   if (catchAll) return ":" + catchAll[1] + "*";
   const m = segment.match(/^\[(.+)\]$/);

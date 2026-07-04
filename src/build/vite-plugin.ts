@@ -595,7 +595,12 @@ async function writeTypeFiles(
   // `import("./<basename>").State`; otherwise `OwnState = ParentState`.
   for (const [mw, parent] of middlewareParent) {
     const source = await fs.readFile(path.resolve(root, mw));
-    const file = generateMiddlewareTypeFile(mw, parent, detectStateExport(source));
+    const file = generateMiddlewareTypeFile(
+      mw,
+      parent,
+      detectStateExport(source),
+      paramsFromFilePath(mw),
+    );
     await writeFile(path.resolve(root, file.path), file.content);
   }
 

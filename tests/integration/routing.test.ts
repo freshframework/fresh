@@ -63,6 +63,14 @@ test("middleware can short-circuit without calling next()", async () => {
   expect(res.headers.get("x-check-mw")).toBeNull();
 });
 
+test("a middleware in a dynamic folder receives the matched param in ctx.params", async () => {
+  const res = await fetch(`${base}/check/items/widget-7`);
+  expect(res.status).toBe(200);
+  // `id` comes straight from the route handler's params; `item` is the same
+  // value the dynamic-folder `_middleware.tsx` read off `ctx.params` and seeded.
+  expect(await res.json()).toEqual({ id: "widget-7", item: "widget-7" });
+});
+
 // ---------- handler return semantics ----------
 
 test("a single-function handler matches every method", async () => {

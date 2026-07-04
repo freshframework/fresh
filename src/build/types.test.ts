@@ -127,13 +127,13 @@ test("typeFileContent: standalone handler + page are identity at runtime", () =>
 // ---------- middlewareTypeFileContent ----------
 
 test("middlewareTypeFileContent: root middleware defaults ParentState to an empty interface (extendable)", () => {
-  const code = middlewareTypeFileContent("routes/_middleware.tsx", null, false);
+  const code = middlewareTypeFileContent("routes/_middleware.tsx", null, false, []);
   assert.match(code, /interface ParentState \{\}/);
   assert.match(code, /type OwnState = ParentState;/);
   assert.match(code, /import type \{ MiddlewareFn \} from "fresh\/types";/);
   assert.match(code, /export type \{ ParentState \};/);
   assert.match(code, /export type State = OwnState;/);
-  assert.match(code, /MiddlewareFn<ParentState, OwnState>/);
+  assert.match(code, /MiddlewareFn<ParentState, OwnState, Params>/);
 });
 
 test("middlewareTypeFileContent: nested middleware imports ParentState from the parent typings file", () => {
@@ -141,6 +141,7 @@ test("middlewareTypeFileContent: nested middleware imports ParentState from the 
     "routes/admin/_middleware.tsx",
     "routes/_middleware.tsx",
     false,
+    [],
   );
   // From .fresh/types/routes/admin/$_middleware.ts to
   // .fresh/types/routes/$_middleware.ts → "../$_middleware".
@@ -152,18 +153,35 @@ test("middlewareTypeFileContent: OwnState pulls State from the source via dotted
     "routes/admin/_middleware.tsx",
     "routes/_middleware.tsx",
     true,
+    [],
   );
   assert.match(code, /type OwnState = import\("\.\/_middleware\.tsx"\)\.State;/);
   assert.doesNotMatch(code, /type OwnState = ParentState;/);
 });
 
 test("middlewareTypeFileContent: emits standalone `middleware` typed with MiddlewareFn", () => {
-  const code = middlewareTypeFileContent("routes/_middleware.tsx", null, false);
+  const code = middlewareTypeFileContent("routes/_middleware.tsx", null, false, []);
   assert.match(
     code,
-    /export function middleware\(\s+fn: MiddlewareFn<ParentState, OwnState>,?\s+\): typeof fn/,
+    /export function middleware\(\s+fn: MiddlewareFn<ParentState, OwnState, Params>,?\s+\): typeof fn/,
   );
   assert.doesNotMatch(code, /export const define/);
+});
+
+test("middlewareTypeFileContent: a middleware with no folder params gets an empty Params interface", () => {
+  const code = middlewareTypeFileContent("routes/_middleware.tsx", null, false, []);
+  assert.match(code, /export interface Params \{\}/);
+});
+
+test("middlewareTypeFileContent: types Params from the middleware's folder dynamic segments", () => {
+  const code = middlewareTypeFileContent(
+    "routes/users/[id]/_middleware.tsx",
+    "routes/_middleware.tsx",
+    false,
+    ["id"],
+  );
+  assert.match(code, /export interface Params \{\n {2}id: string;\n\}/);
+  assert.match(code, /MiddlewareFn<ParentState, OwnState, Params>/);
 });
 
 // ---------- generateMiddlewareTypeFile ----------
@@ -173,6 +191,7 @@ test("generateMiddlewareTypeFile returns the typings path next to the source", (
     "routes/admin/_middleware.tsx",
     "routes/_middleware.tsx",
     false,
+    [],
   );
   assert.equal(file.path, ".fresh/types/routes/admin/$_middleware.ts");
 });

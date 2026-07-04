@@ -1,8 +1,8 @@
 // Source-code generators for the three virtual modules that drive the SSR
 // environment:
 //
-//   * `fresh:routes/<id>`            — per-route handler module
-//   * `fresh:internal/router`        — rou3 matcher (pre-compiled at build time)
+//   * `fresh:routes/<id>`                — per-route handler module
+//   * `fresh:internal/router`            — rou3 matcher (pre-compiled at build time)
 //   * `fresh:internal/server-entrypoint` — service entry exporting `{ fetch }`
 //
 // `<id>` is the route's handler path relative to the `routes/` directory with

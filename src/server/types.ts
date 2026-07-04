@@ -1,8 +1,3 @@
-// Shared, type-only helpers. Kept apart from `./modules.ts` (runtime
-// validators) so that the auto-generated `.fresh/types/<route>/$<file>.ts`
-// typings files can pull the typing helpers without dragging in any runtime
-// values.
-
 import type { ComponentChildren, VNode } from "preact";
 import type { ServerRuntimeContext } from "srvx";
 
@@ -26,7 +21,6 @@ interface Params {}
  * May be `undefined` when the host didn't provide one (e.g. a request synthesized
  * outside a srvx server) — narrow before use.
  */
-// deno-lint-ignore no-empty-interface
 export interface RuntimeContext extends ServerRuntimeContext {}
 
 /**
@@ -105,12 +99,25 @@ export type Handler<P extends Params = Params, S extends EmptyState = EmptyState
  * Context passed to a middleware. `ParentS` is the state declared by the
  * next-higher middleware (or `EmptyState` for the root middleware). `OwnS`
  * is the state this middleware produces — when it differs from `ParentS`
- * the `next` call requires a `{ state }` argument.
+ * the `next` call requires a `{ state }` argument. `P` is the set of URL params
+ * fixed by the middleware's folder path (every route this middleware runs for
+ * shares those segments, so the param keys are statically known).
  */
-export interface MiddlewareContext<ParentS, OwnS extends ParentS = ParentS> {
+export interface MiddlewareContext<
+  ParentS,
+  OwnS extends ParentS = ParentS,
+  P extends Params = Params,
+> {
   req: Request;
   /** Parsed `req.url`. */
   url: URL;
+  /**
+   * URL params captured by the dynamic segments (`[id]`, `[...path]`) in this
+   * middleware's folder path up to `routes/`. Same keys for every route the
+   * middleware runs for, so — like {@link HandlerContext.params} — they're
+   * typed from the folder structure rather than left as an open record.
+   */
+  params: P;
   state: ParentS;
   /** `true` for a client-driven partial navigation request. See {@link HandlerContext}. */
   isPartial: boolean;
@@ -133,15 +140,18 @@ export interface MiddlewareContext<ParentS, OwnS extends ParentS = ParentS> {
 }
 
 /** The function signature a user-authored middleware must satisfy. */
-export type MiddlewareFn<ParentS = EmptyState, OwnS extends ParentS = ParentS> = (
-  ctx: MiddlewareContext<ParentS, OwnS>,
-) => Response | Promise<Response>;
+export type MiddlewareFn<
+  ParentS = EmptyState,
+  OwnS extends ParentS = ParentS,
+  P extends Params = Params,
+> = (ctx: MiddlewareContext<ParentS, OwnS, P>) => Response | Promise<Response>;
 
 /** Alias for {@link MiddlewareFn} — older imports keep working. */
-export type Middleware<ParentS = EmptyState, OwnS extends ParentS = ParentS> = MiddlewareFn<
-  ParentS,
-  OwnS
->;
+export type Middleware<
+  ParentS = EmptyState,
+  OwnS extends ParentS = ParentS,
+  P extends Params = Params,
+> = MiddlewareFn<ParentS, OwnS, P>;
 
 // ---------- Pages ----------
 

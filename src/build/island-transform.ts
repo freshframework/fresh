@@ -1,46 +1,77 @@
-// SSR-only transform that marks every exported function in an island source
-// file with a `__FRESH_SERIALIZABLE_FUNCTION = { specifier, export }` property.
+// Islands are the parts of a Fresh page that come alive in the browser.
+// Everything else renders once on the server and ships as static HTML; an
+// island also re-renders on the client and wires up its own event handlers.
+// For that to work the server has to point each rendered island at its *client*
+// build when it streams a page — and it has to do so without ever importing
+// that client bundle itself.
 //
-// At SSR render time the framework sees these markers on the rendered
-// component and emits a hydration boundary keyed by the specifier — without
-// the SSR module ever needing to import the client-side bundle.
+// This module is the build-time half of that handshake. It runs over every
+// island source file and tags each exported function with a small marker:
 //
-// We run the transform only in the SSR environment so the client bundle stays
-// free of these markers (they're useless to the client and we'd rather not
-// ship the extra bytes there).
+//     Counter.__FRESH_SERIALIZABLE_FUNCTION = { specifier, export };
 //
-// Detection is intentionally broad: every exported identifier with a local
-// binding is a candidate. Two runtime guards keep the stamping safe:
+// When the renderer later meets a component carrying this marker, it knows
+// "this is the `export` from `specifier`" — exactly enough to open a hydration
+// boundary that the client runtime picks up after load. The marker is the only
+// channel between the two halves; the server module never reaches into the
+// client bundle.
 //
-//   * `typeof X === "function"` skips non-function exports (constants,
-//     objects, …) without throwing.
-//   * `!X.__FRESH_SERIALIZABLE_FUNCTION` preserves a previously-set marker, so re-exports
-//     of an island from another file (`export { Foo } from "./Foo.tsx"`)
-//     don't clobber the original specifier.
+// We run the transform in the SSR environment only. The client already knows
+// which module it is, so the markers would be dead weight in the browser
+// bundle — better to leave those bytes on the server.
 //
-// Anonymous default exports (`export default () => …`, `export default
-// function () {}`, `export default class {}`) have no addressable binding
-// to hang a property off — they're lifted to a named const
-// (`const __fresh_island_default = …; export default
-// __fresh_island_default;`) before being reported.
+// ## What gets tagged
 //
-// All edits flow through a single `MagicString` instance, so the transform
-// returns a proper source map that lines up with the original source.
+// We cast the net wide on purpose: every export with a local binding is a
+// candidate, whatever its shape — a function, a `const`, a destructured
+// binding, a re-export. There's no attempt to guess at build time which
+// exports are "really" components. Instead, two cheap guards in the emitted
+// code keep the tagging harmless at runtime:
+//
+//   * `typeof X === "function"` — constants, objects, and the like are simply
+//     skipped, so tagging a non-component export costs nothing.
+//   * `!X.__FRESH_SERIALIZABLE_FUNCTION` — a binding that already carries a
+//     marker keeps it, so re-exporting an island from another file
+//     (`export { Counter } from "./Counter.tsx"`) preserves the original
+//     specifier instead of stamping over it.
+//
+// ## Anonymous default exports
+//
+// `export default () => …`, `export default function () {}`, and
+// `export default class {}` have no name to hang a property off. For those we
+// first rewrite the export to give it one — a generated `const` — and then tag
+// that:
+//
+//     const __fresh_island_default = () => …;
+//     export default __fresh_island_default;
+//
+// Every edit flows through a single `MagicString`, so the transform hands back
+// a source map that still lines up with the file the author wrote.
 
 import * as path from "node:path";
 import MagicString from "magic-string";
 import { parseAst } from "rolldown/parseAst";
-import type { BindingPattern, BindingRestElement, IdentifierReference } from "@oxc-project/types";
+import type {
+  BindingPattern,
+  BindingRestElement,
+  ExportDefaultDeclaration,
+  ExportNamedDeclaration,
+  IdentifierReference,
+} from "@oxc-project/types";
+
+/** The property each island export is tagged with, and the object's shape. */
+const MARKER_PROP = "__FRESH_SERIALIZABLE_FUNCTION";
 
 /**
- * Detected island file path shapes — the root `islands/…` directory and
- * co-located islands in a `routes/**\/(_islands)/…` route-group folder (the
- * folder is dropped from the URL, Fresh 2 parity).
+ * Which files Fresh treats as islands: the top-level `islands/` directory, and
+ * islands co-located with a route inside a `(_islands)/` group folder (the
+ * parenthesised folder is dropped from the URL, matching Fresh 2). Only
+ * `.tsx`/`.ts`/`.jsx`/`.js` sources qualify.
  */
 export const ISLAND_PATH_RE: RegExp =
   /(?:^|[/\\])(?:islands|\(_islands\))[/\\].+\.(?:tsx|ts|jsx|js)$/;
 
-/** Local binding inserted when lifting an anonymous default export. */
+/** The name we lift an anonymous default export onto so it has a binding to tag. */
 export const ANON_DEFAULT_LOCAL = "__fresh_island_default";
 
 type Lang = "ts" | "tsx" | "js" | "jsx";
@@ -52,32 +83,30 @@ const LANG_BY_EXT: Record<string, Lang> = {
 };
 
 export interface DetectedIslandExport {
-  /** The exported name, or `null` for the default export. */
+  /** The name the value is exported under, or `null` for the default export. */
   exportName: string | null;
-  /** The local binding the property assignment attaches to. */
+  /** The in-file binding the marker assignment attaches to. */
   localName: string;
 }
 
 /**
- * Collect every identifier bound by a `const`/`let`/`var` declarator id —
- * either a plain `Identifier` or a destructuring pattern. Walks array and
- * object patterns (including nesting, defaults, rest elements, and array
- * holes), so `export const [a, [b], { c: d, ...e }] = …` yields
- * `["a", "b", "d", "e"]`. For object patterns the *value* binding is taken,
- * not the key, so `{ c: d }` binds `d`.
+ * Gather every name a `const`/`let`/`var` declarator binds. A plain
+ * `export const Foo = …` binds a single name; a destructuring pattern can bind
+ * many. We walk array and object patterns all the way down — through nesting,
+ * defaults, rest elements, and array holes — so that
+ * `export const [a, [b], { c: d, ...e }] = …` yields `["a", "b", "d", "e"]`.
+ * For object patterns we take the *value* binding, not the key, so `{ c: d }`
+ * binds `d`.
  */
-// deno-lint-ignore no-explicit-any
-function collectPatternNames(pattern: BindingPattern | BindingRestElement): string[] {
-  if (!pattern) return []; // array hole (`[, x]`) surfaces as a null element
+function collectPatternNames(pattern: BindingPattern | BindingRestElement | null): string[] {
+  if (!pattern) return [];
   switch (pattern.type) {
     case "Identifier":
       return typeof pattern.name === "string" ? [pattern.name] : [];
     case "ArrayPattern":
-      // deno-lint-ignore no-explicit-any
-      return (pattern.elements ?? []).flatMap((el: any) => collectPatternNames(el));
+      return (pattern.elements ?? []).flatMap(collectPatternNames);
     case "ObjectPattern":
-      // deno-lint-ignore no-explicit-any
-      return (pattern.properties ?? []).flatMap((prop: any) =>
+      return (pattern.properties ?? []).flatMap((prop) =>
         prop.type === "RestElement"
           ? collectPatternNames(prop.argument)
           : collectPatternNames(prop.value),
@@ -91,119 +120,135 @@ function collectPatternNames(pattern: BindingPattern | BindingRestElement): stri
   }
 }
 
+/**
+ * The exports introduced by a single `export …` statement that has no `from`
+ * source — i.e. ones whose bindings live in this module. Covers
+ * `export function`/`export class`, every binding of an `export const/let/var`
+ * (including destructuring), and bare `export { … }` specifier lists.
+ */
+function namedExports(node: ExportNamedDeclaration): DetectedIslandExport[] {
+  // `export { Foo } from "./other"` re-exports a binding owned by another
+  // module — there's nothing in this file to tag.
+  if (node.source) return [];
+
+  const decl = node.declaration;
+  if (decl) {
+    // `export function Foo() {}` / `export class Foo {}`
+    if (
+      (decl.type === "FunctionDeclaration" || decl.type === "ClassDeclaration") &&
+      decl.id?.name
+    ) {
+      return [{ exportName: decl.id.name, localName: decl.id.name }];
+    }
+    // `export const Foo = …`, and every binding a destructuring pattern
+    // introduces (`export const { a, b } = …`, `export const [a, b] = …`).
+    // Each bound identifier is its own local *and* exported name.
+    if (decl.type === "VariableDeclaration") {
+      return decl.declarations.flatMap((d) =>
+        collectPatternNames(d.id).map((name) => ({ exportName: name, localName: name })),
+      );
+    }
+    // Some other declaration (e.g. `export interface`) — not a value to tag.
+    return [];
+  }
+
+  // `export { Foo, Bar as Baz }` — each specifier pairs an in-file binding
+  // (`local`) with the name it's exported under (`exported`). We tag the local
+  // and remember the exported name for the hydration lookup. String-literal
+  // aliases (`export { Foo as "a b" }`) aren't usable island names, so skip them.
+  const out: DetectedIslandExport[] = [];
+  for (const spec of node.specifiers ?? []) {
+    const localName = (spec.local as IdentifierReference).name;
+    const exportName = spec.exported.type === "Identifier" ? spec.exported.name : null;
+    if (typeof exportName === "string") out.push({ exportName, localName });
+  }
+  return out;
+}
+
+/**
+ * The export introduced by an `export default …`, or `null` when the default
+ * is something that can't be an island (an object, a primitive, …). When the
+ * default is an anonymous function or class it has no binding to tag, so we
+ * rewrite `s` in place to lift it onto {@link ANON_DEFAULT_LOCAL} first.
+ */
+function defaultExport(
+  node: ExportDefaultDeclaration,
+  source: string,
+  s: MagicString,
+): DetectedIslandExport | null {
+  const decl = node.declaration;
+
+  // `export default function Counter() {}` / `export default class Counter {}`
+  // already have a name — tag it where it stands, no rewrite needed.
+  if (
+    (decl.type === "FunctionDeclaration" ||
+      decl.type === "FunctionExpression" ||
+      decl.type === "ClassDeclaration") &&
+    decl.id?.name
+  ) {
+    return { exportName: null, localName: decl.id.name };
+  }
+
+  // `export default Counter` — points at a binding declared elsewhere in the
+  // file; tag that binding directly.
+  if (decl.type === "Identifier" && typeof decl.name === "string") {
+    return { exportName: null, localName: decl.name };
+  }
+
+  // Anonymous function/arrow/class default — no name to tag. Lift the value
+  // into a generated `const` and re-export that, so there's a binding to stamp.
+  if (
+    decl.type === "FunctionDeclaration" ||
+    decl.type === "FunctionExpression" ||
+    decl.type === "ArrowFunctionExpression" ||
+    decl.type === "ClassDeclaration" ||
+    decl.type === "ClassExpression"
+  ) {
+    const value = source.slice(decl.start, decl.end);
+    s.overwrite(
+      node.start,
+      node.end,
+      `const ${ANON_DEFAULT_LOCAL} = ${value};\nexport default ${ANON_DEFAULT_LOCAL};`,
+    );
+    return { exportName: null, localName: ANON_DEFAULT_LOCAL };
+  }
+
+  // Any other default (object, primitive, call expression, …) isn't an island.
+  return null;
+}
+
 export interface IslandAnalysis {
   /**
-   * Live `MagicString` instance carrying the (possibly rewritten) module
-   * text. `appendIslandMarkers` will append to it; the caller serializes via
-   * `s.toString()` + `s.generateMap(...)` at the end.
+   * The module text as a `MagicString`, already carrying any rewrite an
+   * anonymous default export needed. {@link appendIslandMarkers} appends the
+   * marker assignments to it; the caller serializes the final result with
+   * `s.toString()` and `s.generateMap(...)`.
    */
   s: MagicString;
-  /** Exports the transform should mark. */
+  /** The exports {@link appendIslandMarkers} should tag. */
   exports: DetectedIslandExport[];
 }
 
 /**
- * Parse `source` and return:
- *  - a `MagicString` carrying the (possibly rewritten) module text, and
- *  - the list of exports to mark with `__FRESH_SERIALIZABLE_FUNCTION`.
- *
- * The walk covers function/class declarations, `export const/let/var`
- * declarators — both `Identifier` ids and destructuring patterns
- * (`export const [a, b] = …`, `export const { a, b } = …`) via
- * {@link collectPatternNames} — named-specifier re-exports without a source
- * (`export { Foo, Bar as Baz }`), and `export default …`. Re-exports with a
- * source (`export { Foo } from "./x"`) are skipped — they have no local
- * binding in this module.
+ * Parse an island source file and work out what to tag. Returns the module as a
+ * `MagicString` (rewritten in place if an anonymous default had to be lifted)
+ * alongside the list of exports to mark. Re-exports with a `from` source are
+ * left alone — their bindings belong to another module, which the transform
+ * tags on its own pass.
  */
 export function analyzeIslandSource(source: string, filename: string): IslandAnalysis {
-  const ext = path.extname(filename);
-  const lang = LANG_BY_EXT[ext] ?? "tsx";
-  // Oxc/Rolldown AST surface is large and version-dependent; narrow with
-  // structural checks instead of pulling typings.
-  // deno-lint-ignore no-explicit-any
+  const lang = LANG_BY_EXT[path.extname(filename)] ?? "tsx";
   const ast = parseAst(source, { lang }, filename);
 
   const s = new MagicString(source);
   const exports: DetectedIslandExport[] = [];
 
-  // deno-lint-ignore no-explicit-any
   for (const node of ast.body) {
     if (node.type === "ExportNamedDeclaration") {
-      // `export { Foo } from "./other"` — no local binding, skip.
-      if (node.source) continue;
-
-      const decl = node.declaration;
-      if (decl) {
-        if (
-          (decl.type === "FunctionDeclaration" || decl.type === "ClassDeclaration") &&
-          decl.id?.name
-        ) {
-          exports.push({ exportName: decl.id.name, localName: decl.id.name });
-          continue;
-        }
-        if (decl.type === "VariableDeclaration") {
-          for (const d of decl.declarations) {
-            // Plain `export const Foo = …` and destructuring
-            // (`export const [a, b] = …`, `export const { a, b } = …`) alike —
-            // each bound identifier is its own local + exported name.
-            for (const name of collectPatternNames(d.id)) {
-              exports.push({ exportName: name, localName: name });
-            }
-          }
-          continue;
-        }
-      }
-
-      // `export { Foo, Bar as Baz };` — locally-bound specifiers.
-      for (const spec of node.specifiers ?? []) {
-        const local = (spec.local as IdentifierReference).name;
-        // TODO: ensure that all uses of this correctly handle invalid identifier as export names
-        const exported = spec.exported.type === "Identifier" ? spec.exported.name : null;
-        if (typeof exported === "string") {
-          exports.push({ exportName: exported, localName: local });
-        }
-      }
-      continue;
-    }
-
-    if (node.type === "ExportDefaultDeclaration") {
-      const decl = node.declaration;
-      // Named function/class default — already addressable by id.
-      if (
-        (decl.type === "FunctionDeclaration" ||
-          decl.type === "FunctionExpression" ||
-          decl.type === "ClassDeclaration") &&
-        decl.id?.name
-      ) {
-        exports.push({ exportName: null, localName: decl.id.name });
-        continue;
-      }
-      // `export default Identifier` — refers to an existing local.
-      if (decl.type === "Identifier" && typeof decl.name === "string") {
-        exports.push({ exportName: null, localName: decl.name });
-        continue;
-      }
-      // Anonymous function/arrow/class default — lift to a named const.
-      if (
-        decl.type === "FunctionDeclaration" ||
-        decl.type === "FunctionExpression" ||
-        decl.type === "ArrowFunctionExpression" ||
-        decl.type === "ClassDeclaration" ||
-        decl.type === "ClassExpression"
-      ) {
-        const inner = source.slice(decl.start, decl.end);
-        s.overwrite(
-          node.start,
-          node.end,
-          `const ${ANON_DEFAULT_LOCAL} = ${inner};\nexport default ${ANON_DEFAULT_LOCAL};`,
-        );
-        exports.push({
-          exportName: null,
-          localName: ANON_DEFAULT_LOCAL,
-        });
-        continue;
-      }
-      // Other default expressions (objects, primitives, …) — not islands.
+      exports.push(...namedExports(node));
+    } else if (node.type === "ExportDefaultDeclaration") {
+      const detected = defaultExport(node, source, s);
+      if (detected) exports.push(detected);
     }
   }
 
@@ -211,10 +256,11 @@ export function analyzeIslandSource(source: string, filename: string): IslandAna
 }
 
 /**
- * Stamp `__FRESH_SERIALIZABLE_FUNCTION` onto each detected export, guarded so non-functions
- * (constants, objects) are skipped at runtime and already-marked re-exports
- * preserve their original specifier. Appends to the supplied `MagicString`
- * in place.
+ * Append the marker assignments — one per detected export — to the module.
+ * Each assignment is guarded twice: `typeof … === "function"` so non-function
+ * exports are skipped at runtime, and `!….__FRESH_SERIALIZABLE_FUNCTION` so a
+ * binding that already carries a marker (a re-exported island) keeps its
+ * original specifier. A file with no detected exports is left untouched.
  */
 export function appendIslandMarkers(
   s: MagicString,
@@ -222,11 +268,12 @@ export function appendIslandMarkers(
   specifier: string,
 ): void {
   if (exports.length === 0) return;
-  const lines = ["", "// __FRESH_SERIALIZABLE_FUNCTION markers injected by fresh/vite"];
+
+  const lines = ["", `// ${MARKER_PROP} markers injected by fresh/vite`];
   for (const { exportName, localName } of exports) {
     const payload = JSON.stringify({ specifier, export: exportName });
     lines.push(
-      `if (typeof ${localName} === "function" && !${localName}.__FRESH_SERIALIZABLE_FUNCTION) ${localName}.__FRESH_SERIALIZABLE_FUNCTION = ${payload};`,
+      `if (typeof ${localName} === "function" && !${localName}.${MARKER_PROP}) ${localName}.${MARKER_PROP} = ${payload};`,
     );
   }
   lines.push("");
