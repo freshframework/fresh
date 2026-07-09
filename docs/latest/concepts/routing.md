@@ -46,11 +46,14 @@ This means the registration order matters for dynamic routes:
 
 ```ts main.ts
 const app = new App()
-  // This is checked first since it's registered first
-  .get("/posts/featured", () => new Response("Featured posts"))
-  // This is checked second - won't match "/posts/featured" because it's
-  // already handled above
-  .get("/posts/:id", (ctx) => new Response(`Post: ${ctx.params.id}`));
+  // Checked first among dynamic routes because it was registered first.
+  .get("/posts/:category/:slug", () => new Response("First"))
+  // This route will never match because every request it matches is already
+  // matched by the route above.
+  .get("/posts/nature/:page", () => new Response("Second"))
+  // Static routes always take precedence over dynamic routes, regardless of
+  // registration order.
+  .get("/posts/featured", () => new Response("Featured posts"));
 ```
 
 ## HTTP method handlers
