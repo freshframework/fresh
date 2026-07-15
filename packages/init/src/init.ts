@@ -319,7 +319,7 @@ html {
 .font-bold {
   font-weight: 700;
 }
-.max-w-screen-md {
+.max-w-3xl {
   max-width: 768px;
 }
 .flex-col {
@@ -473,7 +473,7 @@ export default define.page(function Home(ctx) {
       <Head>
         <title>Fresh counter</title>
       </Head>
-      <div class="max-w-screen-md mx-auto flex flex-col items-center justify-center">
+      <div class="max-w-3xl mx-auto flex flex-col items-center justify-center">
         <img
           class="my-6"
           src="/logo.svg"
