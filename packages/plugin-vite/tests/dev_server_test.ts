@@ -564,6 +564,65 @@ Deno.test({
   sanitizeResources: false,
 });
 
+// issue: https://github.com/freshframework/fresh/issues/3895
+// Vite appends a `?v=<hash>` suffix to dependency ids when `optimizeDeps` is
+// active. The Deno loader must strip it instead of treating it as part of the
+// file path, in both the client and the ssr environment.
+integrationTest("vite dev - works with optimizeDeps enabled", async () => {
+  const fixture = path.join(FIXTURE_DIR, "no_islands");
+  await using tmp = await prepareDevServer(fixture, {
+    config: `import { defineConfig } from "vite";
+import { fresh } from "@fresh/plugin-vite";
+
+export default defineConfig({
+  plugins: [fresh()],
+  optimizeDeps: { include: ["preact"] },
+  environments: {
+    ssr: { optimizeDeps: { include: ["preact"] } },
+  },
+});
+`,
+  });
+
+  await launchDevServer(tmp.dir, async (address) => {
+    // ssr environment
+    const res = await fetch(address);
+    const text = await res.text();
+    expect(res.status).toEqual(200);
+    expect(text).toContain("ok");
+
+    // client environment: walk the module graph from the client entry. Vite
+    // versions dependency ids whether or not it pre-bundles them, so the
+    // graph contains `?v=<hash>` urls that must still resolve to a file.
+    const seen = new Set<string>();
+    const queue = ["/@id/fresh:client-entry"];
+    const failed: string[] = [];
+    let versioned = 0;
+
+    while (queue.length > 0) {
+      const url = queue.pop()!;
+      if (seen.has(url) || url.startsWith("/@vite/")) continue;
+      seen.add(url);
+
+      const modRes = await fetch(`${address}${url}`);
+      const code = await modRes.text();
+      if (modRes.status !== 200) {
+        failed.push(`${modRes.status} ${url}`);
+        continue;
+      }
+
+      if (url.includes("?v=")) versioned++;
+
+      for (const match of code.matchAll(/from "(\/[^"]+)"/g)) {
+        queue.push(match[1]);
+      }
+    }
+
+    expect(failed).toEqual([]);
+    expect(versioned).toBeGreaterThan(0);
+  });
+});
+
 // issue: https://github.com/denoland/fresh/issues/3666
 integrationTest(
   "vite dev - basePath does not intercept Vite URLs",

@@ -9,7 +9,7 @@ import {
 import * as path from "@std/path";
 import * as babel from "@babel/core";
 import { httpAbsolute } from "./patches/http_absolute.ts";
-import { JS_REG, JSX_REG } from "../utils.ts";
+import { cleanId, JS_REG, JSX_REG } from "../utils.ts";
 import { builtinModules } from "node:module";
 
 // @ts-ignore Workaround for https://github.com/denoland/deno/issues/30850
@@ -217,7 +217,9 @@ export function deno(): Plugin {
         return;
       }
 
-      const url = path.toFileUrl(id);
+      // Vite appends suffixes like `?v=<hash>` to dependency ids. They are
+      // not part of the file path and must be dropped before hitting the fs.
+      const url = path.toFileUrl(cleanId(id));
 
       const result = await loader.load(url.href, meta.type);
       if (result.kind === "external") {
@@ -257,7 +259,7 @@ export function deno(): Plugin {
           const { specifier } = parseDenoSpecifier(id);
           actualId = specifier;
         }
-        actualId = actualId.replace("?commonjs-es-import", "");
+        actualId = cleanId(actualId);
 
         if (actualId.startsWith("\0")) {
           actualId = actualId.slice(1);
