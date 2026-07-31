@@ -1,9 +1,53 @@
+import type { DevEnvironment } from "vite";
 import { cleanId } from "../utils.ts";
 
-/** The parts of Vite's `DepsOptimizer` we rely on. */
-export interface DepsOptimizerLike {
-  metadata: { browserHash: string };
-  options: { extensions?: string[] };
+/**
+ * Vite does not export `DepsOptimizer`, but it is reachable through the
+ * `DevEnvironment` type, so we can use Vite's own definition rather than
+ * describing the shape ourselves.
+ */
+export type DepsOptimizer = NonNullable<DevEnvironment["depsOptimizer"]>;
+
+/**
+ * Mirrors `tryOptimizedResolve()` from Vite's `vite:resolve` plugin.
+ *
+ * When a dependency has been pre-bundled, Vite serves it from its own cache
+ * (`/.vite/deps/…`) rather than from the package on disk. We have to return
+ * the same id, otherwise the specifiers we resolve keep pointing at the
+ * original files and the dependency is loaded a second time alongside the
+ * bundle.
+ *
+ * Vite looks the dependency up by specifier, which only works for the bare
+ * names it uses itself. Deno rewrites imports inside jsr modules to `npm:`
+ * specifiers (`npm:@preact/signals@^2.0.0`), so we additionally match on the
+ * file the dependency was pre-bundled from, which is independent of how the
+ * specifier was written.
+ */
+export async function tryOptimizedResolve(
+  specifier: string,
+  resolved: string,
+  depsOptimizer: DepsOptimizer,
+): Promise<string | undefined> {
+  // Metadata is incomplete until dependency scanning has settled.
+  await depsOptimizer.scanProcessing;
+
+  const { optimized, discovered, chunks, depInfoList } = depsOptimizer.metadata;
+
+  const bySpecifier = optimized[specifier] ?? discovered[specifier] ??
+    chunks[specifier];
+  if (bySpecifier !== undefined) {
+    return depsOptimizer.getOptimizedDepId(bySpecifier);
+  }
+
+  const file = cleanId(resolved);
+  const bySource = depInfoList.find((info) =>
+    info.src !== undefined && cleanId(info.src) === file
+  );
+  if (bySource !== undefined) {
+    return depsOptimizer.getOptimizedDepId(bySource);
+  }
+
+  return undefined;
 }
 
 const DEP_VERSION_REG = /[?&]v=/;
@@ -16,8 +60,8 @@ const OPTIMIZABLE_REG = /\.[cm]?[jt]s$/;
  */
 export function depsOptimizerOf(
   environment: unknown,
-): DepsOptimizerLike | undefined {
-  return (environment as { depsOptimizer?: DepsOptimizerLike }).depsOptimizer;
+): DepsOptimizer | undefined {
+  return (environment as { depsOptimizer?: DepsOptimizer }).depsOptimizer;
 }
 
 /**
@@ -31,7 +75,7 @@ export function depsOptimizerOf(
  */
 export function ensureVersionQuery(
   resolved: string,
-  depsOptimizer: DepsOptimizerLike,
+  depsOptimizer: DepsOptimizer,
 ): string {
   // Only dependencies are versioned; app source uses `?t=` for HMR instead.
   if (!resolved.includes("node_modules")) return resolved;

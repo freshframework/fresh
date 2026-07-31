@@ -628,6 +628,10 @@ export default defineConfig({
 // module are resolved by the Deno plugin and emitted unhashed. The browser
 // keys modules on the url it fetched, so one file under two urls becomes two
 // instances. This is a resolve-time problem, not a load-time one.
+//
+// `@preact/signals` is deliberately left out of `include` here: pre-bundling
+// it would serve it from Vite's cache instead, so the clash this covers could
+// no longer happen. The test below pre-bundles it on purpose.
 integrationTest(
   "vite dev - optimizeDeps does not duplicate dependency instances",
   async () => {
@@ -647,7 +651,6 @@ export default defineConfig({
       await withBrowser(async (page) => {
         await page.goto(address, { waitUntil: "networkidle2" });
 
-        // A path fetched under more than one query string is loaded twice.
         const urls: string[] = await page.evaluate(() =>
           performance.getEntriesByType("resource").map((entry) => entry.name)
         );
@@ -665,6 +668,7 @@ export default defineConfig({
           queries.add(parsed.search);
         }
 
+        // A path fetched under more than one query string is loaded twice.
         const duplicated = Array.from(queriesByPath)
           .filter(([, queries]) => queries.size > 1)
           .map(([pathname]) => pathname);
@@ -673,6 +677,55 @@ export default defineConfig({
 
         // A duplicated Preact makes hydration throw, so the island never
         // becomes interactive.
+        await page.locator(".remote-island").wait();
+        await page.locator(".increment").click();
+        await waitForText(page, ".result", "Count: 1");
+      });
+    });
+  },
+);
+
+// A pre-bundled dependency is served from Vite's own cache, so anything that
+// still resolves to the package on disk loads it alongside the bundle. Deno
+// rewrites imports inside jsr modules to `npm:` specifiers, which do not match
+// the optimizer's keys, so the lookup has to fall back to the pre-bundled
+// source to recognise them.
+integrationTest(
+  "vite dev - optimizeDeps serves pre-bundled dependencies once",
+  async () => {
+    const fixture = path.join(FIXTURE_DIR, "remote_island");
+    await using tmp = await prepareDevServer(fixture, {
+      config: `import { defineConfig } from "vite";
+import { fresh } from "@fresh/plugin-vite";
+
+export default defineConfig({
+  plugins: [fresh({ islandSpecifiers: ["@marvinh-test/fresh-island"] })],
+  optimizeDeps: { include: ["preact", "@preact/signals"] },
+});
+`,
+    });
+
+    await launchDevServer(tmp.dir, async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(address, { waitUntil: "networkidle2" });
+
+        const paths: string[] = await page.evaluate(() =>
+          performance.getEntriesByType("resource").map((entry) =>
+            new URL(entry.name).pathname
+          )
+        );
+
+        // Sanity check that the optimizer actually ran.
+        expect(paths.some((p) => p.includes("/.vite/deps/"))).toEqual(true);
+
+        // The remote island imports both as `npm:` specifiers. They are
+        // pre-bundled, so neither may also be fetched from node_modules.
+        const rawCopies = paths.filter((p) =>
+          /node_modules\/.*\/(preact\/dist\/|@preact\/signals\/dist\/)/.test(p)
+        );
+
+        expect(rawCopies).toEqual([]);
+
         await page.locator(".remote-island").wait();
         await page.locator(".increment").click();
         await waitForText(page, ".result", "Count: 1");

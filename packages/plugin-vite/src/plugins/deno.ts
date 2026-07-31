@@ -10,7 +10,11 @@ import * as path from "@std/path";
 import * as babel from "@babel/core";
 import { httpAbsolute } from "./patches/http_absolute.ts";
 import { cleanId, JS_REG, JSX_REG } from "../utils.ts";
-import { depsOptimizerOf, ensureVersionQuery } from "./version_query.ts";
+import {
+  depsOptimizerOf,
+  ensureVersionQuery,
+  tryOptimizedResolve,
+} from "./version_query.ts";
 import { builtinModules } from "node:module";
 
 // @ts-ignore Workaround for https://github.com/denoland/deno/issues/30850
@@ -158,6 +162,17 @@ export function deno(): Plugin {
 
         const depsOptimizer = depsOptimizerOf(this.environment);
         if (depsOptimizer !== undefined) {
+          // A pre-bundled dependency is served from Vite's cache, so hand back
+          // the cache id rather than the file we just resolved to.
+          const optimized = await tryOptimizedResolve(
+            original,
+            resolved,
+            depsOptimizer,
+          );
+          if (optimized !== undefined) {
+            return { id: optimized };
+          }
+
           // When `optimizeDeps` is enabled, ensure resolved URLs include versions to match Vite.
           resolved = ensureVersionQuery(resolved, depsOptimizer);
         }
