@@ -564,6 +564,176 @@ Deno.test({
   sanitizeResources: false,
 });
 
+// issue: https://github.com/freshframework/fresh/issues/3895
+// Vite appends a `?v=<hash>` suffix to dependency ids when `optimizeDeps` is
+// active. The Deno loader must strip it instead of treating it as part of the
+// file path, in both the client and the ssr environment.
+integrationTest("vite dev - works with optimizeDeps enabled", async () => {
+  const fixture = path.join(FIXTURE_DIR, "no_islands");
+  await using tmp = await prepareDevServer(fixture, {
+    config: `import { defineConfig } from "vite";
+import { fresh } from "@fresh/plugin-vite";
+
+export default defineConfig({
+  plugins: [fresh()],
+  optimizeDeps: { include: ["preact"] },
+  environments: {
+    ssr: { optimizeDeps: { include: ["preact"] } },
+  },
+});
+`,
+  });
+
+  await launchDevServer(tmp.dir, async (address) => {
+    // ssr environment
+    const res = await fetch(address);
+    const text = await res.text();
+    expect(res.status).toEqual(200);
+    expect(text).toContain("ok");
+
+    // client environment: walk the module graph from the client entry. Vite
+    // versions dependency ids whether or not it pre-bundles them, so the
+    // graph contains `?v=<hash>` urls that must still resolve to a file.
+    const seen = new Set<string>();
+    const queue = ["/@id/fresh:client-entry"];
+    const failed: string[] = [];
+    let versioned = 0;
+
+    while (queue.length > 0) {
+      const url = queue.pop()!;
+      if (seen.has(url) || url.startsWith("/@vite/")) continue;
+      seen.add(url);
+
+      const modRes = await fetch(`${address}${url}`);
+      const code = await modRes.text();
+      if (modRes.status !== 200) {
+        failed.push(`${modRes.status} ${url}`);
+        continue;
+      }
+
+      if (url.includes("?v=")) versioned++;
+
+      for (const match of code.matchAll(/from "(\/[^"]+)"/g)) {
+        queue.push(match[1]);
+      }
+    }
+
+    expect(failed).toEqual([]);
+    expect(versioned).toBeGreaterThan(0);
+  });
+});
+
+// With `optimizeDeps` active, Vite's import analysis appends `?v=<hash>` to
+// the imports it rewrites, while imports from inside a `\0deno::` virtual
+// module are resolved by the Deno plugin and emitted unhashed. The browser
+// keys modules on the url it fetched, so one file under two urls becomes two
+// instances. This is a resolve-time problem, not a load-time one.
+//
+// `@preact/signals` is deliberately left out of `include` here: pre-bundling
+// it would serve it from Vite's cache instead, so the clash this covers could
+// no longer happen. The test below pre-bundles it on purpose.
+integrationTest(
+  "vite dev - optimizeDeps does not duplicate dependency instances",
+  async () => {
+    const fixture = path.join(FIXTURE_DIR, "remote_island");
+    await using tmp = await prepareDevServer(fixture, {
+      config: `import { defineConfig } from "vite";
+import { fresh } from "@fresh/plugin-vite";
+
+export default defineConfig({
+  plugins: [fresh({ islandSpecifiers: ["@marvinh-test/fresh-island"] })],
+  optimizeDeps: { include: ["preact"] },
+});
+`,
+    });
+
+    await launchDevServer(tmp.dir, async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(address, { waitUntil: "networkidle2" });
+
+        const urls: string[] = await page.evaluate(() =>
+          performance.getEntriesByType("resource").map((entry) => entry.name)
+        );
+
+        const queriesByPath = new Map<string, Set<string>>();
+        for (const url of urls) {
+          const parsed = new URL(url);
+          if (!/\.[mc]?[tj]sx?$/.test(parsed.pathname)) continue;
+
+          let queries = queriesByPath.get(parsed.pathname);
+          if (queries === undefined) {
+            queries = new Set();
+            queriesByPath.set(parsed.pathname, queries);
+          }
+          queries.add(parsed.search);
+        }
+
+        // A path fetched under more than one query string is loaded twice.
+        const duplicated = Array.from(queriesByPath)
+          .filter(([, queries]) => queries.size > 1)
+          .map(([pathname]) => pathname);
+
+        expect(duplicated).toEqual([]);
+
+        // A duplicated Preact makes hydration throw, so the island never
+        // becomes interactive.
+        await page.locator(".remote-island").wait();
+        await page.locator(".increment").click();
+        await waitForText(page, ".result", "Count: 1");
+      });
+    });
+  },
+);
+
+// A pre-bundled dependency is served from Vite's own cache, so anything that
+// still resolves to the package on disk loads it alongside the bundle. Deno
+// rewrites imports inside jsr modules to `npm:` specifiers, which do not match
+// the optimizer's keys, so the lookup has to fall back to the pre-bundled
+// source to recognise them.
+integrationTest(
+  "vite dev - optimizeDeps serves pre-bundled dependencies once",
+  async () => {
+    const fixture = path.join(FIXTURE_DIR, "remote_island");
+    await using tmp = await prepareDevServer(fixture, {
+      config: `import { defineConfig } from "vite";
+import { fresh } from "@fresh/plugin-vite";
+
+export default defineConfig({
+  plugins: [fresh({ islandSpecifiers: ["@marvinh-test/fresh-island"] })],
+  optimizeDeps: { include: ["preact", "@preact/signals"] },
+});
+`,
+    });
+
+    await launchDevServer(tmp.dir, async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(address, { waitUntil: "networkidle2" });
+
+        const paths: string[] = await page.evaluate(() =>
+          performance.getEntriesByType("resource").map((entry) =>
+            new URL(entry.name).pathname
+          )
+        );
+
+        // Sanity check that the optimizer actually ran.
+        expect(paths.some((p) => p.includes("/.vite/deps/"))).toEqual(true);
+
+        // The remote island imports both as `npm:` specifiers. They are
+        // pre-bundled, so neither may also be fetched from node_modules.
+        const rawCopies = paths.filter((p) =>
+          /node_modules\/.*\/(preact\/dist\/|@preact\/signals\/dist\/)/.test(p)
+        );
+
+        expect(rawCopies).toEqual([]);
+
+        await page.locator(".remote-island").wait();
+        await page.locator(".increment").click();
+        await waitForText(page, ".result", "Count: 1");
+      });
+    });
+  },
+);
+
 // issue: https://github.com/denoland/fresh/issues/3666
 integrationTest(
   "vite dev - basePath does not intercept Vite URLs",

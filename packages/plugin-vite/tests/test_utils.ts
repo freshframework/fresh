@@ -49,7 +49,10 @@ async function copyDir(from: string, to: string) {
   }
 }
 
-export async function prepareDevServer(fixtureDir: string) {
+export async function prepareDevServer(
+  fixtureDir: string,
+  options: { config?: string } = {},
+) {
   const tmp = await withTmpDir({
     dir: path.join(import.meta.dirname!, ".."),
     prefix: "tmp_vite_",
@@ -59,7 +62,7 @@ export async function prepareDevServer(fixtureDir: string) {
 
   await Deno.writeTextFile(
     path.join(tmp.dir, "vite.config.ts"),
-    `import { defineConfig } from "vite";
+    options.config ?? `import { defineConfig } from "vite";
 import { fresh } from "@fresh/plugin-vite";
 
 export default defineConfig({
