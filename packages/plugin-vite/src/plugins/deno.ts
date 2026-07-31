@@ -10,6 +10,7 @@ import * as path from "@std/path";
 import * as babel from "@babel/core";
 import { httpAbsolute } from "./patches/http_absolute.ts";
 import { cleanId, JS_REG, JSX_REG } from "../utils.ts";
+import { depsOptimizerOf, ensureVersionQuery } from "./version_query.ts";
 import { builtinModules } from "node:module";
 
 // @ts-ignore Workaround for https://github.com/denoland/deno/issues/30850
@@ -153,6 +154,12 @@ export function deno(): Plugin {
 
         if (resolved.startsWith("file://")) {
           resolved = path.fromFileUrl(resolved);
+        }
+
+        const depsOptimizer = depsOptimizerOf(this.environment);
+        if (depsOptimizer !== undefined) {
+          // When `optimizeDeps` is enabled, ensure resolved URLs include versions to match Vite.
+          resolved = ensureVersionQuery(resolved, depsOptimizer);
         }
 
         return {

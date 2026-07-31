@@ -623,6 +623,64 @@ export default defineConfig({
   });
 });
 
+// With `optimizeDeps` active, Vite's import analysis appends `?v=<hash>` to
+// the imports it rewrites, while imports from inside a `\0deno::` virtual
+// module are resolved by the Deno plugin and emitted unhashed. The browser
+// keys modules on the url it fetched, so one file under two urls becomes two
+// instances. This is a resolve-time problem, not a load-time one.
+integrationTest(
+  "vite dev - optimizeDeps does not duplicate dependency instances",
+  async () => {
+    const fixture = path.join(FIXTURE_DIR, "remote_island");
+    await using tmp = await prepareDevServer(fixture, {
+      config: `import { defineConfig } from "vite";
+import { fresh } from "@fresh/plugin-vite";
+
+export default defineConfig({
+  plugins: [fresh({ islandSpecifiers: ["@marvinh-test/fresh-island"] })],
+  optimizeDeps: { include: ["preact"] },
+});
+`,
+    });
+
+    await launchDevServer(tmp.dir, async (address) => {
+      await withBrowser(async (page) => {
+        await page.goto(address, { waitUntil: "networkidle2" });
+
+        // A path fetched under more than one query string is loaded twice.
+        const urls: string[] = await page.evaluate(() =>
+          performance.getEntriesByType("resource").map((entry) => entry.name)
+        );
+
+        const queriesByPath = new Map<string, Set<string>>();
+        for (const url of urls) {
+          const parsed = new URL(url);
+          if (!/\.[mc]?[tj]sx?$/.test(parsed.pathname)) continue;
+
+          let queries = queriesByPath.get(parsed.pathname);
+          if (queries === undefined) {
+            queries = new Set();
+            queriesByPath.set(parsed.pathname, queries);
+          }
+          queries.add(parsed.search);
+        }
+
+        const duplicated = Array.from(queriesByPath)
+          .filter(([, queries]) => queries.size > 1)
+          .map(([pathname]) => pathname);
+
+        expect(duplicated).toEqual([]);
+
+        // A duplicated Preact makes hydration throw, so the island never
+        // becomes interactive.
+        await page.locator(".remote-island").wait();
+        await page.locator(".increment").click();
+        await waitForText(page, ".result", "Count: 1");
+      });
+    });
+  },
+);
+
 // issue: https://github.com/denoland/fresh/issues/3666
 integrationTest(
   "vite dev - basePath does not intercept Vite URLs",
