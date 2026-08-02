@@ -14,7 +14,15 @@ export function SlotHost(props: { children?: ComponentChildren; extra?: Componen
   }, []);
   return (
     <div data-testid="slot-host" data-hydrated={hydrated}>
-      <div data-testid="slot-children">{props.children}</div>
+      {/* The slot is rendered with siblings on both sides, and they're `<p>`s —
+          the same tag the slot's own content uses. Hydration matches by tag
+          name, so these have to be matched against the island's own DOM; if the
+          slot's nodes are still in the tree, preact adopts one of them here. */}
+      <div data-testid="slot-children">
+        <p data-testid="before-slot">before</p>
+        {props.children}
+        <p data-testid="after-slot">after</p>
+      </div>
       <button
         id="toggle-extra"
         type="button"

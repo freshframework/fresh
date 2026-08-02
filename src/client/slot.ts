@@ -74,7 +74,7 @@ function captureSlotNode(index: number): Node[] {
 
 /**
  * Move the nodes between `<!--fresh-slot:N-->` and `<!--/fresh-slot-->` (their
- * own contiguous siblings) into a fragment, removing the markers. Returns null
+ * own contiguous siblings) out of the page, removing the markers. Returns null
  * if the start marker isn't in the live DOM (the slot wasn't rendered inline).
  */
 function captureInlineSlot(index: number): Node[] | null {
@@ -96,7 +96,11 @@ function captureInlineSlot(index: number): Node[] | null {
       n.remove();
       break;
     }
-    nodes.push(n); // moves `n` out of the live DOM and into the fragment
+    // Detach as we go: the island is about to hydrate against this parent, and
+    // preact would otherwise adopt the slot's still-attached nodes for whatever
+    // the island renders around the slot.
+    nodes.push(n);
+    n.remove();
     n = next;
   }
   start.remove();

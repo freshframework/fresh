@@ -17,6 +17,26 @@ test.describe("island slots (JSX props)", () => {
     await expect(page.getByTestId("slot-children").getByTestId("children-content")).toBeVisible();
   });
 
+  test("a rendered slot keeps the island's own siblings around it", async ({ page }) => {
+    await page.goto("/slots");
+    await expect(page.getByTestId("slot-host")).toHaveAttribute("data-hydrated", "true");
+
+    // The island renders elements of its own on both sides of the slot, with
+    // the same tag name the slot's content uses. Preact must hydrate those
+    // against its own server-rendered DOM — if the slot's nodes are still
+    // attached at hydration time it adopts one of them instead, overwriting the
+    // slot content and dropping the island's own element as excess.
+    await expect(page.getByTestId("before-slot")).toHaveText("before");
+    await expect(page.getByTestId("after-slot")).toHaveText("after");
+    await expect(page.getByTestId("children-content")).toContainText("hello from a slot");
+
+    // …and in that order, with the slot between them.
+    const order = await page
+      .getByTestId("slot-children")
+      .evaluate((el) => Array.from(el.children, (c) => c.getAttribute("data-testid")));
+    expect(order).toEqual(["before-slot", "children-content", "after-slot"]);
+  });
+
   test("an initially-unrendered slot is grafted from its template when the island renders it", async ({
     page,
   }) => {
