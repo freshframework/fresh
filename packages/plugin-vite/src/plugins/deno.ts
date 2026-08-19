@@ -9,7 +9,7 @@ import {
 import * as path from "@std/path";
 import * as babel from "@babel/core";
 import { httpAbsolute } from "./patches/http_absolute.ts";
-import { JS_REG, JSX_REG } from "../utils.ts";
+import { JS_REG, JSX_REG, joinViteQuery, splitViteQuery } from "../utils.ts";
 import { builtinModules } from "node:module";
 
 // @ts-ignore Workaround for https://github.com/denoland/deno/issues/30850
@@ -69,6 +69,8 @@ export function deno(): Plugin {
         : browserLoader;
 
       const original = id;
+      let { specifier, query } = splitViteQuery(id);
+      id = specifier;
 
       let isHttp = false;
       if (id.startsWith("deno-http::")) {
@@ -89,7 +91,11 @@ export function deno(): Plugin {
       // resolution, with us being in front due to `enforce: "pre"`.
       // But we still want to ignore everything `vite:resolve` does
       // because we're kinda replacing that plugin here.
-      const tmp = await this.resolve(id, importer, options);
+      const tmp = await this.resolve(
+        joinViteQuery(id, query),
+        importer,
+        options,
+      );
       if (tmp && tmp.resolvedBy !== "vite:resolve") {
         if (tmp.external && !/^https?:\/\//.test(tmp.id)) {
           return tmp;
@@ -100,7 +106,11 @@ export function deno(): Plugin {
           return tmp;
         }
 
-        id = tmp.id;
+        const resolvedTmp = splitViteQuery(tmp.id);
+        id = resolvedTmp.specifier;
+        if (resolvedTmp.query) {
+          query = resolvedTmp.query;
+        }
       }
 
       // Plugins may return lower cased drive letters on windows
@@ -134,7 +144,7 @@ export function deno(): Plugin {
 
         if (resolved.startsWith("node:")) {
           return {
-            id: resolved,
+            id: joinViteQuery(resolved, query),
             external: true,
           };
         }
@@ -148,7 +158,7 @@ export function deno(): Plugin {
           type !== RequestedModuleType.Default ||
           /^(https?|jsr|npm):/.test(resolved)
         ) {
-          return toDenoSpecifier(resolved, type);
+          return joinViteQuery(toDenoSpecifier(resolved, type), query);
         }
 
         if (resolved.startsWith("file://")) {
@@ -156,7 +166,7 @@ export function deno(): Plugin {
         }
 
         return {
-          id: resolved,
+          id: joinViteQuery(resolved, query),
           meta: {
             deno: {
               type,
@@ -202,6 +212,8 @@ export function deno(): Plugin {
         id = id.slice(1);
       }
 
+      const { specifier: loadSpecifier } = splitViteQuery(id);
+
       const meta = this.getModuleInfo(id)?.meta.deno as
         | DenoState
         | undefined
@@ -212,12 +224,12 @@ export function deno(): Plugin {
       // Skip for non-js files like `.css`
       if (
         meta.type === RequestedModuleType.Default &&
-        !JS_REG.test(id)
+        !JS_REG.test(loadSpecifier)
       ) {
         return;
       }
 
-      const url = path.toFileUrl(id);
+      const url = path.toFileUrl(loadSpecifier);
 
       const result = await loader.load(url.href, meta.type);
       if (result.kind === "external") {
