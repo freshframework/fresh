@@ -5,6 +5,27 @@ import type { ImportCheck } from "./plugins/verify_imports.ts";
 export const JS_REG = /\.([tj]sx?|[mc]?[tj]s)(\?.*)?$/;
 export const JSX_REG = /\.[tj]sx(\?.*)?$/;
 
+/** Split a Vite module id into specifier and query/hash (e.g. `?raw`, `?v=`). */
+export function splitViteQuery(
+  id: string,
+): { specifier: string; query: string } {
+  const hashIdx = id.indexOf("#");
+  const base = hashIdx === -1 ? id : id.slice(0, hashIdx);
+  const hash = hashIdx === -1 ? "" : id.slice(hashIdx);
+  const qIdx = base.indexOf("?");
+  if (qIdx === -1) {
+    return { specifier: base, query: hash };
+  }
+  return {
+    specifier: base.slice(0, qIdx),
+    query: base.slice(qIdx) + hash,
+  };
+}
+
+export function joinViteQuery(specifier: string, query: string): string {
+  return query ? specifier + query : specifier;
+}
+
 export function pathWithRoot(fileOrDir: string, root?: string): string {
   if (path.isAbsolute(fileOrDir)) return fileOrDir;
 
