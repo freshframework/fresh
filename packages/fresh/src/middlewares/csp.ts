@@ -112,6 +112,18 @@ export function csp<State>(options: CSPOptions = {}): Middleware<State> {
     };
   }
 
+  const warnedNoncelessPaths = new Set<string>();
+
+  function warnMissingNonce(pathname: string) {
+    if (warnedNoncelessPaths.has(pathname)) return;
+    warnedNoncelessPaths.add(pathname);
+    // deno-lint-ignore no-console
+    console.warn(
+      `🍋 %c[WARNING] CSP: "${pathname}" responded without a nonce, so 'unsafe-inline' was kept. Only ctx.render() sets a nonce.`,
+      "color:rgb(251, 184, 0)",
+    );
+  }
+
   // Nonce-based CSP — replace 'unsafe-inline' with nonce per request
   return async (ctx) => {
     const res = await ctx.next();
@@ -129,6 +141,9 @@ export function csp<State>(options: CSPOptions = {}): Middleware<State> {
         return d;
       });
     } else {
+      if (ctx.config.mode === "development") {
+        warnMissingNonce(ctx.url.pathname);
+      }
       directives = merged;
     }
 
