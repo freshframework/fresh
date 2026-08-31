@@ -1,4 +1,6 @@
 import { expect } from "@std/expect/expect";
+import { fn } from "@std/expect";
+import { stub } from "@std/testing/mock";
 import { App } from "../app.ts";
 import { csp } from "./csp.ts";
 import { FakeServer } from "../test_utils.ts";
@@ -259,4 +261,58 @@ Deno.test("CSP - useNonce replaces unsafe-inline in default-src", async () => {
 
   // default-src should have nonce, not unsafe-inline
   expect(cspHeader).toMatch(/default-src 'self' 'nonce-[a-f0-9]+'/);
+});
+
+Deno.test("CSP - warns in development when a response has no nonce", async () => {
+  // deno-lint-ignore no-explicit-any
+  using warnSpy = stub(console, "warn", fn(() => {}) as any);
+  const app = new App({ mode: "development" })
+    .use(csp({ useNonce: true }))
+    .get("/api", () => new Response(JSON.stringify({ ok: true })));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/api");
+  await res.body?.cancel();
+
+  expect(res.headers.get("Content-Security-Policy")).toContain(
+    "'unsafe-inline'",
+  );
+  expect(warnSpy.fake).toHaveBeenCalledTimes(1);
+  expect(warnSpy.fake).toHaveBeenLastCalledWith(
+    `🍋 %c[WARNING] CSP: "/api" responded without a nonce, so 'unsafe-inline' was kept. Only ctx.render() sets a nonce.`,
+    expect.any(String),
+  );
+});
+
+Deno.test("CSP - warns once per path, not once per request", async () => {
+  // deno-lint-ignore no-explicit-any
+  using warnSpy = stub(console, "warn", fn(() => {}) as any);
+  const app = new App({ mode: "development" })
+    .use(csp({ useNonce: true }))
+    .get("/repeated", () => new Response("ok"));
+
+  const server = new FakeServer(app.handler());
+  for (let i = 0; i < 3; i++) {
+    const res = await server.get("/repeated");
+    await res.body?.cancel();
+  }
+
+  expect(warnSpy.fake).toHaveBeenCalledTimes(1);
+});
+
+Deno.test("CSP - does not warn in production", async () => {
+  // deno-lint-ignore no-explicit-any
+  using warnSpy = stub(console, "warn", fn(() => {}) as any);
+  const app = new App()
+    .use(csp({ useNonce: true }))
+    .get("/prod-api", () => new Response("ok"));
+
+  const server = new FakeServer(app.handler());
+  const res = await server.get("/prod-api");
+  await res.body?.cancel();
+
+  expect(res.headers.get("Content-Security-Policy")).toContain(
+    "'unsafe-inline'",
+  );
+  expect(warnSpy.fake).not.toHaveBeenCalled();
 });
