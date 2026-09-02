@@ -158,7 +158,14 @@ export class UrlPatternRouter<T> implements Router<T> {
     for (let i = 0; i < this.#dynamicArr.length; i++) {
       const route = this.#dynamicArr[i];
 
-      const match = route.pattern.exec(url);
+      // Pass `url.href` instead of the `URL` object: ~13-21x faster.
+      // Deno's URLPattern is a pure JS implementation. Given a `URL` object,
+      // `webidl.converters["URLPatternInput"]` walks and converts its
+      // properties on every call, and this happens *before* the internal
+      // match cache is consulted — so the cache never helps. A string skips
+      // that conversion entirely. `URL` objects cache their serialization,
+      // so reading `.href` here costs ~3ns.
+      const match = route.pattern.exec(url.href);
       if (match === null) continue;
 
       result.pattern = route.pattern.pathname;
