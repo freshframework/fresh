@@ -163,7 +163,13 @@ if (import.meta.hot) {
   ];
 }
 
-function isIslandPath(
+/**
+ * A `(_islands)` path segment marks a local island folder, the same
+ * convention the initial route crawl uses.
+ */
+const LOCAL_ISLAND_REG = /[/\\]\(_islands\)[/\\]/;
+
+export function isIslandPath(
   options: ResolvedFreshViteConfig,
   filePath: string,
 ): boolean {
@@ -171,11 +177,11 @@ function isIslandPath(
   if (!relIsland.startsWith("..")) return true;
 
   const relRoutes = path.relative(options.routeDir, filePath);
+  if (relRoutes.startsWith("..")) return false;
 
-  if (!relIsland.startsWith("..") && relRoutes.includes("(_islands)")) {
-    return true;
-  }
-  return false;
+  // Leading separator so that a `(_islands)` folder sitting directly in the
+  // route dir matches too.
+  return LOCAL_ISLAND_REG.test(`${path.SEPARATOR}${relRoutes}`);
 }
 
 function invalidateSnapshots(server: ViteDevServer) {
