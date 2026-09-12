@@ -304,7 +304,14 @@ document.addEventListener("submit", async (e) => {
         // TODO: Looks like constructor type for URLSearchParam is wrong
         // deno-lint-ignore no-explicit-any
         const qs = new URLSearchParams(new FormData(el, e.submitter) as any);
-        qs.forEach((value, key) => partialUrl.searchParams.append(key, value));
+        qs.forEach((value, key) => {
+          partialUrl.searchParams.append(key, value);
+          // The address bar has to reflect the submitted values too, the way a
+          // native GET form navigation does. Without this the page URL keeps
+          // the bare action and the submitted state is lost on reload, on
+          // copying the link, or on back/forward.
+          actionUrl.searchParams.append(key, value);
+        });
       } else {
         init = { body: new FormData(el, e.submitter), method: lowerMethod };
       }
