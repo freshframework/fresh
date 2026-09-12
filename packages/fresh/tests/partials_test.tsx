@@ -2746,6 +2746,51 @@ Deno.test({
 });
 
 Deno.test({
+  name: "partials - form submit puts values into the page url",
+  fn: async () => {
+    const app = testApp()
+      .get("/", (ctx) => {
+        const name = ctx.url.searchParams.get("name");
+        return ctx.render(
+          <Doc>
+            <div f-client-nav>
+              <form action="/">
+                <input type="hidden" name="name" value="foo" />
+                <button type="submit" class="update">
+                  update
+                </button>
+              </form>
+              <Partial name="foo">
+                <p class={name === null ? "init" : "done"}>{name ?? "init"}</p>
+              </Partial>
+              <SelfCounter />
+            </div>
+          </Doc>,
+        );
+      });
+
+    await withBrowserApp(app, async (page, address) => {
+      await page.goto(address, { waitUntil: "load" });
+      await page.locator(".ready").wait();
+
+      await page.locator(".increment").click();
+      await waitForText(page, ".output", "1");
+
+      await page.locator(".update").click();
+      await page.locator(".done").wait();
+
+      // Same URL a native GET form navigation would produce.
+      const rawUrl = await page.evaluate(() => window.location.href);
+      const url = new URL(rawUrl);
+      expect(`${url.pathname}${url.search}`).toEqual("/?name=foo");
+
+      // Still a partial update, not a full page load.
+      await waitForText(page, ".output", "1");
+    });
+  },
+});
+
+Deno.test({
   name: "partials - backwards navigation should keep URLs",
   fn: async () => {
     const app = testApp()
