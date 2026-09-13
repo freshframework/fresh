@@ -43,13 +43,21 @@ Enable it with the `OTEL_DENO` environment variable:
 OTEL_DENO=true deno task start
 ```
 
-This exports traces to an OTLP-compatible collector. Configure the endpoint:
+By default, Deno exports telemetry using OTLP over HTTP/protobuf to
+`http://localhost:4318`. Set a service name so your application is easy to find
+in your observability backend, and configure the endpoint when the collector
+runs elsewhere:
 
 ```sh Terminal
 OTEL_DENO=true \
-OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317 \
+OTEL_SERVICE_NAME=my-fresh-app \
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318 \
 deno task start
 ```
+
+See Deno's
+[OpenTelemetry configuration](https://docs.deno.com/runtime/fundamentals/open_telemetry/#configuration)
+for other supported exporter protocols and options.
 
 ### With Deno Deploy
 
@@ -98,12 +106,14 @@ supports this out of the box - no extra dependencies or services needed:
 
 ```sh Terminal
 OTEL_DENO=true \
-OTEL_TRACES_EXPORTER=console \
+OTEL_EXPORTER_OTLP_PROTOCOL=console \
+OTEL_SERVICE_NAME=my-fresh-app \
 deno task start
 ```
 
-Each request prints its spans directly to stderr, showing the full breakdown of
-middleware, handler, and rendering timings.
+The console protocol does not require an endpoint. Each request prints its spans
+directly to stderr, showing the full breakdown of middleware, handler, and
+rendering timings.
 
 ### Jaeger
 
@@ -117,10 +127,12 @@ docker run -d --name jaeger \
   jaegertracing/all-in-one:latest
 ```
 
-Then start your Fresh app pointing at the Jaeger collector:
+Deno 2.8+ can send directly to Jaeger's OTLP gRPC collector:
 
 ```sh Terminal
 OTEL_DENO=true \
+OTEL_EXPORTER_OTLP_PROTOCOL=grpc \
+OTEL_SERVICE_NAME=my-fresh-app \
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317 \
 deno task start
 ```
