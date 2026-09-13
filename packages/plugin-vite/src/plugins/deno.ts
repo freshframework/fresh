@@ -139,11 +139,27 @@ export function deno(): Plugin {
           };
         }
 
+        const type = getDenoType(id, options.attributes.type ?? "default");
+
+        // Keep remote Wasm modules and their JavaScript entrypoints in Deno's
+        // runtime graph. Otherwise Vite's import analysis sees the Wasm bytes
+        // as JavaScript.
+        if (
+          type === RequestedModuleType.Default &&
+          this.environment.config.consumer === "server" &&
+          /^https?:\/\//.test(resolved) &&
+          (hasWasmExtension(resolved) || await importsWasm(loader, resolved))
+        ) {
+          return {
+            id: resolved,
+            external: true,
+          };
+        }
+
         if (original === resolved) {
           return null;
         }
 
-        const type = getDenoType(id, options.attributes.type ?? "default");
         if (
           type !== RequestedModuleType.Default ||
           /^(https?|jsr|npm):/.test(resolved)
@@ -287,6 +303,51 @@ export function deno(): Plugin {
       },
     },
   };
+}
+
+async function importsWasm(
+  loader: Loader,
+  specifier: string,
+): Promise<boolean> {
+  try {
+    const result = await loader.load(specifier, RequestedModuleType.Default);
+    if (result.kind === "external" || !isJsMediaType(result.mediaType)) {
+      return false;
+    }
+
+    const code = new TextDecoder().decode(result.code);
+    if (!code.includes(".wasm")) return false;
+
+    const ast = babel.parseSync(code, {
+      babelrc: false,
+      configFile: false,
+      filename: specifier,
+      sourceType: "module",
+    });
+
+    return ast?.program.body.some((statement) => {
+      if (
+        statement.type !== "ImportDeclaration" &&
+        statement.type !== "ExportAllDeclaration" &&
+        statement.type !== "ExportNamedDeclaration"
+      ) {
+        return false;
+      }
+
+      const source = statement.source?.value;
+      return source !== undefined && hasWasmExtension(source);
+    }) ?? false;
+  } catch {
+    // Let the normal module loading path surface unsupported source later.
+    return false;
+  }
+}
+
+function hasWasmExtension(specifier: string): boolean {
+  const pathname = URL.canParse(specifier, "file:///")
+    ? new URL(specifier, "file:///").pathname
+    : specifier;
+  return pathname.endsWith(".wasm");
 }
 
 function isJsMediaType(media: MediaType): boolean {

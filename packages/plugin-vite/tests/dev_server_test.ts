@@ -110,6 +110,15 @@ integrationTest(
   },
 );
 
+integrationTest("vite dev - supports native Wasm imports", async () => {
+  const fixture = path.join(FIXTURE_DIR, "wasm_doc");
+  await withDevServer(fixture, async (address) => {
+    const response = await fetch(address);
+    expect(response.status).toEqual(200);
+    expect(await response.json()).toEqual({ symbols: ["answer"] });
+  });
+});
+
 integrationTest("vite dev - starts without routes/ dir", async () => {
   const fixture = path.join(FIXTURE_DIR, "no_routes");
   await withDevServer(fixture, async (address) => {

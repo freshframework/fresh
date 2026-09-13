@@ -5,8 +5,11 @@
     "jsr:@deno-library/progress@^1.5.1": "1.5.1",
     "jsr:@deno/cache-dir@0.14": "0.14.0",
     "jsr:@deno/cache-dir@0.22.2": "0.22.2",
+    "jsr:@deno/cache-dir@0.25": "0.25.0",
     "jsr:@deno/doc@0.172": "0.172.0",
+    "jsr:@deno/doc@0.202.1": "0.202.1",
     "jsr:@deno/esbuild-plugin@^1.2.0": "1.2.1",
+    "jsr:@deno/graph@0.100": "0.100.1",
     "jsr:@deno/graph@0.86": "0.86.9",
     "jsr:@deno/graph@~0.82.3": "0.82.3",
     "jsr:@deno/loader@0.4": "0.4.0",
@@ -167,11 +170,28 @@
         "jsr:@std/path@^1.0.8"
       ]
     },
+    "@deno/cache-dir@0.25.0": {
+      "integrity": "e9c3e901f87961a813a197b076668007699953dcbeb3af51971d90fdb0d29723",
+      "dependencies": [
+        "jsr:@deno/graph@0.86",
+        "jsr:@std/fmt@^1.0.3",
+        "jsr:@std/fs@^1.0.6",
+        "jsr:@std/io@0.225",
+        "jsr:@std/path@^1.0.8"
+      ]
+    },
     "@deno/doc@0.172.0": {
       "integrity": "72a68ed533576a06feb930a84784ad9ba6d83ca9d581fc734d498c58e32b7cf5",
       "dependencies": [
         "jsr:@deno/cache-dir@0.14",
         "jsr:@deno/graph@~0.82.3"
+      ]
+    },
+    "@deno/doc@0.202.1": {
+      "integrity": "b6e25e3979ecc1ee46914e60c2ac9b0b5c37274784308418a67a6ab1be8ecd47",
+      "dependencies": [
+        "jsr:@deno/cache-dir@0.25",
+        "jsr:@deno/graph@0.100"
       ]
     },
     "@deno/esbuild-plugin@1.2.1": {
@@ -187,6 +207,9 @@
     },
     "@deno/graph@0.86.9": {
       "integrity": "c4f353a695bcc5246c099602977dabc6534eacea9999a35a8cb24e807192e6a1"
+    },
+    "@deno/graph@0.100.1": {
+      "integrity": "91ae087c95fe3d97f35f84b3ea38ea21163d12df28c6ec70bb89f253fd99870e"
     },
     "@deno/loader@0.3.14": {
       "integrity": "97bc63a6cc2d27a60bcdc953f588c5213331d866d44212eebb24cebfb9b011ca"

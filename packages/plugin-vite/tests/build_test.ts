@@ -134,6 +134,20 @@ integrationTest("vite build - without routes/ dir", async () => {
   );
 });
 
+integrationTest("vite build - supports native Wasm imports", async () => {
+  const fixture = path.join(FIXTURE_DIR, "wasm_doc");
+  await using res = await buildVite(fixture);
+
+  await launchProd(
+    { cwd: res.tmp },
+    async (address) => {
+      const response = await fetch(address);
+      expect(response.status).toEqual(200);
+      expect(await response.json()).toEqual({ symbols: ["answer"] });
+    },
+  );
+});
+
 integrationTest("vite build - load json inside npm package", async () => {
   await launchProd(
     { cwd: viteResult.tmp },
