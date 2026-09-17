@@ -137,6 +137,13 @@ Deno.test("API route returns name", async () => {
 });
 ```
 
+> [info]: Calling `.fsRoutes()` directly in a unit test does not scan your
+> `routes/` directory. It consumes route data produced by Fresh's build step, so
+> an app without a build cache has no file routes and requests will return 404.
+> Register imported handlers explicitly for unit tests, as shown above. If you
+> need to test filesystem discovery, layouts, or islands together, use a
+> [full Vite build](#client-side-island-interactivity).
+
 ## Testing islands
 
 Testing islands requires different approaches for server-side and client-side
