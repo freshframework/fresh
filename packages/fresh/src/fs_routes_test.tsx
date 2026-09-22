@@ -212,6 +212,41 @@ Deno.test("fsRoutes - middleware", async () => {
   expect(await res.text()).toEqual("ok");
 });
 
+Deno.test("fsRoutes - middleware is scoped to each mount", async () => {
+  let calls = 0;
+  const files: Record<string, string | FreshFsMod<unknown>> = {
+    "routes/index.ts": { handler: () => new Response("ok") },
+    "routes/_middleware.ts": {
+      handler: (ctx: Context<unknown>) => {
+        calls++;
+        return ctx.next();
+      },
+    },
+  };
+  const fs = createFakeFs(files);
+  const routeDir = path.join(fs.cwd(), "routes");
+  const rawFiles = await crawlRouteDir(fs, routeDir, [], () => {});
+  const fsFiles = rawFiles.map((file) => ({
+    ...file,
+    // deno-lint-ignore no-explicit-any
+    mod: files[file.filePath] as any,
+  }));
+  const app = new App<unknown>()
+    .fsRoutes("/a/:id")
+    .fsRoutes("/b/:id")
+    .fsRoutes();
+  setBuildCache(app, new MockBuildCache(fsFiles, "development"), "development");
+  const server = new FakeServer(app.handler());
+
+  for (const path of ["/", "/a/foo", "/b/foo"]) {
+    calls = 0;
+    const res = await server.get(path);
+    expect(res.status).toEqual(200);
+    expect(await res.text()).toEqual("ok");
+    expect(calls).toEqual(1);
+  }
+});
+
 Deno.test("fsRoutes - nested middlewares", async () => {
   const server = await createServer<{ text: string }>({
     "routes/_middleware.ts": {
