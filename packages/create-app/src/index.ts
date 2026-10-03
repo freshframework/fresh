@@ -137,7 +137,7 @@ const FEATURES: Feature[] = [
   },
 ];
 
-function assertNotCancelled<T>(value: T | symbol): asserts value is T {
+function assertNotCancelled<T>(value: T): asserts value is Exclude<T, symbol> {
   if (isCancel(value)) {
     cancel("Cancelled.");
     process.exit(0);
@@ -160,7 +160,7 @@ async function main(): Promise<void> {
       message: "Where should we create your project?",
       placeholder: "./my-app",
       defaultValue: "./my-app",
-      validate(value: string) {
+      validate(value: string | undefined) {
         if (!value) return;
         if (value.startsWith("-")) return "Project path cannot start with '-'.";
       },

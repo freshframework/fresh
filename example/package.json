@@ -11,7 +11,7 @@
   "dependencies": {
     "@preact/signals": "^2",
     "fresh": "workspace:@frsh/fresh@*",
-    "preact": "^10",
-    "vite": "^8.0.14"
+    "preact": "^11",
+    "vite": "^8.3.2"
   }
 }

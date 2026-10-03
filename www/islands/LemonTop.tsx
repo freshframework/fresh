@@ -15,7 +15,7 @@ function LemonTop() {
   const width = useSignal(SVG_WIDTH);
   const widthRef = useRef(width.value);
   const springs = useSignal(waveTank.springs);
-  const requestIdRef = useRef<number>();
+  const requestIdRef = useRef<number | undefined>(undefined);
 
   const juice = `M18 ${63 + counter.value} C15 ${63 + counter.value} 16 ${
     63 + counter.value

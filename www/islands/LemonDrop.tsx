@@ -15,7 +15,7 @@ function LemonDrop() {
   const width = useSignal(SVG_WIDTH);
   const widthRef = useRef(width.value);
   const springs = useSignal(waveTank.springs);
-  const requestIdRef = useRef<number>();
+  const requestIdRef = useRef<number | undefined>(undefined);
   const grid = SVG_WIDTH / waveTank.waveLength;
   const points = [
     [0, 100],

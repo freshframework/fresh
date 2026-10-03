@@ -90,25 +90,25 @@
     "prepack": "rm -rf dist && pnpm run build"
   },
   "dependencies": {
-    "@prefresh/vite": "^3.0.1",
-    "magic-string": "^0.30.0",
-    "nitro": "^3.0.260522-beta",
-    "preact-render-to-string": "^6.7.0",
-    "rolldown": "^1.0.3",
-    "rou3": "^0.8.1",
-    "srvx": "^0.11.16"
+    "@prefresh/vite": "^4.0.1",
+    "magic-string": "^1.4.2",
+    "nitro": "^3.0.260903-beta",
+    "preact-render-to-string": "^6.8.0",
+    "rolldown": "^1.2.12",
+    "rou3": "^0.11.0",
+    "srvx": "^1.0.5"
   },
   "devDependencies": {
-    "@oxc-project/types": "^0.135.0",
-    "@preact/signals": "^2.9.1",
-    "@types/node": "^25.9.1",
-    "preact": "^10.29.2",
-    "vite": "^8.0.14",
-    "vitest": "^4.1.8"
+    "@oxc-project/types": "^0.152.0",
+    "@preact/signals": "^2.11.3",
+    "@types/node": "^26.6.4",
+    "preact": "^11.0.0",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3"
   },
   "peerDependencies": {
     "@preact/signals": "^2",
-    "preact": "^10",
+    "preact": "^11",
     "vite": "^8"
   },
   "engines": {

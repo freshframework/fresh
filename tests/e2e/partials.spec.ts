@@ -136,14 +136,28 @@ test.describe("navigating signal", () => {
     await expect(page.getByTestId("nav-status")).toHaveText("idle");
     await markDocument(page);
 
-    // The slow route holds its response ~600ms — long enough to observe the
-    // in-flight state through the `navigating` signal.
+    // The slow route holds its response ~600ms, during which the `navigating`
+    // signal is on. Record the status transitions in-page rather than polling:
+    // Playwright's WebKit blocks on a pending `precommitHandler` navigation, so
+    // it can't observe the page until the navigation has already settled.
+    await page.getByTestId("nav-status").evaluate((el) => {
+      const seen: (string | null)[] = [];
+      (window as unknown as { __navStatus: typeof seen }).__navStatus = seen;
+      new MutationObserver(() => seen.push(el.textContent)).observe(el, {
+        characterData: true,
+        childList: true,
+        subtree: true,
+      });
+    });
     await page.locator("#nav-slow").click();
-    await expect(page.getByTestId("nav-status")).toHaveText("navigating");
 
     // Once applied, the region swapped in and the signal settled back to idle.
     await expect(page.getByTestId("panel-slow")).toBeVisible();
     await expect(page.getByTestId("nav-status")).toHaveText("idle");
+    const seen = await page.evaluate(
+      () => (window as unknown as { __navStatus: string[] }).__navStatus,
+    );
+    expect(seen).toEqual(["navigating", "idle"]);
     expect(await documentSurvived(page)).toBe(true);
   });
 });

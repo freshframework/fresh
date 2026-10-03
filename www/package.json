@@ -10,25 +10,25 @@
     "start": "node .output/server/index.mjs"
   },
   "dependencies": {
-    "@docsearch/css": "^3.6.0",
-    "@docsearch/js": "^3.6.0",
+    "@docsearch/css": "^5.1.1",
+    "@docsearch/js": "^5.1.1",
     "@preact/signals": "^2",
-    "@shikijs/langs": "^3.0.0",
-    "@shikijs/themes": "^3.0.0",
+    "@shikijs/langs": "^4.5.0",
+    "@shikijs/themes": "^4.5.0",
     "@std/front-matter": "jsr:^1.0.9",
-    "@std/html": "jsr:^1.0.4",
-    "@std/http": "jsr:^1.0.13",
+    "@std/html": "jsr:^1.0.7",
+    "@std/http": "jsr:^1.1.4",
     "fresh": "workspace:@frsh/fresh@*",
     "github-slugger": "^2.0.0",
-    "marked": "^15.0.0",
-    "marked-mangle": "^1.1.10",
-    "preact": "^10",
-    "shiki": "^3.0.0",
-    "vite": "^8.0.14"
+    "marked": "^18.0.14",
+    "marked-mangle": "^1.1.14",
+    "preact": "^11",
+    "shiki": "^4.5.0",
+    "vite": "^8.3.2"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.1.12",
-    "@types/node": "^25.9.1",
-    "tailwindcss": "^4.1.12"
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.6.4",
+    "tailwindcss": "^4.3.3"
   }
 }

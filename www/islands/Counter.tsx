@@ -1,6 +1,6 @@
 import { useSignal } from "@preact/signals";
 import * as Icons from "../components/Icons.tsx";
-import type { JSX } from "preact";
+import type { ButtonHTMLAttributes } from "preact";
 
 interface CounterProps {
   start: number;
@@ -27,7 +27,7 @@ export default function Counter(props: CounterProps) {
   );
 }
 
-function RoundedButton(props: JSX.HTMLAttributes<HTMLButtonElement>) {
+function RoundedButton(props: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       style={{

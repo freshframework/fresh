@@ -11,7 +11,7 @@
   "dependencies": {
     "@preact/signals": "^2",
     "fresh": "npm:@frsh/fresh@latest",
-    "preact": "^10",
+    "preact": "^11",
     "vite": "^8"
   }
 }

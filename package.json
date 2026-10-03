@@ -16,15 +16,15 @@
     "bump-version:alpha": "pnpm version --filter=@frsh/* $(node -p 'const now = Temporal.Now.zonedDateTimeISO().withTimeZone(\"UTC\"); `3.0.0-alpha.${now.year}${String(now.month).padStart(2, \"0\")}${String(now.day).padStart(2, \"0\")}${String(now.hour).padStart(2, \"0\")}${String(now.minute).padStart(2, \"0\")}`')"
   },
   "devDependencies": {
-    "@playwright/test": "1.61.0",
-    "@types/node": "^25.9.1",
-    "@typescript/native-preview": "^7.0.0-dev.20260602.1",
+    "@playwright/test": "1.63.0",
+    "@types/node": "^26.6.4",
+    "@typescript/native-preview": "^7.0.0-dev.20260707.2",
     "fresh": "workspace:@frsh/fresh@*",
-    "oxfmt": "^0.53.0",
-    "oxlint": "^1.68.0",
-    "typescript": "^6.0.3",
-    "vite": "^8.0.16",
-    "vitest": "^4.1.8"
+    "oxfmt": "^0.71.0",
+    "oxlint": "^1.86.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2",
+    "vitest": "^5.0.3"
   },
   "packageManager": "pnpm@11.8.0"
 }

@@ -1,6 +1,6 @@
-import type { JSX } from "preact";
+import type { HTMLAttributes } from "preact";
 
-interface DemoBoxProps extends JSX.HTMLAttributes<HTMLDivElement> {
+interface DemoBoxProps extends HTMLAttributes<HTMLDivElement> {
   flip?: boolean;
 }
 

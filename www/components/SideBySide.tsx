@@ -1,8 +1,8 @@
-import type { JSX } from "preact/jsx-runtime";
+import type { HTMLAttributes } from "preact";
 
 type ColumnConfiguration = "1/1" | "2/3" | "3/2";
 
-interface SideBySideProps extends JSX.HTMLAttributes<HTMLDivElement> {
+interface SideBySideProps extends HTMLAttributes<HTMLDivElement> {
   mdColSplit?: ColumnConfiguration;
   lgColSplit?: ColumnConfiguration;
   reverseOnDesktop?: boolean;

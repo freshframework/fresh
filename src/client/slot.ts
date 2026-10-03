@@ -35,7 +35,10 @@ interface SlotState {
 
 export class Slot extends Component<{ state: SlotState }, {}> {
   componentDidMount(): void {
-    this.base!.replaceWith(...this.props.state.nodes);
+    // Preact 11 dropped `Component.base`; its upgrade guide points at the
+    // mangled `__v` (this component's vnode) / `__e` (that vnode's DOM node).
+    const self = this as unknown as { __v: { __e: ChildNode } };
+    self.__v.__e.replaceWith(...this.props.state.nodes);
     if (this.props.state.hydrated) return;
     this.props.state.hydrated = true;
     const state = currentBootState();

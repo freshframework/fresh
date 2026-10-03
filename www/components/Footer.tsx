@@ -1,4 +1,4 @@
-import type { JSX } from "preact";
+import type { HTMLAttributes } from "preact";
 
 const LINKS = [
   {
@@ -15,7 +15,7 @@ const LINKS = [
   },
 ];
 
-export default function Footer(props: JSX.HTMLAttributes<HTMLElement>) {
+export default function Footer(props: HTMLAttributes<HTMLElement>) {
   return (
     <footer
       class={`border-t-2 border-foreground-secondary/20 md:h-16 flex mt-16 justify-center md:mx-16 ${props.class}`}

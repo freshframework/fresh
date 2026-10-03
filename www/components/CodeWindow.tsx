@@ -1,6 +1,6 @@
-import type { JSX } from "preact";
+import type { HTMLAttributes } from "preact";
 
-interface CodeWindowProps extends JSX.HTMLAttributes<HTMLDivElement> {
+interface CodeWindowProps extends HTMLAttributes<HTMLDivElement> {
   name?: string;
 }
 
