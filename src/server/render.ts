@@ -392,6 +392,20 @@ const PLACEHOLDER = "__FRESH_PAGE_PLACEHOLDER_dQw4w9WgXcQ__";
 let currentConfig: RenderConfig | null = null;
 let currentRender: RenderState | null = null;
 
+// The preact `options` hooks in place before Fresh installed its own, stashed
+// on `options` itself so it survives this module being re-evaluated (a dev SSR
+// full reload) while `preact` is not. Chaining from these — rather than from
+// whatever `options` currently holds — makes a re-install replace the previous
+// evaluation's hooks instead of stacking on top of them; stacked copies each
+// carry their own module state and end up re-wrapping each other's vnodes.
+type PreactHooks = {
+  vnode?: (vnode: VNode) => void;
+  __b?: (vnode: VNode) => void;
+  __r?: (vnode: VNode) => void;
+  diffed?: (vnode: VNode) => void;
+};
+const BASE_HOOKS_KEY = Symbol.for("fresh.server.baseHooks");
+
 installHooks();
 
 /** Default app shell used when the user doesn't provide one. */
@@ -463,13 +477,21 @@ export async function renderPage(pageVNode: VNode, opts: RenderOptions = {}): Pr
 }
 
 function installHooks(): void {
+  const opts = options as unknown as PreactHooks & { [BASE_HOOKS_KEY]?: PreactHooks };
+  const base = (opts[BASE_HOOKS_KEY] ??= {
+    vnode: opts.vnode,
+    __b: opts.__b,
+    __r: opts.__r,
+    diffed: opts.diffed,
+  });
+
   // Head injection uses the creation-time `vnode` hook: the `<head>` is built
   // during the Phase-2 app-shell render walk, so it's created while
   // `currentRender` is active. We always run the injection when a head
   // is created mid-render — even without a `renderConfig` — because
   // `<RemainingHead/>` (which dumps `<Head>`-collected entries) is
   // independent of the asset config.
-  const prevVNode = options.vnode;
+  const prevVNode = base.vnode;
   options.vnode = (vnode) => {
     // Coerce a boolean `f-client-nav` to its string form so Preact doesn't
     // drop a `false` (which would silently defeat the opt-out).
@@ -543,12 +565,7 @@ function installHooks(): void {
   // The page vnode tree is built by the route handler *before* `renderPage`
   // runs, so a creation-time hook would miss it; DIFF fires for each vnode
   // as it's about to be rendered, while `currentRender` is active.
-  const opts = options as unknown as {
-    __b?: (vnode: VNode) => void;
-    __r?: (vnode: VNode) => void;
-    diffed?: (vnode: VNode) => void;
-  };
-  const prevDiff = opts.__b;
+  const prevDiff = base.__b;
   opts.__b = (vnode) => {
     // Track depth into intrinsic `<svg>` subtrees so the head-tag
     // wrapper can tell an SVG `<title>` from a document `<title>`.
@@ -608,7 +625,7 @@ function installHooks(): void {
   // Component-render hook (`__r` in preact) fires right before a function
   // component's body is invoked. Push the vnode onto the ownerStack so any
   // vnodes the body creates can record it as their owner.
-  const prevR = opts.__r;
+  const prevR = base.__r;
   opts.__r = (vnode) => {
     if (
       currentRender !== null &&
@@ -631,7 +648,7 @@ function installHooks(): void {
   // ownerStack. Keeping the stack scoped to the component's full diff
   // (not just the synchronous body call) is what makes the inside-island
   // check work for nested components.
-  const prevDiffed = opts.diffed;
+  const prevDiffed = base.diffed;
   opts.diffed = (vnode) => {
     if (vnode && vnode.type === "svg" && SVG_DEPTH > 0) SVG_DEPTH--;
     if (vnode && vnode.type === Head && HEAD_DEPTH > 0) HEAD_DEPTH--;

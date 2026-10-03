@@ -209,14 +209,21 @@ export function fresh(options: FreshPluginOptions = {}): PluginOption[] {
       });
 
       // Structural changes (a route/island file added or removed): the routes
-      // and islands maps changed, so rescan, drop the cached islands virtual,
-      // and full-reload to pull in the new structure.
+      // and islands maps changed, so rescan, drop the generated virtuals in
+      // every environment, and full-reload each one. The reload is sent
+      // without a `path`: nitro's dev worker scopes a reload to the
+      // triggering file's evaluated importers, and a just-added route was
+      // never evaluated — so a scoped reload would keep the stale router.
       const onStructureChange = async (file: string) => {
         if (!within(file)) return;
         await scan();
-        const mod = server.moduleGraph.getModuleById(ISLANDS_RESOLVED);
-        if (mod) server.moduleGraph.invalidateModule(mod);
-        server.ws.send({ type: "full-reload" });
+        for (const env of Object.values(server.environments)) {
+          for (const id of [ISLANDS_RESOLVED, ROUTER_RESOLVED, ERROR_PAGE_RESOLVED]) {
+            const mod = env.moduleGraph.getModuleById(id);
+            if (mod) env.moduleGraph.invalidateModule(mod);
+          }
+          env.hot.send({ type: "full-reload" });
+        }
       };
       server.watcher.on("add", onStructureChange);
       server.watcher.on("unlink", onStructureChange);

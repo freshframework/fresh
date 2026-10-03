@@ -325,7 +325,7 @@ test("plugin: load() returns null for unrelated ids", async () => {
   assert.equal(await load(p)("some/other/id"), null);
 });
 
-test("plugin: configureServer watches islands/ and routes/ and invalidates the islands module", async () => {
+test("plugin: configureServer watches islands/ and routes/ and invalidates the generated virtuals", async () => {
   const fs = createMemFs(["/project/islands/Counter.tsx", "/project/routes/index.tsx"]);
   const [p] = fresh({ fs, writeFile: noopWrite });
   await config(p)({ root: "/project" });
@@ -338,9 +338,23 @@ test("plugin: configureServer watches islands/ and routes/ and invalidates the i
   };
   const invalidated: unknown[] = [];
   const wsMessages: unknown[] = [];
+  const ssrHotMessages: unknown[] = [];
 
-  const fakeMods = new Map<string, { id: string }>();
-  fakeMods.set("\0" + ISLANDS_VIRTUAL_ID, { id: "islands-mod" });
+  // The client graph only holds the islands virtual; the SSR graph also holds
+  // the router — a structural change must invalidate both, in each graph.
+  const clientMods = new Map<string, { id: string }>();
+  clientMods.set("\0" + ISLANDS_VIRTUAL_ID, { id: "client:islands" });
+  const ssrMods = new Map<string, { id: string }>();
+  ssrMods.set("\0" + ISLANDS_VIRTUAL_ID, { id: "ssr:islands" });
+  ssrMods.set("\0" + ROUTER_VIRTUAL_ID, { id: "ssr:router" });
+  const fakeGraph = (mods: Map<string, { id: string }>) => ({
+    getModuleById(id: string) {
+      return mods.get(id);
+    },
+    invalidateModule(mod: unknown) {
+      invalidated.push(mod);
+    },
+  });
 
   // Minimal SSR module graph: the island file resolves to a node with no
   // importers + the island's own file, so `changeAffectsServerRender` treats
@@ -395,10 +409,24 @@ test("plugin: configureServer watches islands/ and routes/ and invalidates the i
 
   const server = {
     environments: {
+      client: {
+        moduleGraph: fakeGraph(clientMods),
+        hot: {
+          send(payload: unknown) {
+            wsMessages.push(payload);
+          },
+        },
+      },
       ssr: {
         moduleGraph: {
+          ...fakeGraph(ssrMods),
           getModulesByFile(file: string) {
             return ssrNodes.get(file);
+          },
+        },
+        hot: {
+          send(payload: unknown) {
+            ssrHotMessages.push(payload);
           },
         },
       },
@@ -411,14 +439,6 @@ test("plugin: configureServer watches islands/ and routes/ and invalidates the i
         handlers[event].push(cb);
       },
     },
-    moduleGraph: {
-      getModuleById(id: string) {
-        return fakeMods.get(id) ?? null;
-      },
-      invalidateModule(mod: unknown) {
-        invalidated.push(mod);
-      },
-    },
     ws: {
       send(payload: unknown) {
         wsMessages.push(payload);
@@ -429,17 +449,22 @@ test("plugin: configureServer watches islands/ and routes/ and invalidates the i
   await configureServer(p)(server);
   assert.deepEqual(watched.sort(), ["/project/islands", "/project/routes"]);
 
-  // A structural change (add) invalidates the islands virtual + full-reloads.
-  await handlers.add[0]!("/project/islands/New.tsx");
-  assert.deepEqual(invalidated, [{ id: "islands-mod" }]);
+  // A structural change (add) invalidates the generated virtuals in every
+  // environment and sends each an unscoped full-reload.
+  const structural = [{ id: "client:islands" }, { id: "ssr:islands" }, { id: "ssr:router" }];
+  await handlers.add[0]!("/project/routes/new.tsx");
+  assert.deepEqual(invalidated, structural);
   assert.deepEqual(wsMessages, [{ type: "full-reload" }]);
+  assert.deepEqual(ssrHotMessages, [{ type: "full-reload" }]);
 
   // `unlink` behaves the same.
   invalidated.length = 0;
   wsMessages.length = 0;
+  ssrHotMessages.length = 0;
   await handlers.unlink[0]!("/project/islands/New.tsx");
-  assert.deepEqual(invalidated, [{ id: "islands-mod" }]);
+  assert.deepEqual(invalidated, structural);
   assert.deepEqual(wsMessages, [{ type: "full-reload" }]);
+  assert.deepEqual(ssrHotMessages, [{ type: "full-reload" }]);
 
   // A content edit (change) to an island does NOT reload — HMR / prefresh
   // handle it in place so island state survives.
