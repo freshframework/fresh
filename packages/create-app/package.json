@@ -1,6 +1,6 @@
 {
   "name": "@frsh/create-app",
-  "version": "3.0.0-alpha.202608021806",
+  "version": "3.0.0-alpha.202610031718",
   "private": false,
   "description": "Scaffold a new Fresh app.",
   "keywords": [
