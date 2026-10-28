@@ -2,10 +2,16 @@
 description: "Deploy Fresh on Deno Deploy"
 ---
 
-The recommended way to deploy Fresh is by using
-[Deno Deploy](https://deno.com/deploy). It will automatically create branch
-previews for pull requests, collect request and HTTP metrics, as well as collect
-[traces](/docs/advanced/opentelemetry) for you out of the box.
+> [warn]: On October 9, 2026, [Deno announced](https://deno.com/blog/cloudflare)
+> that Deno Deploy will operate for six months before shutting down. Paying
+> customers will receive migration support to Cloudflare Workers. See the
+> [Cloudflare Workers deployment guide](/docs/deployment/cloudflare-workers) for
+> an alternative.
+
+One way to deploy Fresh is by using [Deno Deploy](https://deno.com/deploy). It
+will automatically create branch previews for pull requests, collect request and
+HTTP metrics, as well as collect [traces](/docs/advanced/opentelemetry) for you
+out of the box.
 
 ## Setup
 
