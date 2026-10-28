@@ -9,7 +9,7 @@ description: |
 > customers will receive migration support to Cloudflare Workers. For Fresh 2,
 > see the
 > [Cloudflare Workers deployment guide](/docs/latest/deployment/cloudflare-workers).
-> The instructions below describe the existing Deno Deploy integration.
+> The historical deployment instructions below are retained for reference.
 
 As a final step in the getting started guide, we'll deploy the demo site to the
 public internet using [Deno Deploy][deno-deploy]. Deno Deploy is a globally
