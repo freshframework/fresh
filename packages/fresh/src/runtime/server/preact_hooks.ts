@@ -78,6 +78,8 @@ export class RenderState {
   ownerStack: InternalVNode[] = [];
 
   headComponents = new Map<string, VNode>();
+  /** True while the children of the document's `<head>` are rendered. */
+  insideHtmlHead = false;
 
   // TODO: merge into bitmask field
   renderedHtmlTag = false;
@@ -326,6 +328,7 @@ options[OptionsType.DIFF] = (vnode) => {
           break;
         case "head": {
           RENDER_STATE!.renderedHtmlHead = true;
+          RENDER_STATE!.insideHtmlHead = true;
 
           const entryAssets = RENDER_STATE.buildCache.getEntryAssets();
           // deno-lint-ignore no-explicit-any
@@ -442,7 +445,10 @@ options[OptionsType.DIFF] = (vnode) => {
                 if (value) {
                   RENDER_STATE.headComponents.set(cacheKey, vnode);
                   return null;
-                } else if (value !== undefined) {
+                } else if (value !== undefined && RENDER_STATE.insideHtmlHead) {
+                  // Only replace elements in the document's <head>. A
+                  // <title> elsewhere, like inside an <svg>, is not the
+                  // page title.
                   const cached = RENDER_STATE.headComponents.get(cacheKey);
                   if (cached !== undefined) {
                     RENDER_STATE.headComponents.delete(cacheKey);
@@ -500,6 +506,9 @@ options[OptionsType.RENDER] = (vnode) => {
 
 const oldDiffed = options[OptionsType.DIFFED];
 options[OptionsType.DIFFED] = (vnode) => {
+  if (vnode.type === "head" && RENDER_STATE !== null) {
+    RENDER_STATE.insideHtmlHead = false;
+  }
   if (
     typeof vnode.type === "function" && vnode.type !== Fragment &&
     RENDER_STATE !== null
